@@ -1,16 +1,22 @@
 package com.stupidpeople.weacons;
 
+import android.app.PendingIntent;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
-import com.parse.ParseUser;
+import com.stupidpeople.weacons.BusWeacon.WeaconBusStop;
+import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 
-import java.io.ByteArrayOutputStream;
+import org.jsoup.Connection;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,11 +32,10 @@ import util.stringUtils;
  * Created by Milenko on 30/07/2015.
  */
 @ParseClassName("Weacon")
-public class WeaconParse extends ParseObject {
+public abstract class WeaconParse extends ParseObject {
 
+    protected ArrayList fetchedElements;
     private String[] cards;
-    private ArrayList fetchedElements;
-    private String fetchingUrl;
 
     public WeaconParse() {
     }
@@ -132,36 +137,264 @@ public class WeaconParse extends ParseObject {
         put("Name", name);
     }
 
+    public WeaconParse build() {
+        WeaconParse weres = this;
+        try {
+            switch (getType()) {
+                case accounting:
+                    break;
+                case airport:
+                    break;
+                case amusement_park:
+                    break;
+                case aquarium:
+                    break;
+                case art_gallery:
+                    break;
+                case atm:
+                    break;
+                case bakery:
+                    break;
+                case bank:
+                    break;
+                case bar:
+                    break;
+                case beauty_salon:
+                    break;
+                case bicycle_store:
+                    break;
+                case book_store:
+                    break;
+                case bowling_alley:
+                    break;
+                case bus_station:
+                    WeaconBusStop web = (WeaconBusStop) this;
+                    return web;
+                //            case cafe:
+                //                break;
+                //            case campground:
+                //                break;
+                //            case car_dealer:
+                //                break;
+                //            case car_rental:
+                //                break;
+                //            case car_repair:
+                //                break;
+                //            case car_wash:
+                //                break;
+                //            case casino:
+                //                break;
+                //            case cemetery:
+                //                break;
+                //            case church:
+                //                break;
+                //            case city_hall:
+                //                break;
+                //            case clothing_store:
+                //                break;
+                //            case convenience_store:
+                //                break;
+                //            case courthouse:
+                //                break;
+                //            case dentist:
+                //                break;
+                //            case department_store:
+                //                break;
+                //            case doctor:
+                //                break;
+                //            case electrician:
+                //                break;
+                //            case electronics_store:
+                //                break;
+                //            case embassy:
+                //                break;
+                //            case establishment:
+                //                break;
+                //            case finance:
+                //                break;
+                //            case fire_station:
+                //                break;
+                //            case florist:
+                //                break;
+                //            case food:
+                //                break;
+                //            case funeral_home:
+                //                break;
+                //            case furniture_store:
+                //                break;
+                //            case gas_station:
+                //                break;
+                //            case general_contractor:
+                //                break;
+                //            case grocery_or_supermarket:
+                //                break;
+                //            case gym:
+                //                break;
+                //            case hair_care:
+                //                break;
+                //            case hardware_store:
+                //                break;
+                //            case health:
+                //                break;
+                //            case hindu_temple:
+                //                break;
+                //            case home_goods_store:
+                //                break;
+                //            case hospital:
+                //                break;
+                //            case insurance_agency:
+                //                break;
+                //            case jewelry_store:
+                //                break;
+                //            case laundry:
+                //                break;
+                //            case lawyer:
+                //                break;
+                //            case library:
+                //                break;
+                //            case liquor_store:
+                //                break;
+                //            case local_government_office:
+                //                break;
+                //            case locksmith:
+                //                break;
+                //            case lodging:
+                //                break;
+                //            case meal_delivery:
+                //                break;
+                //            case meal_takeaway:
+                //                break;
+                //            case mosque:
+                //                break;
+                //            case movie_rental:
+                //                break;
+                //            case movie_theater:
+                //                break;
+                //            case moving_company:
+                //                break;
+                //            case museum:
+                //                break;
+                //            case night_club:
+                //                break;
+                //            case painter:
+                //                break;
+                //            case park:
+                //                break;
+                //            case parking:
+                //                break;
+                //            case pet_store:
+                //                break;
+                //            case pharmacy:
+                //                break;
+                //            case physiotherapist:
+                //                break;
+                //            case place_of_worship:
+                //                break;
+                //            case plumber:
+                //                break;
+                //            case police:
+                //                break;
+                //            case post_office:
+                //                break;
+                //            case real_estate_agency:
+                //                break;
+                //            case restaurant:
+                //                break;
+                //            case roofing_contractor:
+                //                break;
+                //            case rv_park:
+                //                break;
+                //            case school:
+                //                break;
+                //            case shoe_store:
+                //                break;
+                //            case shopping_mall:
+                //                break;
+                //            case spa:
+                //                break;
+                //            case stadium:
+                //                break;
+                //            case storage:
+                //                break;
+                //            case store:
+                //                break;
+                //            case subway_station:
+                //                break;
+                //            case synagogue:
+                //                break;
+                //            case taxi_stand:
+                //                break;
+                //            case train_station:
+                //                break;
+                //            case travel_agency:
+                //                break;
+                //            case university:
+                //                break;
+                //            case veterinary_care:
+                //                break;
+                //            case zoo:
+                //                break;
+                case nothing:
+                    weres = this;
+                    break;
+            }
+        } catch (Exception e) {
+            myLog.add(Log.getStackTraceString(e), "err");
+        }
+        return weres;
+    }
 
+
+    public static HashSet<WeaconParse> build(HashSet<WeaconParse> weaconHashSet) {
+        HashSet<WeaconParse> res = new HashSet<>();
+        for (WeaconParse we : weaconHashSet) res.add(we.build());
+        return res;
+    }
+
+    // Set of methods to be implemented by each subclass
+    protected abstract boolean notificationRequiresFetching();
+
+    protected abstract ArrayList processResponse(String response);
+
+    protected abstract String getFetchingUrl();
+
+    protected abstract String NotiSingleCompactTitle();
+
+    protected abstract String NotiSingleCompactContent();
+
+    protected abstract String NotiSingleExpandedTitle();
+
+    protected abstract String NotiSingleExpandedContent();
+
+    protected abstract String NotiOneLineSummary();
+
+    protected abstract NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext);
+
+    public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
+
+
+        fetchingResults elementsListener = new fetchingResults() {
+            @Override
+            public void onReceive(Connection.Response response) {
+                fetchedElements = processResponse(response.body());
+                fetchedElementListener.OneTaskCompleted();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                myLog.error(e);
+            }
+        };
+
+        (new fetchNotificationWeacon(getFetchingUrl(), elementsListener)).execute();
+
+    }
 
 
     /*
     TODO clean from here
      */
 
-
-    public String getCompanyDataObjectId() {
-
-        ParseObject po = getParseObject("CardCompany");
-        if (po == null) {
-            return null;
-        } else {
-            return po.getObjectId();
-        }
-    }
-
-    public void setCompanyDataObjectId(String value) {
-        put("CardCompany", value);
-    }
-
-    /**
-     * If true, it shows a separated notification if has been fetched
-     *
-     * @return
-     */
-    public boolean getOwnNotif() {
-        return (getBoolean("OwnNotif") && fetchedElements.size() > 0);
-    }
 
     public String[] getCards() {
 
@@ -182,9 +415,6 @@ public class WeaconParse extends ParseObject {
         return logoRounded;
     }
 
-    public String getParadaId() {
-        return getString("paradaId");
-    }
 
     public String getMessage() {
         String message = getString("Description");
@@ -204,11 +434,6 @@ public class WeaconParse extends ParseObject {
         return bm;
     }
 
-    public void setLogo(ParseFile fileLogo) {
-        put("Logo", fileLogo);
-    }
-
-
     public String getImageParseUrl() {
         return getParseFile("Logo").getUrl();
     }
@@ -217,96 +442,8 @@ public class WeaconParse extends ParseObject {
         return getParseGeoPoint("GPS");
     }
 
-    public void setGPS(ParseGeoPoint GPS) {
-        put("GPS", GPS);
-    }
-
-
-    public void setType(String type) {
-        put("Type", type);
-    }
-
-    public void setMainUrl(String mainUrl) {
-        put("MainUrl", mainUrl);
-    }
-
-    public void setPhone(String phone) {
-        put("Phone", phone);
-    }
-
-    public void setUrl2(String url2) {
-        put("Url2", url2);
-
-    }
-
-    public void setUrl3(String url3) {
-        put("Url3", url3);
-    }
-
-    public void setDescription(String description) {
-        put("Description", description);
-    }
-
-    public void setAirportCode(String airportCode) {
-        put("AirportCode", airportCode);
-    }
-
-    public void setRating(int rating) {
-        put("Rating", rating);
-    }
-
-    public void setAutomatic(boolean automatic) {
-        put("Automatic", automatic);
-
-    }
-
-    public void setOwner(ParseUser owner) {
-        put("Owner", owner);
-
-    }
 
     // OTHER
-    public boolean isAirport() {
-        return getType().equals("AIRPORT");
-    }
-
-
-    public boolean isBrowser() {
-        boolean b = false;
-        try {
-            String first = getCards()[0];
-            b = first.equals("Browser");
-        } catch (Exception e) {
-            myLog.add("no tinene card definida en parse", "aut");
-        }
-        return b;
-    }
-
-
-    //Fetching for notification
-    public boolean notificationRequiresFetching() {
-        if (getType().equals("bus_stop") || getName().equals("ESADECREAPOLIS")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public ArrayList getFetchedElements() {
-        return fetchedElements;
-    }
-
-    public void setFetchingResults(ArrayList elements) {
-        this.fetchedElements = elements;
-    }
-
-    public void resetFetchingResults() {
-        for (Object o : fetchedElements) {
-            //TODO solve
-//            LineTimeStCgOld lineTime = (LineTimeStCgOld) o;
-//            lineTime.setRoundedTime("-");
-        }
-    }
 
     public int getRepeatedOffRemoveFromNotification() {
         int res;
@@ -318,15 +455,6 @@ public class WeaconParse extends ParseObject {
         return res;
     }
 
-    public String getFetchingUrl() {
-        fetchingUrl = getString("FetchingUrl") + getParadaId();
-//        if (getName().startsWith("ESADE F")) {
-//            fetchingUrl = "http://intranet.esade.edu/web1/pkg_pantalles.info_layer?ample=500&alt=901&segons=0&edifici=2";
-//        } else if (getType().equals("bus_stop")) {
-//            fetchingUrl = "http://www.santqbus.santcugat.cat/consultatr.php?idparada=" + getParadaId() + "&idliniasae=-1&codlinea=-1";
-//        }
-        return fetchingUrl;
-    }
 
     public boolean near(ParseGeoPoint point, int kms) {
         return getGPS().distanceInKilometersTo(point) < kms;

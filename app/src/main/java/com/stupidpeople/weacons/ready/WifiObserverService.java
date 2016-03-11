@@ -1,4 +1,4 @@
-package com.stupidpeople.weacons;
+package com.stupidpeople.weacons.ready;
 
 /**
  * Created by Milenko on 03/03/2016.
@@ -16,14 +16,20 @@ import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.Notifications;
+import com.stupidpeople.weacons.WeaconParse;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import util.myLog;
 
-import static com.stupidpeople.weacons.ParseActions.CheckSpotMatches;
+import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
 
 /**
  * Created by Milenko on 04/10/2015.
@@ -72,37 +78,6 @@ public class WifiObserverService extends Service {
         }
 
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    /**
-     * From the list of ScanResults, it looks if SSIDS are present in parse list,
-     * and launch the notifications
-     *
-     * @param sr scanResults
-     * @return number of matches
-     */
-    public void CheckScanResults(final List<ScanResult> sr) {
-        iScan++;
-
-        ArrayList<String> bssids = new ArrayList<>();
-        ArrayList<String> ssids = new ArrayList<>();
-        StringBuilder sb = new StringBuilder(iScan + "+++++++ Scan results:+" + "\n");
-        StringBuilder sb2 = new StringBuilder();
-
-        for (ScanResult r : sr) {
-            bssids.add(r.BSSID);
-            ssids.add(r.SSID);
-
-            sb.append("  '" + r.SSID + "' | " + r.BSSID + " | l= " + r.level + "\n");
-            sb2.append(r.SSID + " | ");
-        }
-        sb.append("+++++++++");
-        myLog.add(sb.toString(), tag);
-
-        //TODO remove?
-//        updateRecordingNotification("new scann", sb2.toString());
-
-        CheckSpotMatches(bssids, ssids);
     }
 
     //TODO implement notifications of working service
@@ -196,13 +171,20 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                     List<ScanResult> sr = wifiManager.getScanResults();
-                    CheckScanResults(sr);
+
+                    CheckSpotMatches(sr, new CallBackWeacons() {
+                        @Override
+                        public void OnReceive(HashSet<WeaconParse> weaconHashSet) {
+                            myLog.add(" " + WeaconParse.Listar(weaconHashSet), tag);
+                            LogInManagement.setNewWeacons(weaconHashSet);
+                        }
+                    });
 
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }
             } catch (Exception e) {
-                myLog.add("EEE onReceive" + e.getLocalizedMessage(), "aut");
+                myLog.add(Log.getStackTraceString(e), "err");
             }
         }
     }

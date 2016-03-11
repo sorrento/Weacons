@@ -11,6 +11,7 @@ import android.text.SpannableString;
 import android.util.Log;
 
 
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -129,72 +130,6 @@ public abstract class Notifications {
         return cls;
     }
 
-    ///////////////////
-
-    private static NotificationCompat.Builder buildSingleNotification
-            (WeaconParse we, PendingIntent resultPendingIntent, boolean sound, boolean needsFetching) {
-
-        NotificationCompat.Builder notif;
-
-        Intent refreshIntent = new Intent("popo"); //TODO poner el reciever de esto, para que refresque la notif
-        PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
-        NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_silence, "Turn Off", resultPendingIntent);//TODO to create the silence intent
-
-
-        notif = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_stat_name_hn)
-                .setLargeIcon(we.getLogoRounded())
-                .setContentTitle(we.getName())
-                .setContentText(we.getTypeString())
-                .setAutoCancel(true)
-                .setTicker("Weacon detected\n" + we.getName())
-                .addAction(actionSilence);
-
-        if (needsFetching) notif.addAction(actionRefresh);
-
-        if (sound) {
-            notif.setLights(0xE6D820, 300, 100)
-                    .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
-        }
-
-        //TODO me gustaría meter la creacion de la notificación dentro del objeto weacons
-//        notif = we.getNotification();
-
-        if (we.getType() == parameters.typeOfWeacon.bus_station) {
-            BusStop busStop = (BusStop) we.getFetchedElements().get(0);
-            notif.setContentText("BUS STOP. " + busStop.summarizeAllLines());
-
-            //InboxStyle
-            NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-            inboxStyle.setBigContentTitle(we.getName());
-            inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
-
-            StringBuilder sb = new StringBuilder();
-            for (SpannableString s : busStop.summarizeByOneLine()) {
-                inboxStyle.addLine(s);
-                sb.append("   " + s + "\n");
-            }
-
-            notif.setStyle(inboxStyle);
-            notificationMultiple(we.getName(), sb.toString(), "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(sound));
-        } else {
-            //Bigtext style
-            NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
-            textStyle.setBigContentTitle(we.getName());
-            textStyle.bigText(we.getMessage());
-            textStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
-            notif.setStyle(textStyle);
-        }
-
-        notif.setContentIntent(resultPendingIntent);
-
-        return notif;
-    }
-
-    private static void notificationMultiple(String title, String body, String summary, String sound) {
-        myLog.add("***********************************SoUND:" + sound + "\n" + title + "\n" + body + summary + "\n", "NOTI");
-    }
 
     private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean sound, boolean anyFetchable) {
 

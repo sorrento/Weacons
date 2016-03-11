@@ -1,9 +1,11 @@
-package com.stupidpeople.weacons;
+package com.stupidpeople.weacons.ready;
 
 import android.app.Application;
 
 import com.parse.Parse;
 import com.parse.ParseObject;
+import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.WifiSpot;
 
 /**
  * Created by Milenko on 04/03/2016.
@@ -13,10 +15,9 @@ public class Weacons extends Application {
     public void onCreate() {
         super.onCreate();
         Parse.enableLocalDatastore(this);
-//        ParseObject.registerSubclass(HitSapo.class);
         ParseObject.registerSubclass(WeaconParse.class);
         ParseObject.registerSubclass(WifiSpot.class);
         Parse.initialize(this, "CADa4nX2Lx29QEJlC3LUY1snbjq9zySlF5S3YSVG", "hC9VWCmGEBxb9fSGQPiOjSInaAPnYMZ0t8k3V0UO");
-//we are using the credential for other app..problem?
+        //we are using the credential for other app..problem?
     }
 }

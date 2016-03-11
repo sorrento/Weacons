@@ -3,6 +3,8 @@ package com.stupidpeople.weacons;
 import android.util.Log;
 
 
+import com.stupidpeople.weacons.ready.MultiTaskCompleted;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,18 +54,14 @@ public abstract class LogInManagement {
 
             now = new CurrentSituation(weaconsDetected, occurrences);
 
-            myLog.add("conta: " + WeaconParse.Listar(occurrences), tag);
-            myLog.add("Entering or quitting any We?" + anyChange + "| anyfetchable?" + now.anyFetchable() + "| should fetch?" + now.shouldFetch, tag);
-
             //Notify or change notification
-            if (anyChange || (now.anyFetchable() && now.shouldFetch)) {
+            if (anyChange || now.shouldFetch) {
                 Notify();
-            } else if (!anyChange && now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {//TODO esta lógica es  un poco "confusa"
+            } else if (!anyChange && now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
                 NotifyRemovingObsoleteInfo();
             }
 
             Notifications.notifyOccurrences(occurrences);
-            myLog.add("****************************\n", tag);
 
         } catch (Exception e) {
             myLog.add(Log.getStackTraceString(e), "err");
@@ -131,7 +129,7 @@ public abstract class LogInManagement {
                 }
             } else {
                 //First time
-                movingInForNotificaion(we);
+                movingInForNotification(we);
             }
         }
     }
@@ -154,9 +152,23 @@ public abstract class LogInManagement {
         lastTimeWeFetched = false;
     }
 
+    private static void movingInForNotification(WeaconParse we) {
+        occurrences.put(we, 1);
+        myLog.add("Just entering in: " + we.getName(), tag);
+        anyChange = true;//Just appeared this weacon
+        sound = true;
+        weaconsToNotify.add(we);
+    }
+
+    private static void movingOutForNotification(WeaconParse we) {
+        weaconsToNotify.remove(we);
+        myLog.add("Remove from notification:" + we.getName(), tag);
+        anyChange = true;
+    }
+
+
+
     private static void Notify() {
-        myLog.add("Will Notify: " + WeaconParse.Listar(weaconsToNotify), tag);
-        myLog.add("**Vamos a notificar. Se requiere fetch:" + now.anyFetchable(), tag);
 
         if (!now.anyFetchable()) {
             Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
@@ -170,7 +182,7 @@ public abstract class LogInManagement {
                     i += 1;
                     myLog.add("terminada ina task=" + 1 + "/" + now.nFetchings, tag);
 
-                    if (i == nFetchings) {
+                    if (i == now.nFetchings) {
                         myLog.add("a lazanr la notificaicno congunta", tag);
                         Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
                         lastTimeWeFetched = true;
@@ -185,17 +197,15 @@ public abstract class LogInManagement {
 
             for (final WeaconParse we : weaconsToNotify) {
                 if (we.notificationRequiresFetching()) {
-                    if (we.getType().equals("bus_stop")) {
-                        if (we.near(parameters.stCugat, 20)) {
-                            (new fetchParadaStCugat(listener, we)).execute();
-                        } else if (we.near(parameters.santiago, 20)) {
-                            (new fetchParadaSantiago(listener, we)).execute();
-                        }
-                    }
+
+                    we.fetchForNotification(listener);
+
                 }
             }
         }
     }
+/////////////////
+
 
 
     //NOTIFICATIONS
@@ -203,19 +213,6 @@ public abstract class LogInManagement {
         return weaconsToNotify.contains(we);
     }
 
-    private static void movingInForNotificaion(WeaconParse we) {
-        occurrences.put(we, 1);
-        myLog.add("Just entering in: " + we.getName(), tag);
-        anyChange = true;//Just appeared this weacon
-        sound = true;
-        weaconsToNotify.add(we);
-    }
-
-    private static void movingOutForNotification(WeaconParse we) {
-        weaconsToNotify.remove(we);
-        myLog.add("Remove from notification:" + we.getName(), tag);
-        anyChange = true;
-    }
 
     public static void refresh() {
         myLog.add("refresing the notification", tag);
@@ -223,4 +220,60 @@ public abstract class LogInManagement {
     }
 
 
+    /**
+     * Created by Milenko on 04/03/2016.
+     */
+    public static class CurrentSituation {
+        private final HashMap<WeaconParse, Integer> occurrences;
+        private final HashSet<WeaconParse> weacons;
+        public int nFetchings;
+        public boolean shouldFetch;
+
+        public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
+            this.occurrences = occurrences;
+            this.weacons = weaconsDetected;
+            nFetchings = countFetchingWeacons();
+            shouldFetch = shouldFetch();
+
+            myLog.add("conta: " + WeaconParse.Listar(occurrences), tag);
+            myLog.add("Entering or quitting any We?" + anyChange + "| anyfetchable?" + now.anyFetchable() + "| should fetch?" + now.shouldFetch, tag);
+
+        }
+
+        /**
+         * Indicates if should fetch. The criteria is "if has been active by more than n scanners, then no.
+         *
+         * @param
+         * @return
+         */
+        private boolean shouldFetch() {
+            boolean res = false;
+
+            if (anyFetchable()) {
+                Iterator<WeaconParse> it = weacons.iterator();
+                while (it.hasNext() && !res) {
+                    WeaconParse we = it.next();
+                    if (we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) {//avoid keep fetching if you live near a bus stop
+                        res = true;
+                        //                myLog.add(we.getName() + " requires feticn. this is the " + occurrences.get(we) + "time", tag);
+                    }
+                }
+            }
+
+            return res;
+        }
+
+        public boolean anyFetchable() {
+            return nFetchings > 0;
+        }
+
+        private int countFetchingWeacons() {
+            int i = 0;
+            for (WeaconParse we : weacons) {
+                if (we.notificationRequiresFetching()) i++;
+            }
+            return i;
+        }
+
+    }
 }

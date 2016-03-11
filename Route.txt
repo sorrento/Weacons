@@ -1,0 +1,24 @@
+1) settings para encender o apagar el servicio
+    que tenga el sevicio de escucha y notificaciones
+
+-------------------------
+
+2) que el servicio sea persistente
+
+3) cambiar icono
+
+4) probar en el de rebeca
+
+5) adaptar los datos para que la recepcion de wifi y deteccion sea más cercana
+
+6) crear mi libreria de log
+
+- Agregar módulo de sapeo
+- agregrar modo debug en settings, (por ejemplo muesta notificaciones del servicio)
+- gestion de la lectura de weacons locales (al conectar, y cuando hacer el pinWeacons?)
+- capturar la informacion de dismiss notification, para saber los gustos
+
+-----dudas
+Tendria que estar binded el servicio?
+
+----
