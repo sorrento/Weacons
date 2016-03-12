@@ -20,7 +20,7 @@ public abstract class Chat {
     private static ArrayList<WeaconParse> onChat = new ArrayList<>();
     private static String tag = "chat";
 
-    static boolean IsInChat(WeaconParse we) {
+    public static boolean IsInChat(WeaconParse we) {
         return onChat.contains(we);
     }
 
@@ -34,13 +34,13 @@ public abstract class Chat {
         return "Z_" + bs.replace(":", "_");
     }
 
-    static void WeChatIn(WeaconParse we) {
+    public static void WeChatIn(WeaconParse we) {
         //TODO LogInChat(we)
         myLog.add("Chat In: " + we.getName(), tag);
         onChat.add(we);
     }
 
-    static void movingOutForChat(WeaconParse we) {
+    public static void movingOutForChat(WeaconParse we) {
         //TODO     LogOutChat(we)
         onChat.remove(we);
         myLog.add("ChatOut " + we.getName(), tag);
