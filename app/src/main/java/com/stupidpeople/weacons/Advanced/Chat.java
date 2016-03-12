@@ -1,4 +1,4 @@
-package com.stupidpeople.weacons;
+package com.stupidpeople.weacons.Advanced;
 
 import android.content.Context;
 import android.widget.Toast;
@@ -6,6 +6,7 @@ import android.widget.Toast;
 import com.parse.ParseException;
 import com.parse.ParsePush;
 import com.parse.SaveCallback;
+import com.stupidpeople.weacons.WeaconParse;
 
 import java.util.ArrayList;
 

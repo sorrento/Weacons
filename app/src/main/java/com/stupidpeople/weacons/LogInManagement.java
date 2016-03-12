@@ -3,6 +3,7 @@ package com.stupidpeople.weacons;
 import android.util.Log;
 
 
+import com.stupidpeople.weacons.Advanced.Chat;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 
 import java.util.ArrayList;
