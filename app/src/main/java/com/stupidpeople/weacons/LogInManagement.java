@@ -40,7 +40,6 @@ public abstract class LogInManagement {
      * Informs the weacons detected, in order to send/update/remove  notification
      * and log in /out in the chat
      *
-     * @param weaconsDetected
      */
     public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected) {
 

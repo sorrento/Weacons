@@ -42,6 +42,8 @@ public class DebugActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
 
+        myLog.initialize();
+
         retrieveSpotsAround(false, parameters.radioSpotsQuery);
 
         initializeViews();

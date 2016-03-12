@@ -23,6 +23,10 @@ public class myLog {
         initialized = true;
         WriteUnhandledErrors();
         currentDateandTime = currentDate();
+
+        File folderm = new File(Environment.getExternalStorageDirectory() + folder);
+        if (!folderm.exists()) folderm.mkdir();
+
     }
 
     /***
@@ -36,11 +40,11 @@ public class myLog {
             Log.d(TAG, text);
 
             if (!initialized) {
+                initialize();
                 //Just to observe when we lost continuiti
                 File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_REC" + TAG + ".txt");
                 logFile.createNewFile();
 
-                initialize();
             }
 
             File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_" + TAG + ".txt");

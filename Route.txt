@@ -21,4 +21,6 @@
 -----dudas
 Tendria que estar binded el servicio?
 
-----
+----BUG
+---ERROR from parse obtienning ssidsjava.lang.RuntimeException: Failed to create instance of subclass.
+mensaje al hacer el build (verision obsoleta de files y unsafe(recompilar con detalles.. )(probar con ctrl F9)
