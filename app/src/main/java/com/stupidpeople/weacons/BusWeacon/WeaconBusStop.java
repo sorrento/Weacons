@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -33,6 +34,7 @@ import util.parameters;
  * Created by Milenko on 10/03/2016.
  */
 public class WeaconBusStop extends WeaconParse {
+    //TODO sort methods
     String updateTime;
     String stopCode;
     private String description;
@@ -135,7 +137,13 @@ public class WeaconBusStop extends WeaconParse {
 
     @Override
     protected String NotiSingleCompactContent() {
-        return "BUS STOP. " + summarizeAllLines();
+        String s;
+        if (obsolete) {
+            s = "Press REFRESH Button";
+        } else {
+            s = "BUS STOP. " + summarizeAllLines();
+        }
+        return s;
     }
 
     @Override
@@ -145,13 +153,14 @@ public class WeaconBusStop extends WeaconParse {
 
     @Override
     protected String NotiSingleExpandedContent() {
-        //TODO
-        return null;
+        String msg = "Please press REFRESH \nto have updated information about the estimated " +
+                "arrival times of buses at this stop.";
+        return msg;
     }
 
     private NotificationCompat.InboxStyle getInboxStyle() {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(getName());
+        inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
         inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
 
 
@@ -190,13 +199,7 @@ public class WeaconBusStop extends WeaconParse {
                 String s = sb.toString();
                 String sub = s.substring(0, s.length() - 2);
 
-                //add format
-                SpannableString span = new SpannableString(sub);
-                span.setSpan(new ForegroundColorSpan(Color.BLACK), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                span.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                span.setSpan(new RelativeSizeSpan(1.1f), 0, name.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                arr.add(span);
+                arr.add(getSpannableString(sub, name.length()));
 
             }
         }
@@ -210,16 +213,64 @@ public class WeaconBusStop extends WeaconParse {
     }
 
     @Override
+    protected SpannableString getOneLineSummary() {
+        String name;
+
+        if (getName().length() > 10) {
+            name = getName().substring(1, 10) + ".";
+        } else {
+            name = getName();
+        }
+
+        return getSpannableString(name + " " + summarizeAllLines(), name.length());
+    }
+
+    @Override
+    protected Class<?> getActivityClass() {
+        //        Class<?> cls = CardActivity.class;//TODO poner la class correcto
+        return myLog.class;
+    }
+
+    /**
+     * The first m characters are BOLD and slighty bigger
+     *
+     * @param text
+     * @param m
+     * @return
+     */
+    @NonNull
+    private SpannableString getSpannableString(String text, int m) {
+        //TODO move to string utils
+        SpannableString span = new SpannableString(text);
+
+        span.setSpan(new ForegroundColorSpan(Color.BLACK), 0, m, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new StyleSpan(android.graphics.Typeface.BOLD), 0, m, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        span.setSpan(new RelativeSizeSpan(1.1f), 0, m, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        return span;
+    }
+
+    @Override
+    protected Intent getResultIntent(Context mContext) {
+
+        Intent intent = new Intent(mContext, getActivityClass())//TODO Asegurarse que todos los weacon mandan mismos nombrees de extras
+                .putExtra("wName", getName())
+                .putExtra("wWeaconObId", getObjectId())
+                .putExtra("wLogo", getLogoRounded())
+                .putExtra("wFetchingUrl", getFetchingUrl());
+
+        return intent;
+    }
+
+    @Override
     protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
         NotificationCompat.Builder notif;
+        String title = NotiSingleCompactTitle();
 
         Intent refreshIntent = new Intent("popo"); //TODO poner el reciever de esto, para que refresque la notif
         PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
         NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, "Turn Off", resultPendingIntent);//TODO to create the silence intent
-
-
-        String title = getName();
 
         notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_notif_we)
@@ -227,21 +278,35 @@ public class WeaconBusStop extends WeaconParse {
                 .setContentTitle(title)
                 .setContentText(NotiSingleCompactContent())
                 .setAutoCancel(true)
-                .setTicker("Weacon detected\n" + getName())
                 .addAction(actionSilence)
                 .addAction(actionRefresh);
 
-        if (sound) {
-            notif.setLights(0xE6D820, 300, 100)
-                    .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
+
+        if (obsolete) {
+            //Bigtext style
+
+            String msg = NotiSingleExpandedContent();
+            NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
+            textStyle.setBigContentTitle(title);
+            textStyle.bigText(msg);
+            notif.setStyle(textStyle);
+
+            myLog.notificationMultiple(title, msg, "Currently " + LogInManagement.getActiveWeacons().size()
+                    + " weacons active", String.valueOf(false));
+        } else {
+            //InboxStyle
+            notif.setTicker("Weacon detected\n" + getName());
+            if (sound) {
+                notif.setLights(0xE6D820, 300, 100)
+                        .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
+            }
+            notif.setStyle(getInboxStyle());
+
+            myLog.notificationMultiple(title, sInbox, "Currently " + LogInManagement.getActiveWeacons().size()
+                    + " weacons active", String.valueOf(sound));
         }
 
-
-        notif.setStyle(getInboxStyle());
-
-        myLog.notificationMultiple(title, sInbox, "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(sound));
-
-        notif.setContentIntent(resultPendingIntent);//TODO whath to do when they click on i
+        notif.setContentIntent(resultPendingIntent);//TODO whath to do when they click on in the notification
 
         return notif;
     }

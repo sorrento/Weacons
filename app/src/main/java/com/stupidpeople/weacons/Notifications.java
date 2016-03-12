@@ -6,10 +6,9 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.text.SpannableString;
 import android.util.Log;
-
 
 
 import java.util.ArrayList;
@@ -63,16 +62,16 @@ public abstract class Notifications {
         try {
             if (notificables.size() > 0) {
                 if (notificables.size() == 1) {
-                    sendOneWeacon(notificables.get(0), sound, anyFetchable);
+                    sendOneWeacon(notificables.get(0), sound);
                 } else {
                     sendSeveralWeacons(notificables, sound, anyFetchable);
                 }
             } else {
                 mNotificationManager.cancel(mIdNoti);
-                myLog.add("Borrada la notifcacion porque no estamos en área de ninguno.", "LIM");
+                myLog.add("Borrada la notifcacion porque no estamos en área de ninguno.", tag);
             }
         } catch (Exception e) {
-            myLog.add(Log.getStackTraceString(e), "err");
+            myLog.error(e);
         }
     }
 
@@ -81,61 +80,27 @@ public abstract class Notifications {
      *
      * @param we
      * @param sound
-     * @param needsFetching
      */
-    public static void sendOneWeacon(WeaconParse we, boolean sound, boolean needsFetching) {
+    public static void sendOneWeacon(WeaconParse we, boolean sound) {
         try {
             myLog.add("estanmos en send one weacon", tag);
 
-            Class<?> cls = CardsOrBrowser(we);
-            Intent intent = getResultIntent(we, mContext, cls);
+            Intent intent = we.getResultIntent(mContext);
 
             //TODO verify this stack works properly
             TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
-            stackBuilder.addParentStack(cls);
+            stackBuilder.addParentStack(we.getActivityClass());
             stackBuilder.addNextIntent(intent);
             PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT); //Todo solve the stack for going back from cards
 
-            NotificationCompat.Builder notification = buildSingleNotification(we, pendingIntent, sound, needsFetching);
+            NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, sound, mContext);
             mNotificationManager.notify(mIdNoti, notification.build());
         } catch (Exception e) {
             myLog.add(Log.getStackTraceString(e), "err");
         }
     }
 
-    private static Intent getResultIntent(WeaconParse we, Context mContext, Class<?> cls) {
-        Intent intent = new Intent(mContext, cls)
-                .putExtra("wName", we.getName())
-                .putExtra("wWeaconObId", we.getObjectId())
-                .putExtra("wLogo", we.getLogoRounded());
-
-        if (we.getType() == parameters.typeOfWeacon.bus_station) {
-            intent.putExtra("wFetchingUrl", we.getFetchingUrl());
-        }
-        //Complete with other specific cases
-
-        return intent;
-    }
-
-    private static Class<?> CardsOrBrowser(WeaconParse we) {
-        //TODO verify that card o browser depends on the type of weacon and not specific we
-        Class<?> cls;
-        parameters.typeOfWeacon typeOfWeacon = we.getType();
-
-        if (typeOfWeacon == parameters.typeOfWeacon.bus_station) {
-            cls = CardActivity.class;
-        } else {
-            cls = BrowserActivity.class;
-        }
-        return cls;
-    }
-
-
     private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean sound, boolean anyFetchable) {
-
-        Intent refreshIntent = new Intent("popo");
-        PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
 
         NotificationCompat.Builder notif;
         Collections.reverse(notificables);
@@ -147,15 +112,22 @@ public abstract class Notifications {
         String msg = Integer.toString(notificables.size()) + " weacons around you";
 
         notif = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_stat_name_dup)
+                .setSmallIcon(R.drawable.ic_noti_we_double)
                 .setLargeIcon(notificables.get(0).getLogoRounded())
                 .setContentTitle(msg)
                 .setContentText(notificables.get(0).getName() + " and others.")
                 .setAutoCancel(true)
-                .setDeleteIntent(pendingDeleteIntent)
                 .setTicker(msg);
+//                .setDeleteIntent(pendingDeleteIntent) TODO what should hapen when notification are removed??
 
-        if (anyFetchable) notif.addAction(actionRefresh);
+        //Refresh Button
+        if (anyFetchable) {
+            Intent refreshIntent = new Intent(parameters.refreshIntentName);
+            PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
+
+            notif.addAction(actionRefresh);
+        }
 
         if (sound) {
             notif.setLights(0xE6D820, 300, 100)
@@ -168,23 +140,27 @@ public abstract class Notifications {
         inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
 
         StringBuilder sb = new StringBuilder();
-        for (WeaconParse weacon : notificables) {
-            inboxStyle.addLine(weacon.getOneLineSummary());
-            sb.append("  " + weacon.getOneLineSummary() + "\n");
+        for (WeaconParse we : notificables) {
+            inboxStyle.addLine(we.getOneLineSummary());
+            sb.append("  " + we.getOneLineSummary() + "\n");
         }
 
         notif.setStyle(inboxStyle);
         resultIntent = new Intent(mContext, WeaconListActivity.class);
 
-        stackBuilder = TaskStackBuilder.create(mContext);
-        stackBuilder.addParentStack(WeaconListActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            stackBuilder = TaskStackBuilder.create(mContext);
+            stackBuilder.addParentStack(WeaconListActivity.class);
+            stackBuilder.addNextIntent(resultIntent);
+        } else {
+            stackBuilder = null; //TODO ver qué hacer con problema de version
+            myLog.add("VErsion muy baja, no se puede usar el stack", "aut");
+        }
         resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         notif.setContentIntent(resultPendingIntent);
 
         myLog.notificationMultiple(msg, sb.toString(), "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(sound));
         mNotificationManager.notify(mIdNoti, notif.build());
     }
-
 
 }

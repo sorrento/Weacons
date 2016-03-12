@@ -54,6 +54,7 @@ public class parameters {
     //Coords
     public static ParseGeoPoint stCugat = new ParseGeoPoint(41.474722, 2.086667);
     public static ParseGeoPoint santiago = new ParseGeoPoint(-33.45, -70.666667);
+    public static String refreshIntentName;
 
     public enum CardType {COMPANY, SCHEDULE, LINKEDIN, NEWS, FLIGHTS}
 

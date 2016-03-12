@@ -2,9 +2,11 @@ package com.stupidpeople.weacons;
 
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
+import android.text.SpannableString;
 import android.util.Log;
 
 import com.parse.ParseClassName;
@@ -36,6 +38,7 @@ public abstract class WeaconParse extends ParseObject {
 
     protected ArrayList fetchedElements;
     private String[] cards;
+    protected boolean obsolete = false;
 
     public WeaconParse() {
     }
@@ -74,22 +77,6 @@ public abstract class WeaconParse extends ParseObject {
         return sb.toString();
     }
 
-    public String getOneLineSummary() {
-        if (getType().equals("bus_stop")) {
-            //TODO
-//            NewBusStop busStop = (NewBusStop) fetchedElements.get(0);
-//            return busStop.summarizeAllLines(true);
-            return null;
-        } else {
-            return "no summary";
-        }
-//        StringBuilder sb = new StringBuilder(getName());
-//        if (this.notificationRequiresFetching()) {
-//            formatter form = new formatter(fetchedElements);
-//            sb.append(": " + form.summarizeAllLines(true));
-//        }
-//        return sb.toString();
-    }
 
     // Comparison of WeaconParse
     @Override
@@ -368,6 +355,19 @@ public abstract class WeaconParse extends ParseObject {
 
     protected abstract String NotiOneLineSummary();
 
+    protected abstract SpannableString getOneLineSummary();
+
+    protected abstract Class getActivityClass();
+
+    /**
+     * Intent to open when the notification (one weacon) is presse
+     * . It contains the proper extras
+     *
+     * @param mContext
+     * @return
+     */
+    protected abstract Intent getResultIntent(Context mContext);
+
     protected abstract NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext);
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
@@ -390,6 +390,12 @@ public abstract class WeaconParse extends ParseObject {
 
     }
 
+    /**
+     * Put a new message for notification, without data
+     */
+    public void setObsolete() {
+        obsolete = true;
+    }
 
     /*
     TODO clean from here

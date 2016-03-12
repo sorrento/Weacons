@@ -145,7 +145,7 @@ public abstract class LogInManagement {
         //removing last info
         myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
         for (WeaconParse we : weaconsToNotify) {
-            we.resetFetchingResults();
+            we.setObsolete();
         }
 
         Notifications.showNotification(weaconsToNotify, false, true);
