@@ -2,33 +2,38 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.stupidpeople.weacons">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
+    <!--TODO cambiar icon-->
     <application
         android:name=".ready.Weacons"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/ic_weacon_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
-        <activity
-            android:name=".SettingsActivity"
-            android:label="@string/app_name">
+        <activity android:name=".Temporary.DebugActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/app_name" />
         <activity
             android:name=".WeaconListActivity"
             android:label="Weacons Around">
-            <!--android:parentActivityName=".Activities.MainActivity">-->
-            <!--<meta-data-->
-            <!--android:name="android.support.PARENT_ACTIVITY"-->
-            <!--android:value=".Activities.MainActivity" />-->
+
+            <!-- android:parentActivityName=".Activities.MainActivity"> -->
+            <!-- <meta-data -->
+            <!-- android:name="android.support.PARENT_ACTIVITY" -->
+            <!-- android:value=".Activities.MainActivity" /> -->
         </activity>
     </application>
 

@@ -1,10 +1,18 @@
 package com.stupidpeople.weacons.ready;
 
+import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.widget.Toast;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
+import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
 import com.stupidpeople.weacons.ready.CallBackWeacons;
@@ -86,5 +94,64 @@ public abstract class ParseActions {
                 }
             }
         });
+    }
+
+    /***
+     * get wifispots from parse in a area and pin them the object includes the weacon
+     *  @param bLocal  if should be queried in local database
+     * @param radio   kms
+     * @param center  center of queried area
+     * @param context
+     */
+
+    public static void getSpots(final boolean bLocal, final double radio, final GPSCoordinates center, final Context context) {
+        try {
+            //TODO ver si tiene sentido leer los weacons de local
+            //1.Remove spots and weacons in local
+            myLog.add("retrieving SSIDS from local:" + bLocal + " user: " + ParseUser.getCurrentUser(), tag);
+            ParseObject.unpinAllInBackground(parameters.pinWeacons, new DeleteCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (e == null) {
+
+                        //2. Load them
+                        ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
+                        query.whereWithinKilometers("GPS", new ParseGeoPoint(center.getLatitude(), center.getLongitude()), radio);
+                        query.include("associated_place");
+                        query.setLimit(900);
+
+                        if (bLocal) query.fromLocalDatastore();
+                        query.findInBackground(new FindCallback<WifiSpot>() {
+                            @Override
+                            public void done(List<WifiSpot> spots, ParseException e) {
+                                if (e == null) {
+
+                                    //3. Pin them
+                                    myLog.add("number of SSIDS Loaded for weacons:" + spots.size(), tag);
+                                    if (!bLocal)
+                                        ParseObject.pinAllInBackground(parameters.pinWeacons, spots, new SaveCallback() {
+                                            @Override
+                                            public void done(ParseException e) {
+                                                if (e == null) {
+                                                    myLog.add("Wecaons pinned ok", tag);
+                                                    Toast.makeText(context, "Weacons Loaded", Toast.LENGTH_SHORT).show();
+                                                } else {
+                                                    myLog.add("---Error retrieving Weacons from web: " + e.getMessage(), tag);
+                                                }
+                                            }
+                                        });
+                                } else {
+                                    myLog.add("---ERROR from parse obtienning ssids" + e.getMessage(), tag);
+                                }
+                            }
+                        });
+                    } else {
+                        myLog.error(e);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            myLog.add("---Error: failed retrieving SPOTS: " + e.getMessage(),tag);
+        }
     }
 }
