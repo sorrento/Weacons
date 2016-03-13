@@ -1,6 +1,6 @@
-package com.stupidpeople.weacons.BusWeacon;
+package com.stupidpeople.weacons.WeaconBus;
 
-import com.stupidpeople.weacons.BusWeacon.SantCugat.BusStCugat;
+import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
 
 import java.util.ArrayList;
 
@@ -8,8 +8,8 @@ import java.util.ArrayList;
  * Created by Milenko on 02/02/2016.
  */
 public abstract class BusLine {
-    protected String lineCode;
-    protected ArrayList<Bus> buses = new ArrayList<>();
+    public String lineCode;
+    public ArrayList<Bus> buses = new ArrayList<>();
 
     public BusLine(String lineCode, BusStCugat bus) {
         this.lineCode = lineCode;

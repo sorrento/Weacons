@@ -1,6 +1,6 @@
-package com.stupidpeople.weacons.BusWeacon.SantCugat;
+package com.stupidpeople.weacons.WeaconBus.SantCugat;
 
-import com.stupidpeople.weacons.BusWeacon.Bus;
+import com.stupidpeople.weacons.WeaconBus.Bus;
 
 import org.json.JSONException;
 import org.json.JSONObject;

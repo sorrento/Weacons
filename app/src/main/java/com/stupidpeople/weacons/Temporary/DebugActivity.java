@@ -35,7 +35,7 @@ import static util.myLog.WriteUnhandledErrors;
 public class DebugActivity extends AppCompatActivity {
 
     private Switch swDetection;
-    private String tag="DBG";
+    private String tag = "DBG";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,21 +101,21 @@ public class DebugActivity extends AppCompatActivity {
 
         ParseUser user = ParseUser.getCurrentUser();
         if (user == null) {
-            myLog.add("sin user, vamos a loggear",tag);
+            myLog.add("sin user, vamos a loggear", tag);
 
             //TODO eencript parse user & pass
             ParseUser.logInInBackground("sorrento2", "spidey", new LogInCallback() {
                 public void done(ParseUser user, ParseException e) {
                     if (user != null) {
-                        myLog.add("Logged in",tag);
+                        myLog.add("Logged in", tag);
                     } else {
-                        myLog.add("Not Logged in",tag);
+                        myLog.add("Not Logged in", tag);
                     }
                 }
             });
 
         } else {
-            myLog.add("Ya tenia user,",tag);
+            myLog.add("Ya tenia user,", tag);
         }
     }
 }

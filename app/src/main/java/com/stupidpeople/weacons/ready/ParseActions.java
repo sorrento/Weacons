@@ -29,7 +29,7 @@ import util.parameters;
  */
 public abstract class ParseActions {
 
-    private static String tag = "WE";
+    private static String tag = "PAR";
 
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
@@ -87,7 +87,11 @@ public abstract class ParseActions {
                     myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
 
                     //it's important always deliver built weacons (in this way, they are of subclasses, as bus
-                    callBackWeacons.OnReceive(WeaconParse.build(weaconHashSet));
+                    HashSet<WeaconParse> build = WeaconParse.build(weaconHashSet);
+
+                    myLog.add("hemos constriido el HS con los build.son "+build.size(),"aut");
+                    myLog.add("y son :"+WeaconParse.Listar(build),"aut");
+                    callBackWeacons.OnReceive(build);
 
                 } else {
                     myLog.add("EEE en Chechkspotmarches:" + e, tag);

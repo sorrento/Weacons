@@ -58,6 +58,8 @@ public class WifiObserverService extends Service {
         try {
             myLog.initialize();
 
+            myLog.add("Started Service", tag);
+
             mContext = getApplicationContext();
             wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 //TODO
@@ -164,6 +166,7 @@ public class WifiObserverService extends Service {
 
             try {
                 if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
+                    myLog.add("Detected chang in state of wifi", "aut");
                     NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                     if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
                         myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
@@ -171,10 +174,14 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                     List<ScanResult> sr = wifiManager.getScanResults();
+                    myLog.add("detected scanning results:" +sr.size(), "aut");
+
+                    WeaconParse.ListarSR(sr);
 
                     CheckSpotMatches(sr, new CallBackWeacons() {
                         @Override
                         public void OnReceive(HashSet<WeaconParse> weaconHashSet) {
+                            myLog.add("HEmos entrado al wreceiver", "aut");
                             myLog.add(" " + WeaconParse.Listar(weaconHashSet), tag);
                             LogInManagement.setNewWeacons(weaconHashSet);
                         }

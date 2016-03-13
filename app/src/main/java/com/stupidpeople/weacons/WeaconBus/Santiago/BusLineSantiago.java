@@ -1,8 +1,8 @@
-package com.stupidpeople.weacons.BusWeacon.Santiago;
+package com.stupidpeople.weacons.WeaconBus.Santiago;
 
 import android.graphics.Color;
 
-import com.stupidpeople.weacons.BusWeacon.BusLine;
+import com.stupidpeople.weacons.WeaconBus.BusLine;
 
 import org.json.JSONException;
 import org.json.JSONObject;

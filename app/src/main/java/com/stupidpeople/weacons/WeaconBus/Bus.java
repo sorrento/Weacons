@@ -1,4 +1,4 @@
-package com.stupidpeople.weacons.BusWeacon;
+package com.stupidpeople.weacons.WeaconBus;
 
 import org.json.JSONObject;
 
@@ -7,7 +7,7 @@ import org.json.JSONObject;
  */
 public abstract class Bus {
     protected int arrivalTimeMins;
-    protected String arrivalTimeText;
+    public String arrivalTimeText;
 
     public Bus(JSONObject json) {
         createBus(json);

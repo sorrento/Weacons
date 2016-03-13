@@ -1,11 +1,4 @@
-package com.stupidpeople.weacons.BusWeacon;
-
-import android.graphics.Color;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
+package com.stupidpeople.weacons.WeaconBus;
 
 import java.util.ArrayList;
 

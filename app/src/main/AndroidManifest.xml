@@ -37,6 +37,9 @@
             <!-- android:name="android.support.PARENT_ACTIVITY" -->
             <!-- android:value=".Activities.MainActivity" /> -->
         </activity>
+        <service
+            android:name=".ready.WifiObserverService"
+            android:exported="false" />
     </application>
 
 </manifest>

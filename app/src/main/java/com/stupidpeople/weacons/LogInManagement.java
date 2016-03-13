@@ -54,6 +54,8 @@ public abstract class LogInManagement {
 
             now = new CurrentSituation(weaconsDetected, occurrences);
 
+            myLog.add("Entering or quitting any We?" + anyChange + "| anyfetchable?" + now.anyFetchable() + "| should fetch?" + now.shouldFetch, tag);
+
             //Notify or change notification
             if (anyChange || now.shouldFetch) {
                 Notify();
@@ -230,13 +232,17 @@ public abstract class LogInManagement {
         public boolean shouldFetch;
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
-            this.occurrences = occurrences;
-            this.weacons = weaconsDetected;
-            nFetchings = countFetchingWeacons();
-            shouldFetch = shouldFetch();
+                this.occurrences = occurrences;
+                this.weacons = weaconsDetected;
+            try {
+                nFetchings = countFetchingWeacons();
+                shouldFetch = shouldFetch();
 
-            myLog.add("conta: " + WeaconParse.Listar(occurrences), tag);
-            myLog.add("Entering or quitting any We?" + anyChange + "| anyfetchable?" + now.anyFetchable() + "| should fetch?" + now.shouldFetch, tag);
+                myLog.add("conta: " + WeaconParse.Listar(occurrences), tag);
+
+            } catch (Exception e) {
+                myLog.error(e);
+            }
 
         }
 

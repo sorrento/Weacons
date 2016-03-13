@@ -1,6 +1,6 @@
-package com.stupidpeople.weacons.BusWeacon.SantCugat;
+package com.stupidpeople.weacons.WeaconBus.SantCugat;
 
-import com.stupidpeople.weacons.BusWeacon.BusLine;
+import com.stupidpeople.weacons.WeaconBus.BusLine;
 
 /**
  * Created by Milenko on 02/02/2016.
