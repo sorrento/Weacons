@@ -2,8 +2,6 @@ package util;
 
 import com.parse.ParseGeoPoint;
 
-import java.util.HashMap;
-
 /**
  * Created by Milenko on 20/07/2015.
  */
@@ -54,7 +52,7 @@ public class parameters {
     //Coords
     public static ParseGeoPoint stCugat = new ParseGeoPoint(41.474722, 2.086667);
     public static ParseGeoPoint santiago = new ParseGeoPoint(-33.45, -70.666667);
-    public static String refreshIntentName;
+    public static String refreshIntentName = "REFRESH";
 
     public enum CardType {COMPANY, SCHEDULE, LINKEDIN, NEWS, FLIGHTS}
 

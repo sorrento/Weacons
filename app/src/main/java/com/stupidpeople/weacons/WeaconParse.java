@@ -37,6 +37,7 @@ import util.stringUtils;
  */
 @ParseClassName("Weacon")
 public class WeaconParse extends ParseObject {
+    static boolean forceFetching = false;
     public ArrayList fetchedElements;
     public boolean obsolete = false;
     private WeaconHelper mHelper;
@@ -100,6 +101,16 @@ public class WeaconParse extends ParseObject {
 
     //GETTERS
 
+    public static void SetObsolete(ArrayList<WeaconParse> weaconsList, boolean b) {
+        for (WeaconParse we : weaconsList) {
+            we.setObsolete(b);
+        }
+    }
+
+    public static void ForceFetchingNextTime(ArrayList<WeaconParse> weaconsToNotify) {
+        forceFetching = true;
+    }
+
     // Comparison of WeaconParse
     @Override
     public int hashCode() {
@@ -131,7 +142,6 @@ public class WeaconParse extends ParseObject {
     public parameters.typeOfWeacon getType() {
         String type = getString("Type");
         parameters.typeOfWeacon sol = parameters.typeOfWeacon.nothing;
-        myLog.add("====" + getName() + "|" + type, "aut");
         //TODO implement types of weacons as a hasthabels
         if (type.equals("bus_stop")) {
             sol = parameters.typeOfWeacon.bus_station;
@@ -143,7 +153,7 @@ public class WeaconParse extends ParseObject {
     }
 
     public String getTypeString() {
-        return getString("Type");
+        return mHelper.typeString();
     }
 
     public Bitmap getLogo() {
@@ -169,6 +179,8 @@ public class WeaconParse extends ParseObject {
     public ParseGeoPoint getGPS() {
         return getParseGeoPoint("GPS");
     }
+
+    ///////////////////////////////////////////////////// DELEGATES
 
     public WeaconParse build() {
         try {
@@ -380,12 +392,6 @@ public class WeaconParse extends ParseObject {
         mHelper = helper;
     }
 
-    ///////////////////////////////////////////////////// DELEGATES
-
-    public String whatIam() {
-        return mHelper.whatImI();
-    }
-
     public boolean notificationRequiresFetching() {
         return mHelper.notificationRequiresFetching();
     }
@@ -422,6 +428,8 @@ public class WeaconParse extends ParseObject {
         return mHelper.getOneLineSummary();
     }
 
+    /////////////////////////////////////////////////////
+
     public Class getActivityClass() {
         return mHelper.getActivityClass();
     }
@@ -430,13 +438,17 @@ public class WeaconParse extends ParseObject {
         return mHelper.getResultIntent(mContext);
     }
 
-    /////////////////////////////////////////////////////
+    /*
+    TODO clean from here
+     */
 
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
         return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext);
     }
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
+        forceFetching = false;
+        obsolete = false;
 
         fetchingResults elementsListener = new fetchingResults() {
             @Override
@@ -449,22 +461,27 @@ public class WeaconParse extends ParseObject {
             public void onError(Exception e) {
                 myLog.error(e);
             }
+
+            @Override
+            public void OnEmptyAnswer() {
+                myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "aut");
+            }
         };
 
         (new fetchNotificationWeacon(getFetchingUrl(), elementsListener)).execute();
 
     }
 
-    /*
-    TODO clean from here
-     */
-
     /**
      * Put a new message for notification, without data
+     *
+     * @param b
      */
-    protected void setObsolete() {
-        obsolete = true;
+    protected void setObsolete(boolean b) {
+        obsolete = b;
     }
+
+    // OTHER
 
     public String[] getCards() {
 
@@ -482,8 +499,6 @@ public class WeaconParse extends ParseObject {
         String message = getString("Description");
         return message;
     }
-
-    // OTHER
 
     public String getImageParseUrl() {
         return getParseFile("Logo").getUrl();

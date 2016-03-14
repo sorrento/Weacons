@@ -6,11 +6,8 @@ import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.support.v4.app.NotificationCompat;
-import android.text.SpannableString;
 import android.util.Log;
-
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,7 +104,7 @@ public abstract class Notifications {
             stackBuilder.addNextIntent(intent);
             pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
         } else {
-            myLog.add("version antigua para hacer el stack", "aut");
+            myLog.add("version antigua para hacer el stack", tag);
             pendingIntent = null;//TODO ver qué hacer con version antigua
         }
         return pendingIntent;
@@ -151,8 +148,8 @@ public abstract class Notifications {
 
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we : notificables) {
-            inboxStyle.addLine(we.getOneLineSummary());
-            sb.append("  " + we.getOneLineSummary() + "\n");
+            inboxStyle.addLine(we.NotiOneLineSummary());
+            sb.append("  " + we.NotiOneLineSummary() + "\n");
         }
 
         notif.setStyle(inboxStyle);

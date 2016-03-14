@@ -27,7 +27,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import util.myLog;
+import util.parameters;
 
+import static com.stupidpeople.weacons.WeaconParse.Listar;
 import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
 
 /**
@@ -35,14 +37,15 @@ import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
  */
 public class WifiObserverService extends Service {
 
-    String tag = "wfs";
+    String tag = "wos";
+    int iScan = 0;
 
     private Context mContext;
     private WifiManager wifiManager;
 
     private WifiReceiver receiverWifi;
-    private int iScan = 0;
     private NotificationManager mNotificationManager;
+    private RefreshReceiver refreshReceiver;
 
     @Nullable
     @Override
@@ -72,6 +75,10 @@ public class WifiObserverService extends Service {
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
             mContext.registerReceiver(receiverWifi, intentFilter);
             Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
+
+            //Refresh receiver
+            refreshReceiver = new RefreshReceiver();
+            mContext.registerReceiver(refreshReceiver, new IntentFilter(parameters.refreshIntentName));
 
         } catch (Exception e) {
             Toast.makeText(mContext, "Not posstible to activate detection ", Toast.LENGTH_LONG).show();
@@ -151,10 +158,25 @@ public class WifiObserverService extends Service {
 //            mNotificationManager.cancel(101);
             Toast.makeText(mContext, "Detection Service OFF", Toast.LENGTH_LONG).show();
             mContext.unregisterReceiver(receiverWifi);
+            mContext.unregisterReceiver(refreshReceiver);
             super.onDestroy();
         } catch (Exception e) {
             Toast.makeText(mContext, "Not possible to turn off detection", Toast.LENGTH_LONG).show();
             myLog.add("error destroying: " + e.getLocalizedMessage(), tag);
+        }
+    }
+
+    private class RefreshReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            try {
+                myLog.add("+++++++++++++++REFRESHED PRESSED", "MHP");
+                myLog.add("estos son los weacons que habia" + Listar(LogInManagement.lastWeaconsDetected), tag);
+                LogInManagement.refresh();
+            } catch (Exception e) {
+                myLog.error(e);
+            }
         }
     }
 
@@ -172,15 +194,15 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                     List<ScanResult> sr = wifiManager.getScanResults();
-                    myLog.add("detected scanning results:" +sr.size(), "aut");
 
-                    WeaconParse.ListarSR(sr);
+                    iScan++;
+                    myLog.add(Integer.toString(iScan) + "--------------------------------------------------------------", "MHP");
+                    myLog.add("\tSSIDS:" + sr.size() + "\n" + WeaconParse.ListarSR(sr), tag);
 
                     CheckSpotMatches(sr, new CallBackWeacons() {
                         @Override
                         public void OnReceive(HashSet<WeaconParse> weaconHashSet) {
-                            myLog.add("HEmos entrado al wreceiver", "aut");
-                            myLog.add(" " + WeaconParse.Listar(weaconHashSet), tag);
+                            myLog.add(" " + Listar(weaconHashSet), "MHP");
                             LogInManagement.setNewWeacons(weaconHashSet);
                         }
                     });

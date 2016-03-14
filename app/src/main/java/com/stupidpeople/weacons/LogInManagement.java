@@ -2,7 +2,6 @@ package com.stupidpeople.weacons;
 
 import android.util.Log;
 
-
 import com.stupidpeople.weacons.Advanced.Chat;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 
@@ -22,10 +21,8 @@ import util.parameters;
  */
 public abstract class LogInManagement {
     private static final String tag = "LIM";
-
-    static CurrentSituation now;
-
     public static HashSet<WeaconParse> lastWeaconsDetected;
+    static CurrentSituation now;
     private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
     // last appeareance
@@ -39,7 +36,6 @@ public abstract class LogInManagement {
     /**
      * Informs the weacons detected, in order to send/update/remove  notification
      * and log in /out in the chat
-     *
      */
     public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected) {
 
@@ -54,7 +50,9 @@ public abstract class LogInManagement {
 
             now = new CurrentSituation(weaconsDetected, occurrences);
 
-            myLog.add("Entering or quitting any We?" + anyChange + "| anyfetchable?" + now.anyFetchable() + "| should fetch?" + now.shouldFetch, tag);
+            myLog.add("Entering or quitting any Weacon (anychange)?" + anyChange + "\n anyfetchable?" + now.anyFetchable() +
+                    "\n should fetch?" + now.shouldFetch + "\n Last time fetched " + lastTimeWeFetched +
+                    "\n  --> Total= " + (!anyChange && now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched), "MHP");
 
             //Notify or change notification
             if (anyChange || now.shouldFetch) {
@@ -146,10 +144,7 @@ public abstract class LogInManagement {
     private static void NotifyRemovingObsoleteInfo() {
         //removing last info
         myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
-        for (WeaconParse we : weaconsToNotify) {
-            we.setObsolete();
-        }
-
+        for (WeaconParse we : weaconsToNotify) we.setObsolete(true);
         Notifications.showNotification(weaconsToNotify, false, true);
         lastTimeWeFetched = false;
     }
@@ -169,7 +164,6 @@ public abstract class LogInManagement {
     }
 
 
-
     private static void Notify() {
 
         if (!now.anyFetchable()) {
@@ -182,17 +176,19 @@ public abstract class LogInManagement {
                 @Override
                 public void OneTaskCompleted() {
                     i += 1;
-                    myLog.add("terminada ina task=" + 1 + "/" + now.nFetchings, tag);
+                    myLog.add("terminada ina task=" + i + "/" + now.nFetchings, "MHP");
 
                     if (i == now.nFetchings) {
                         myLog.add("a lazanr la notificaicno congunta", tag);
-                        Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
                         lastTimeWeFetched = true;
+                        Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
                     }
                 }
 
                 @Override
                 public void OnError(Exception e) {
+                    i++;
+                    myLog.add("Teminada una tarea, pero con error " + i + "/" + now.nFetchings, "MHP");
                     myLog.add(Log.getStackTraceString(e), "err");
                 }
             };
@@ -209,7 +205,6 @@ public abstract class LogInManagement {
 /////////////////
 
 
-
     //NOTIFICATIONS
     private static boolean IsInNotification(WeaconParse we) {
         return weaconsToNotify.contains(we);
@@ -218,6 +213,25 @@ public abstract class LogInManagement {
 
     public static void refresh() {
         myLog.add("refresing the notification", tag);
+        NotifyForcingFetching();
+    }
+
+    private static void NotifyForcingFetching() {
+//        WeaconParse.ForceFetchingNextTime(weaconsToNotify);
+
+        // Put zero en occurrences
+        try {
+            for (WeaconParse we :
+                    occurrences.keySet()) {
+                occurrences.put(we, 0);
+            }
+        } catch (Exception e) {
+            myLog.error(e);
+        }
+//        Iterator<WeaconParse> it = occurrences.;
+//        while (it.hasNext()) {
+//            occurrences.put(it.next(), 0);
+//        }
         Notify();
     }
 
@@ -232,18 +246,17 @@ public abstract class LogInManagement {
         public boolean shouldFetch;
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
-                this.occurrences = occurrences;
-                this.weacons = weaconsDetected;
+            this.occurrences = occurrences;
+            this.weacons = weaconsDetected;
             try {
                 nFetchings = countFetchingWeacons();
                 shouldFetch = shouldFetch();
 
-                myLog.add("conta: " + WeaconParse.Listar(occurrences), tag);
+                myLog.add("conta: " + WeaconParse.Listar(occurrences), "MHP");
 
             } catch (Exception e) {
                 myLog.error(e);
             }
-
         }
 
         /**
@@ -259,7 +272,8 @@ public abstract class LogInManagement {
                 Iterator<WeaconParse> it = weacons.iterator();
                 while (it.hasNext() && !res) {
                     WeaconParse we = it.next();
-                    if (we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) {//avoid keep fetching if you live near a bus stop
+                    if ((we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) ||
+                            we.forceFetching) {//avoid keep fetching if you live near a bus stop
                         res = true;
                         //                myLog.add(we.getName() + " requires feticn. this is the " + occurrences.get(we) + "time", tag);
                     }

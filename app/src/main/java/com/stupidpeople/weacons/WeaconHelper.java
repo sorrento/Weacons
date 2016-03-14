@@ -13,7 +13,7 @@ import java.util.ArrayList;
  */
 public interface WeaconHelper {
 
-    String whatImI();
+    String typeString();
 
     boolean notificationRequiresFetching();
 

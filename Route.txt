@@ -1,4 +1,14 @@
  - NO veo que salga lo de obsoloeto, parece que sigue refrescando
+ - habilitar el boton refresh
+    [cuidado con el cmapo "obsoleto"]
+
+- subir los iml que faltan
+- bus_sop es un nombre
+
+si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
+
+on boot:
+    http://stackoverflow.com/questions/2784441/trying-to-start-a-service-on-boot-on-android
 
 ----
 1) settings para encender o apagar el servicio

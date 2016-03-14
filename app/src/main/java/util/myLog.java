@@ -70,7 +70,7 @@ public class myLog {
     }
 
     public static void notificationMultiple(String title, String body, String summary, String sound) {
-        myLog.add("***********************************SoUND:" + sound + "\n" + title + "\n" + body + summary + "\n", "NOTI");
+        myLog.add("***********************************SoUND:" + sound + "\n" + title + "\n" + body + summary + "\n", "MHP");
     }
 
 

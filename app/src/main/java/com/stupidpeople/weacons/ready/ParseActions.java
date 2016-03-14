@@ -73,10 +73,10 @@ public abstract class ParseActions {
                     if (n == 0) {
                         myLog.add("MegaQuery no match", tag);
                     } else { //There are matches
-                        StringBuilder sb = new StringBuilder("***********\n" + "From megaquery we have several matches: " + n);
+                        StringBuilder sb = new StringBuilder("***********\n" + "From megaquery we have several matches: " + n + "\n");
 
                         for (WifiSpot spot : spots) {
-                            sb.append(spot.summarizeWithWeacon() + "\n");
+                            sb.append("\t" + spot.summarizeWithWeacon() + "\n");
                             weaconHashSet.add(spot.getWeacon());
 //                            registerHitSSID(spot); todo,
                         }

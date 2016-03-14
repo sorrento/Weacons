@@ -25,8 +25,8 @@ public class HelperAirport implements WeaconHelper {
     }
 
     @Override
-    public String whatImI() {
-        return "SOY UN AEROPUERTO";
+    public String typeString() {
+        return "AIRPORT";
     }
 
     @Override

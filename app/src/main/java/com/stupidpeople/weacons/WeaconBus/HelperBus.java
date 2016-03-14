@@ -41,9 +41,10 @@ public class HelperBus implements WeaconHelper {
         we = weaconParse;
     }
 
+
     @Override
-    public String whatImI() {
-        return "SOY UN BUS";
+    public String typeString() {
+        return "BUS STOP";//TODO translate
     }
 
     @Override
@@ -105,6 +106,7 @@ public class HelperBus implements WeaconHelper {
     @Override
     public SpannableString getOneLineSummary() {
         String name;
+        String greyPart;
 
         if (we.getName().length() > 10) {
             name = we.getName().substring(0, 10) + ".";
@@ -112,7 +114,12 @@ public class HelperBus implements WeaconHelper {
             name = we.getName();
         }
 
-        return StringUtils.getSpannableString(name + " " + summarizeAllLines(), name.length());
+        if (we.obsolete) {
+            greyPart = we.getTypeString() + ". Press Refresh.";
+        } else {
+            greyPart = summarizeAllLines();
+        }
+        return StringUtils.getSpannableString(name + " " + greyPart, name.length());
     }
 
     @Override
@@ -137,7 +144,7 @@ public class HelperBus implements WeaconHelper {
         NotificationCompat.Builder notif;
         String title = NotiSingleCompactTitle();
 
-        Intent refreshIntent = new Intent("popo"); //TODO poner el reciever de esto, para que refresque la notif
+        Intent refreshIntent = new Intent(parameters.refreshIntentName);
         PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
         NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, "Turn Off", resultPendingIntent);//TODO to create the silence intent
@@ -187,6 +194,8 @@ public class HelperBus implements WeaconHelper {
         ArrayList<BusLine> arr = new ArrayList<>();
 
         try {
+            myLog.add(" Q= " + getFetchingUrl() + "\n    " + response, "FET");
+
             JSONObject json = new JSONObject(response);
             stopCode = json.getString("paradero");
             description = json.getString("nomett");
