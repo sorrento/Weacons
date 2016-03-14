@@ -1,3 +1,6 @@
+ - NO veo que salga lo de obsoloeto, parece que sigue refrescando
+
+----
 1) settings para encender o apagar el servicio
     que tenga el sevicio de escucha y notificaciones
 
@@ -11,15 +14,17 @@ Rellenar de airport los datos
 
 
 ---- Lejano
+    - Mensajes en Español, catalán e inglés
+    -
     - Agregar módulo de sapeo
     - agregrar modo debug en settings, (por ejemplo muesta notificaciones del servicio)
     - gestion de la lectura de weacons locales (al conectar, y cuando hacer el pinWeacons?)
     - capturar la informacion de dismiss notification, para saber los gustos
+    - Modo de activavión de weacons "ahora tienes aeropuertos"
     - crear mi libreria de log
 
 -----dudas
     Tendria que estar binded el servicio?
-
+l hacer el build (verision obsoleta de files y unsafe(recompilar con detalles.. )(probar con ctrl F9)
 ----BUG
-    ---ERROR from parse obtienning ssidsjava.lang.RuntimeException: Failed to create instance of subclass.
-    mensaje al hacer el build (verision obsoleta de files y unsafe(recompilar con detalles.. )(probar con ctrl F9)
+    - previsiones inestables: Pg. Sant M. L1: 52m. luego 20 y luego 52. Hay varias L1?

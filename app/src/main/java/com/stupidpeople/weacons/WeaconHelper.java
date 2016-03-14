@@ -6,14 +6,13 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
-import com.stupidpeople.weacons.ready.MultiTaskCompleted;
-
 import java.util.ArrayList;
 
 /**
  * Created by Milenko on 12/03/2016.
  */
 public interface WeaconHelper {
+
     String whatImI();
 
     boolean notificationRequiresFetching();

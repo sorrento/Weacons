@@ -23,7 +23,6 @@ import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -166,7 +165,6 @@ public class WifiObserverService extends Service {
 
             try {
                 if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
-                    myLog.add("Detected chang in state of wifi", "aut");
                     NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                     if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
                         myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);

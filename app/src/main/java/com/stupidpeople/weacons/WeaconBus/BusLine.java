@@ -1,6 +1,5 @@
 package com.stupidpeople.weacons.WeaconBus;
 
-import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
 
 import java.util.ArrayList;
 
@@ -11,7 +10,7 @@ public abstract class BusLine {
     public String lineCode;
     public ArrayList<Bus> buses = new ArrayList<>();
 
-    public BusLine(String lineCode, BusStCugat bus) {
+    public BusLine(String lineCode, Bus bus) {
         this.lineCode = lineCode;
 //        buses = new ArrayList<>();
         addBus(bus);

@@ -15,7 +15,6 @@ import com.parse.SaveCallback;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
-import com.stupidpeople.weacons.ready.CallBackWeacons;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,12 +85,10 @@ public abstract class ParseActions {
 
                     myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
 
-                    //it's important always deliver built weacons (in this way, they are of subclasses, as bus
-                    HashSet<WeaconParse> build = WeaconParse.build(weaconHashSet);
+                    // It's important always deliver built weacons (in this way, they are of subclasses, as bus
+                    WeaconParse.build(weaconHashSet);
 
-                    myLog.add("hemos constriido el HS con los build.son "+build.size(),"aut");
-                    myLog.add("y son :"+WeaconParse.Listar(build),"aut");
-                    callBackWeacons.OnReceive(build);
+                    callBackWeacons.OnReceive(weaconHashSet);
 
                 } else {
                     myLog.add("EEE en Chechkspotmarches:" + e, tag);

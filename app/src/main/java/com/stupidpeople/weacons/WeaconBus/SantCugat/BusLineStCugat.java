@@ -1,5 +1,6 @@
 package com.stupidpeople.weacons.WeaconBus.SantCugat;
 
+
 import com.stupidpeople.weacons.WeaconBus.BusLine;
 
 /**
