@@ -9,6 +9,8 @@ import android.text.SpannableString;
 import com.stupidpeople.weacons.WeaconHelper;
 import com.stupidpeople.weacons.WeaconParse;
 
+import org.jsoup.Connection;
+
 import java.util.ArrayList;
 
 import static com.stupidpeople.weacons.StringUtils.getSpannableString;
@@ -35,7 +37,7 @@ public class HelperAirport implements WeaconHelper {
     }
 
     @Override
-    public ArrayList processResponse(String response) {
+    public ArrayList processResponse(Connection.Response response) {
         return null;
     }
 

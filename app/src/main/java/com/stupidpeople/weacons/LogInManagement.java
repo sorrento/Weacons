@@ -1,6 +1,8 @@
 package com.stupidpeople.weacons;
 
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.stupidpeople.weacons.Advanced.Chat;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
@@ -13,6 +15,8 @@ import java.util.Map;
 
 import util.myLog;
 import util.parameters;
+
+import static com.stupidpeople.weacons.WeaconParse.Listar;
 
 /**
  * Created by Milenko on 10/08/2015.
@@ -195,7 +199,6 @@ public abstract class LogInManagement {
 
             for (final WeaconParse we : weaconsToNotify) {
                 if (we.notificationRequiresFetching()) {
-
                     we.fetchForNotification(listener);
 
                 }
@@ -211,27 +214,24 @@ public abstract class LogInManagement {
     }
 
 
-    public static void refresh() {
+    public static void refresh(Context ctx) {
         myLog.add("refresing the notification", tag);
+        Toast.makeText(ctx, "Refreshing notification...", Toast.LENGTH_SHORT).show();
         NotifyForcingFetching();
     }
 
+
     private static void NotifyForcingFetching() {
-//        WeaconParse.ForceFetchingNextTime(weaconsToNotify);
 
         // Put zero en occurrences
         try {
-            for (WeaconParse we :
-                    occurrences.keySet()) {
+            for (WeaconParse we : occurrences.keySet()) {
                 occurrences.put(we, 0);
             }
         } catch (Exception e) {
             myLog.error(e);
         }
-//        Iterator<WeaconParse> it = occurrences.;
-//        while (it.hasNext()) {
-//            occurrences.put(it.next(), 0);
-//        }
+
         Notify();
     }
 
@@ -252,7 +252,7 @@ public abstract class LogInManagement {
                 nFetchings = countFetchingWeacons();
                 shouldFetch = shouldFetch();
 
-                myLog.add("conta: " + WeaconParse.Listar(occurrences), "MHP");
+                myLog.add("conta: " + Listar(occurrences), "MHP");
 
             } catch (Exception e) {
                 myLog.error(e);
@@ -269,7 +269,7 @@ public abstract class LogInManagement {
             boolean res = false;
 
             if (anyFetchable()) {
-                Iterator<WeaconParse> it = weacons.iterator();
+                Iterator<WeaconParse> it = weaconsToNotify.iterator();
                 while (it.hasNext() && !res) {
                     WeaconParse we = it.next();
                     if ((we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) ||
@@ -289,7 +289,8 @@ public abstract class LogInManagement {
 
         private int countFetchingWeacons() {
             int i = 0;
-            for (WeaconParse we : weacons) {
+
+            for (WeaconParse we : weaconsToNotify) {
                 if (we.notificationRequiresFetching()) i++;
             }
             return i;

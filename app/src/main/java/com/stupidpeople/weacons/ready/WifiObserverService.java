@@ -173,14 +173,14 @@ public class WifiObserverService extends Service {
             try {
                 myLog.add("+++++++++++++++REFRESHED PRESSED", "MHP");
                 myLog.add("estos son los weacons que habia" + Listar(LogInManagement.lastWeaconsDetected), tag);
-                LogInManagement.refresh();
+                LogInManagement.refresh(context);
             } catch (Exception e) {
                 myLog.error(e);
             }
         }
     }
 
-    class WifiReceiver extends BroadcastReceiver {
+    public class WifiReceiver extends BroadcastReceiver {
 
         public void onReceive(Context c, Intent intent) {
             final String action = intent.getAction();
@@ -207,9 +207,17 @@ public class WifiObserverService extends Service {
                         }
                     });
 
+                } else if (action.equals("android.intent.action.BOOT_COMPLETED")) {
+                    myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }
+//                How to test BOOT_COMPLETED without restart emulator or real device? It's easy. Try this:
+                //                adb -s device-or-emulator-id shell am broadcast -a android.intent.action.BOOT_COMPLETED
+//                How to get device id? Get list of connected devices with id's:
+                //                adb devices
+//                adb in ADT by default you can find in:
+                //                    adt-installation-dir/sdk/platform-tools
             } catch (Exception e) {
                 myLog.add(Log.getStackTraceString(e), "err");
             }

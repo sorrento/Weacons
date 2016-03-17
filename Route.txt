@@ -1,11 +1,20 @@
- - NO veo que salga lo de obsoloeto, parece que sigue refrescando
- - habilitar el boton refresh
-    [cuidado con el cmapo "obsoleto"]
+---probar:
+    -   que cuente bien el total de fecthinf (2/n)
 
+----
+terminar lo del versio
+
+en sendone weacon caga
+    - qué pasa cuando no es del tipo definido (como esade). Crear su tipo. o que al menos lo ignore.
+    - Repasar los TODO
+    - arrglar ael boot
+----
+do Weacaon list activity
+	Response.body()' on a null object reference
+		"Av. Torre Blanca (ESADE)"
+----------
 - subir los iml que faltan
-- bus_sop es un nombre
-
-si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
+- Agregar tier (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
 
 on boot:
     http://stackoverflow.com/questions/2784441/trying-to-start-a-service-on-boot-on-android
@@ -25,7 +34,6 @@ Rellenar de airport los datos
 
 ---- Lejano
     - Mensajes en Español, catalán e inglés
-    -
     - Agregar módulo de sapeo
     - agregrar modo debug en settings, (por ejemplo muesta notificaciones del servicio)
     - gestion de la lectura de weacons locales (al conectar, y cuando hacer el pinWeacons?)
@@ -36,5 +44,8 @@ Rellenar de airport los datos
 -----dudas
     Tendria que estar binded el servicio?
 l hacer el build (verision obsoleta de files y unsafe(recompilar con detalles.. )(probar con ctrl F9)
+
 ----BUG
+    - el hacer reverse de la lista solo a veces
     - previsiones inestables: Pg. Sant M. L1: 52m. luego 20 y luego 52. Hay varias L1?
+

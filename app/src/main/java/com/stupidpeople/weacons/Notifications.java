@@ -7,7 +7,6 @@ import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -91,21 +90,27 @@ public abstract class Notifications {
             NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, sound, mContext);
             mNotificationManager.notify(mIdNoti, notification.build());
         } catch (Exception e) {
-            myLog.add(Log.getStackTraceString(e), "err");
+            myLog.error(e);
+            ;
         }
     }
 
     private static PendingIntent getPendingIntent(Intent intent, Class activityClass) {
-        //TODO verify this stack works properly
-        PendingIntent pendingIntent;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
-            stackBuilder.addParentStack(activityClass);
-            stackBuilder.addNextIntent(intent);
-            pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        } else {
-            myLog.add("version antigua para hacer el stack", tag);
-            pendingIntent = null;//TODO ver qué hacer con version antigua
+        PendingIntent pendingIntent = null;
+        try {
+            //TODO verify this stack works properly
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
+                stackBuilder.addParentStack(activityClass);
+                stackBuilder.addNextIntent(intent);
+                pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+            } else {
+                myLog.add("version antigua para hacer el stack", tag);
+                pendingIntent = null;//TODO ver qué hacer con version antigua
+            }
+        } catch (Exception e) {
+            myLog.error(e);
+
         }
         return pendingIntent;
     }

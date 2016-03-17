@@ -17,6 +17,7 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.stupidpeople.weacons.WeaconAirport.HelperAirport;
 import com.stupidpeople.weacons.WeaconBus.HelperBus;
+import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 
 import org.jsoup.Connection;
@@ -147,6 +148,8 @@ public class WeaconParse extends ParseObject {
             sol = parameters.typeOfWeacon.bus_station;
         } else if (type.equals("AIRPORT")) {
             sol = parameters.typeOfWeacon.airport;
+        } else if (type.equals("restaurant")) {
+            sol = parameters.typeOfWeacon.restaurant;
         }
 
         return sol;
@@ -343,9 +346,10 @@ public class WeaconParse extends ParseObject {
                 //                break;
                 //            case real_estate_agency:
                 //                break;
-                //            case restaurant:
-                //                break;
-                //            case roofing_contractor:
+                case restaurant:
+                    this.setHelper(new HelperRestaurant(this));
+                    break;
+//                            case roofing_contractor:
                 //                break;
                 //            case rv_park:
                 //                break;
@@ -396,11 +400,11 @@ public class WeaconParse extends ParseObject {
         return mHelper.notificationRequiresFetching();
     }
 
-    public ArrayList processResponse(String response) {
+    public ArrayList processResponse(Connection.Response response) {
         return mHelper.processResponse(response);
     }
 
-    public String getFetchingUrl() {
+    public String getFetchingFinalUrl() {
         return mHelper.getFetchingUrl();
     }
 
@@ -453,7 +457,7 @@ public class WeaconParse extends ParseObject {
         fetchingResults elementsListener = new fetchingResults() {
             @Override
             public void onReceive(Connection.Response response) {
-                fetchedElements = processResponse(response.body());
+                fetchedElements = processResponse(response);
                 fetchedElementListener.OneTaskCompleted();
             }
 
@@ -464,11 +468,14 @@ public class WeaconParse extends ParseObject {
 
             @Override
             public void OnEmptyAnswer() {
+                fetchedElements = new ArrayList();
+//                processResponse("");
                 myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "aut");
+                fetchedElementListener.OneTaskCompleted();
             }
         };
 
-        (new fetchNotificationWeacon(getFetchingUrl(), elementsListener)).execute();
+        (new fetchNotificationWeacon(getFetchingFinalUrl(), elementsListener)).execute();
 
     }
 

@@ -45,7 +45,6 @@ public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Re
             callback.OnEmptyAnswer();
         } else {
             callback.onReceive(response);
-
         }
     }
 

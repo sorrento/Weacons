@@ -19,6 +19,7 @@ import com.stupidpeople.weacons.WeaconParse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Connection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,13 +54,14 @@ public class HelperBus implements WeaconHelper {
     }
 
     @Override
-    public ArrayList processResponse(String response) {
+    public ArrayList processResponse(Connection.Response response) {
+        myLog.add(" Q= " + getFetchingUrl() + "\n    " + response, "FET");
         ArrayList arr = new ArrayList();
 
         if (we.near(parameters.stCugat, 20)) {
-            arr = processStCugat(response);
+            arr = processStCugat(response.body());
         } else if (we.near(parameters.santiago, 20)) {
-            arr = processSantiago(response);
+            arr = processSantiago(response.body());
         }
         return arr;
 
@@ -134,7 +136,7 @@ public class HelperBus implements WeaconHelper {
                 .putExtra("wName", we.getName())
                 .putExtra("wWeaconObId", we.getObjectId())
                 .putExtra("wLogo", we.getLogoRounded())
-                .putExtra("wFetchingUrl", we.getFetchingUrl());
+                .putExtra("wFetchingUrl", we.getFetchingFinalUrl());
 
         return intent;
     }
@@ -194,7 +196,7 @@ public class HelperBus implements WeaconHelper {
         ArrayList<BusLine> arr = new ArrayList<>();
 
         try {
-            myLog.add(" Q= " + getFetchingUrl() + "\n    " + response, "FET");
+
 
             JSONObject json = new JSONObject(response);
             stopCode = json.getString("paradero");
@@ -317,7 +319,8 @@ public class HelperBus implements WeaconHelper {
 
         int del = 0;
 
-        if (we.fetchedElements == null) return "No lines available";
+        if (we.fetchedElements == null || we.fetchedElements.size() == 0)
+            return "No lines available";
 
         if (we.fetchedElements.size() > 0) {
             StringBuilder sb = new StringBuilder();

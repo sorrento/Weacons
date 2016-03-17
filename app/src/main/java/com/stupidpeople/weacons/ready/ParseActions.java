@@ -52,7 +52,7 @@ public abstract class ParseActions {
         //Query SSID
         ParseQuery<WifiSpot> qs = ParseQuery.getQuery(WifiSpot.class);
         qs.whereContainedIn("ssid", ssids);
-        qs.whereEqualTo("relevant", true);
+        qs.whereEqualTo("relevant", true); //TODO check if want to use this field "relevant
         //Main Query
         List<ParseQuery<WifiSpot>> queries = new ArrayList<>();
         queries.add(qb);
