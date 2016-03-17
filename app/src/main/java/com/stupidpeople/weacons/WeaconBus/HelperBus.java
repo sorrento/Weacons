@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
+import android.text.TextUtils;
 
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
@@ -55,7 +56,7 @@ public class HelperBus implements WeaconHelper {
 
     @Override
     public ArrayList processResponse(Connection.Response response) {
-        myLog.add(" Q= " + getFetchingUrl() + "\n    " + response, "FET");
+
         ArrayList arr = new ArrayList();
 
         if (we.near(parameters.stCugat, 20)) {
@@ -68,8 +69,8 @@ public class HelperBus implements WeaconHelper {
     }
 
     @Override
-    public String getFetchingUrl() {
-        return we.getString("FetchingUrl") + getBusStopId();
+    public String getFetchingFinalUrl() {
+        return we.getFetchingPartialUrl() + getBusStopId();
     }
 
     @Override
@@ -94,9 +95,21 @@ public class HelperBus implements WeaconHelper {
     }
 
     @Override
-    public String NotiSingleExpandedContent() {
-        String msg = "Please press REFRESH \nto have updated information about the estimated " +
-                "arrival times of buses at this stop.";
+    public SpannableString NotiSingleExpandedContent() {
+        SpannableString msg = new SpannableString("");
+        try {
+
+            if (we.obsolete) {
+                msg = SpannableString.valueOf("Please press REFRESH to have updated information about the estimated " +
+                        "arrival times of buses at this stop.");
+            } else {
+                for (SpannableString s : summarizeByOneLine()) {
+                    msg = SpannableString.valueOf(TextUtils.concat(msg, "\n", s));
+                }
+            }
+        } catch (Exception e) {
+            myLog.error(e);
+        }
         return msg;
     }
 
@@ -130,16 +143,6 @@ public class HelperBus implements WeaconHelper {
         return myLog.class;
     }
 
-    @Override
-    public Intent getResultIntent(Context mContext) {
-        Intent intent = new Intent(mContext, getActivityClass())//TODO Asegurarse que todos los weacon mandan mismos nombrees de extras
-                .putExtra("wName", we.getName())
-                .putExtra("wWeaconObId", we.getObjectId())
-                .putExtra("wLogo", we.getLogoRounded())
-                .putExtra("wFetchingUrl", we.getFetchingFinalUrl());
-
-        return intent;
-    }
 
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
@@ -150,7 +153,7 @@ public class HelperBus implements WeaconHelper {
         PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
         NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, "Turn Off", resultPendingIntent);//TODO to create the silence intent
-
+//TODO change icon to bell
         notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_notif_we)
                 .setLargeIcon(we.getLogoRounded())
@@ -164,13 +167,13 @@ public class HelperBus implements WeaconHelper {
         if (we.obsolete) {
             //Bigtext style
 
-            String msg = NotiSingleExpandedContent();
+            SpannableString msg = NotiSingleExpandedContent();
             NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
             textStyle.setBigContentTitle(title);
             textStyle.bigText(msg);
             notif.setStyle(textStyle);
 
-            myLog.notificationMultiple(title, msg, "Currently " + LogInManagement.getActiveWeacons().size()
+            myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
                     + " weacons active", String.valueOf(false));
         } else {
             //InboxStyle

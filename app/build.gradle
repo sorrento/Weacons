@@ -27,6 +27,8 @@ dependencies {
     compile 'org.jsoup:jsoup:1.7.3'
     compile 'com.google.android.gms:play-services:8.3.0'
     compile 'com.parse.bolts:bolts-android:1.+'
+    compile 'com.android.support:recyclerview-v7:23.0+'
+    compile files('libs/picasso-2.3.4.jar')
     compile files('libs/Parse-1.9.2.jar')
 
 }

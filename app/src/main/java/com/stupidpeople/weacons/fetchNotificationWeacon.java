@@ -7,6 +7,8 @@ import org.jsoup.Jsoup;
 
 import java.io.IOException;
 
+import util.myLog;
+
 /**
  * Created by Milenko on 11/03/2016.
  */
@@ -23,7 +25,6 @@ public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Re
     @Override
     protected Connection.Response doInBackground(Void... params) {
         Connection.Response response = null;
-
         try {
             response = Jsoup.connect(url)
                     .ignoreContentType(true)
@@ -40,10 +41,12 @@ public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Re
 
     @Override
     protected void onPostExecute(Connection.Response response) {
+
         super.onPostExecute(response);
-        if (response != null) {
+        if (response == null) {
             callback.OnEmptyAnswer();
         } else {
+            myLog.add(" Q= " + url + "\n    " + response.body(), "FET");
             callback.onReceive(response);
         }
     }

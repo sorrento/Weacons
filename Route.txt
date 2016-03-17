@@ -1,20 +1,23 @@
 ---probar:
-    -   que cuente bien el total de fecthinf (2/n)
-
 ----
-terminar lo del versio
+.- en Activity list bus salta u lina al inicio
 
-en sendone weacon caga
+ Versio:
+    .solo postre sale en nevritars
+    sale iconomuy pequeño
+
+        Quizas poner la fecha
     - qué pasa cuando no es del tipo definido (como esade). Crear su tipo. o que al menos lo ignore.
     - Repasar los TODO
     - arrglar ael boot
+    Activity List
+        - que se catualize solo y por boton
+        - como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
 ----
 do Weacaon list activity
 	Response.body()' on a null object reference
 		"Av. Torre Blanca (ESADE)"
 ----------
-- subir los iml que faltan
-- Agregar tier (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
 
 on boot:
     http://stackoverflow.com/questions/2784441/trying-to-start-a-service-on-boot-on-android
@@ -33,6 +36,8 @@ Rellenar de airport los datos
 
 
 ---- Lejano
+    - Refresh en menu de varios weacons ( o hacer hacia abajo)
+    - Agregar timer (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
     - Mensajes en Español, catalán e inglés
     - Agregar módulo de sapeo
     - agregrar modo debug en settings, (por ejemplo muesta notificaciones del servicio)

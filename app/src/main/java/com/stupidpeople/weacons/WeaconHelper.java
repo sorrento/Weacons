@@ -2,7 +2,6 @@ package com.stupidpeople.weacons;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
@@ -24,7 +23,7 @@ public interface WeaconHelper {
 
     ArrayList processResponse(Connection.Response response);
 
-    String getFetchingUrl();
+    String getFetchingFinalUrl();
 
     String NotiSingleCompactTitle();
 
@@ -32,7 +31,7 @@ public interface WeaconHelper {
 
     String NotiSingleExpandedTitle();
 
-    String NotiSingleExpandedContent();
+    SpannableString NotiSingleExpandedContent();
 
     SpannableString NotiOneLineSummary();
 
@@ -40,7 +39,6 @@ public interface WeaconHelper {
 
     Class getActivityClass();
 
-    Intent getResultIntent(Context mContext);
 
     NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent,
                                                        boolean sound, Context mContext);

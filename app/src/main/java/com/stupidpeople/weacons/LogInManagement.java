@@ -26,11 +26,11 @@ import static com.stupidpeople.weacons.WeaconParse.Listar;
 public abstract class LogInManagement {
     private static final String tag = "LIM";
     public static HashSet<WeaconParse> lastWeaconsDetected;
-    static CurrentSituation now;
-    private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
     // last appeareance
-    private static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
+    public static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
+    static CurrentSituation now;
+    private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     private static boolean sound;//should the notification be silent?
     private static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
 

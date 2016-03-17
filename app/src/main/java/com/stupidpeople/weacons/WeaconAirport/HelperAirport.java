@@ -2,7 +2,6 @@ package com.stupidpeople.weacons.WeaconAirport;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
@@ -42,7 +41,7 @@ public class HelperAirport implements WeaconHelper {
     }
 
     @Override
-    public String getFetchingUrl() {
+    public String getFetchingFinalUrl() {
         return null;
     }
 
@@ -62,8 +61,8 @@ public class HelperAirport implements WeaconHelper {
     }
 
     @Override
-    public String NotiSingleExpandedContent() {
-        return we.getDescription();
+    public SpannableString NotiSingleExpandedContent() {
+        return SpannableString.valueOf(we.getDescription());
     }
 
     //todo is this function redundant?
@@ -92,11 +91,6 @@ public class HelperAirport implements WeaconHelper {
         //TODO put the cardactivity
     }
 
-    @Override
-    public Intent getResultIntent(Context mContext) {
-        return null;
-        //TODO complete this
-    }
 
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {

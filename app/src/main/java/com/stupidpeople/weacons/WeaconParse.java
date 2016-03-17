@@ -2,7 +2,6 @@ package com.stupidpeople.weacons;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.wifi.ScanResult;
@@ -405,9 +404,12 @@ public class WeaconParse extends ParseObject {
     }
 
     public String getFetchingFinalUrl() {
-        return mHelper.getFetchingUrl();
+        return mHelper.getFetchingFinalUrl();
     }
 
+    public String getFetchingPartialUrl() {
+        return getString("FetchingUrl");
+    }
     public String NotiSingleCompactTitle() {
         return mHelper.NotiSingleCompactTitle();
     }
@@ -420,7 +422,7 @@ public class WeaconParse extends ParseObject {
         return mHelper.NotiSingleExpandedTitle();
     }
 
-    public String NotiSingleExpandedContent() {
+    public SpannableString NotiSingleExpandedContent() {
         return mHelper.NotiSingleExpandedContent();
     }
 
@@ -434,13 +436,15 @@ public class WeaconParse extends ParseObject {
 
     /////////////////////////////////////////////////////
 
+    /**
+     * the activity should be open for this Weacon. can be Cards o Browser
+     *
+     * @return
+     */
     public Class getActivityClass() {
         return mHelper.getActivityClass();
     }
 
-    public Intent getResultIntent(Context mContext) {
-        return mHelper.getResultIntent(mContext);
-    }
 
     /*
     TODO clean from here

@@ -3,10 +3,11 @@ package com.stupidpeople.weacons;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+
+import com.stupidpeople.weacons.ListActivity.WeaconListActivity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,10 +83,7 @@ public abstract class Notifications {
         try {
             myLog.add("estanmos en send one weacon", tag);
 
-            Intent intent = we.getResultIntent(mContext);
-            Class activityClass = we.getActivityClass();
-
-            PendingIntent pendingIntent = getPendingIntent(intent, activityClass);
+            PendingIntent pendingIntent = getPendingIntent(we.getActivityClass());
 
             NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, sound, mContext);
             mNotificationManager.notify(mIdNoti, notification.build());
@@ -95,30 +93,17 @@ public abstract class Notifications {
         }
     }
 
-    private static PendingIntent getPendingIntent(Intent intent, Class activityClass) {
-        PendingIntent pendingIntent = null;
-        try {
-            //TODO verify this stack works properly
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-                TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
-                stackBuilder.addParentStack(activityClass);
-                stackBuilder.addNextIntent(intent);
-                pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-            } else {
-                myLog.add("version antigua para hacer el stack", tag);
-                pendingIntent = null;//TODO ver qué hacer con version antigua
-            }
-        } catch (Exception e) {
-            myLog.error(e);
+    private static PendingIntent getPendingIntent(Class activityClass) {
+        Intent resultIntent = new Intent(mContext, activityClass);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        }
         return pendingIntent;
     }
 
     private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean sound, boolean anyFetchable) {
 
         NotificationCompat.Builder notif;
-        Collections.reverse(notificables);
+        if (LogInManagement.anyChange) Collections.reverse(notificables);
 
 
         String msg = Integer.toString(notificables.size()) + " weacons around you";
@@ -160,9 +145,9 @@ public abstract class Notifications {
         notif.setStyle(inboxStyle);
 
 
-        Class<WeaconListActivity> cls = WeaconListActivity.class;
-        Intent intent = new Intent(mContext, cls);
-        PendingIntent pendingIntent = getPendingIntent(intent, cls);
+        Intent resultIntent = new Intent(mContext, WeaconListActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
         notif.setContentIntent(pendingIntent);
 

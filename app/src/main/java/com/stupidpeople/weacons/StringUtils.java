@@ -21,7 +21,6 @@ public class StringUtils {
      */
     @NonNull
     public static SpannableString getSpannableString(String text, int m) {
-        //TODO move to string utils
         SpannableString span = new SpannableString(text);
 
         span.setSpan(new ForegroundColorSpan(Color.BLACK), 0, m, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -30,4 +29,6 @@ public class StringUtils {
 
         return span;
     }
+
+
 }

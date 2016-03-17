@@ -3,9 +3,12 @@ package com.stupidpeople.weacons.WeaconRestaurant;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
@@ -33,6 +36,12 @@ public class HelperRestaurant implements WeaconHelper {
         this.we = we;
     }
 
+    public static void appendWithSpan(SpannableStringBuilder spannablestringbuilder, CharSequence charsequence, Object obj) {
+        int i = spannablestringbuilder.length();
+        spannablestringbuilder.append(charsequence);
+        spannablestringbuilder.setSpan(obj, i, spannablestringbuilder.length(), 33);
+    }
+
     @Override
     public String typeString() {
         return "Restaurant";
@@ -49,13 +58,11 @@ public class HelperRestaurant implements WeaconHelper {
 
     @Override
     public ArrayList processResponse(Connection.Response response) {
-        //TODO
         Document doc = null;
         ArrayList<ArrayList<String>> arrayGrande = null;
         try {
             try {
                 doc = response.parse();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -93,8 +100,8 @@ public class HelperRestaurant implements WeaconHelper {
     }
 
     @Override
-    public String getFetchingUrl() {
-        return we.getString("FetchingUrl");
+    public String getFetchingFinalUrl() {
+        return we.getFetchingPartialUrl();
     }
 
     @Override
@@ -113,23 +120,41 @@ public class HelperRestaurant implements WeaconHelper {
     }
 
     @Override
-    public String NotiSingleExpandedContent() {
+    public SpannableString NotiSingleExpandedContent() {
 //        if(fetched()) TODO, putdescription if not fetched
+        //TODO only en ciertas horas el menú, por la tarde poner la decripcion
 
-        //Formamos el texto
-
-        StringBuilder sb = new StringBuilder();
+        ForegroundColorSpan colorSpan = new ForegroundColorSpan(Color.BLACK);
+        SpannableString sst = null;
 
         for (Object o : we.fetchedElements) {
             ArrayList<String> arr = (ArrayList<String>) o;
-            for (String s :
-                    arr) {
-                sb.append(s + "|");
+
+            String title = arr.get(0);
+            StringBuilder sb = new StringBuilder(title + ": ");
+
+            // Dishes
+            for (int i = 1; i < arr.size() - 1; i++) {
+                sb.append(arr.get(i));
+                if (i < arr.size() - 2) {
+                    sb.append((" | "));
+                }
             }
-            sb.append("||");
+
+            myLog.add("Hasta ahora:\n" + sb.toString(), "aut");
+
+
+            SpannableString ssNew = StringUtils.getSpannableString(sb.toString(), title.length());
+
+            if (sst == null) {
+                sst = ssNew;
+            } else {
+                sst = SpannableString.valueOf(TextUtils.concat(sst, "\n", ssNew));
+            }
+
         }
 
-        return sb.toString();
+        return sst;
     }
 
     @Override
@@ -140,10 +165,11 @@ public class HelperRestaurant implements WeaconHelper {
     @Override
     public SpannableString getOneLineSummary() {
         String name;
-        String greyPart = "popo"; //TODO put the fetching of the web
+        String greyPart = "See today's menu.";
+        int len = 16;
 
-        if (we.getName().length() > 10) {
-            name = we.getName().substring(0, 10) + ".";
+        if (we.getName().length() > len) {
+            name = we.getName().substring(0, len) + ".";
         } else {
             name = we.getName();
         }
@@ -153,11 +179,6 @@ public class HelperRestaurant implements WeaconHelper {
 
     @Override
     public Class getActivityClass() {
-        return null;
-    }
-
-    @Override
-    public Intent getResultIntent(Context mContext) {
         return null;
     }
 
@@ -179,7 +200,7 @@ public class HelperRestaurant implements WeaconHelper {
 
         //Bigtext style
 
-        String msg = NotiSingleExpandedContent();
+        SpannableString msg = NotiSingleExpandedContent();
 
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
         textStyle.setBigContentTitle(title);
@@ -190,7 +211,7 @@ public class HelperRestaurant implements WeaconHelper {
             notif.setLights(0xE6D820, 300, 100)
                     .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
         }
-        myLog.notificationMultiple(title, msg, "Currently " + LogInManagement.getActiveWeacons().size()
+        myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
                 + " weacons active", String.valueOf(false));
 
         notif.setContentIntent(resultPendingIntent);//TODO whath to do when they click on in the notification
