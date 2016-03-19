@@ -1,20 +1,15 @@
 package com.stupidpeople.weacons.WeaconBus;
 
-import android.app.Notification;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.text.TextUtils;
 
+import com.stupidpeople.weacons.HelperAbstractFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusLineStCugat;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
 import com.stupidpeople.weacons.WeaconBus.Santiago.BusLineSantiago;
-import com.stupidpeople.weacons.WeaconHelper;
 import com.stupidpeople.weacons.WeaconParse;
 
 import org.json.JSONArray;
@@ -29,34 +24,20 @@ import util.myLog;
 import util.parameters;
 
 /**
- * Created by Milenko on 14/03/2016.
+ * Created by Milenko on 18/03/2016.
  */
-public class HelperBus implements WeaconHelper {
-    private final WeaconParse we;
-    //TODO sort methods
+public class HelperBus2 extends HelperAbstractFecthNotif {
     String updateTime;
     String stopCode;
+
     private String description;
-    private String sInbox;
 
-    public HelperBus(WeaconParse weaconParse) {
-        we = weaconParse;
-    }
-
-
-    @Override
-    public String typeString() {
-        return "BUS STOP";//TODO translate
+    public HelperBus2(WeaconParse we) {
+        super(we);
     }
 
     @Override
-    public boolean notificationRequiresFetching() {
-        return true;
-    }
-
-    @Override
-    public ArrayList processResponse(Connection.Response response) {
-
+    protected ArrayList processResponse(Connection.Response response) {
         ArrayList arr = new ArrayList();
 
         if (we.near(parameters.stCugat, 20)) {
@@ -65,17 +46,16 @@ public class HelperBus implements WeaconHelper {
             arr = processSantiago(response.body());
         }
         return arr;
-
     }
 
     @Override
-    public String getFetchingFinalUrl() {
+    protected String getFetchingFinalUrl() {
         return we.getFetchingPartialUrl() + getBusStopId();
     }
 
     @Override
-    public String NotiSingleCompactTitle() {
-        return we.getName();
+    protected String typeString() {
+        return "BUS STOP";
     }
 
     @Override
@@ -89,10 +69,6 @@ public class HelperBus implements WeaconHelper {
         return s;
     }
 
-    @Override
-    public String NotiSingleExpandedTitle() {
-        return we.getName();
-    }
 
     @Override
     public SpannableString NotiSingleExpandedContent() {
@@ -115,11 +91,6 @@ public class HelperBus implements WeaconHelper {
 
     @Override
     public SpannableString NotiOneLineSummary() {
-        return getOneLineSummary();
-    }
-
-    @Override
-    public SpannableString getOneLineSummary() {
         String name;
         String greyPart;
 
@@ -138,69 +109,29 @@ public class HelperBus implements WeaconHelper {
     }
 
     @Override
-    public Class getActivityClass() {
-        //        Class<?> cls = CardActivity.class;//TODO poner la class correcto
-        return myLog.class;
-    }
+    protected NotificationCompat.InboxStyle getInboxStyle() {
+        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
+        inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
+        inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
 
 
-    @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
-        NotificationCompat.Builder notif;
-        String title = NotiSingleCompactTitle();
-
-        Intent refreshIntent = new Intent(parameters.refreshIntentName);
-        PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
-        NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, "Turn Off", resultPendingIntent);//TODO to create the silence intent
-//TODO change icon to bell
-        notif = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_notif_we)
-                .setLargeIcon(we.getLogoRounded())
-                .setContentTitle(title)
-                .setContentText(NotiSingleCompactContent())
-                .setAutoCancel(true)
-                .addAction(actionSilence)
-                .addAction(actionRefresh);
-
-
-        if (we.obsolete) {
-            //Bigtext style
-
-            SpannableString msg = NotiSingleExpandedContent();
-            NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
-            textStyle.setBigContentTitle(title);
-            textStyle.bigText(msg);
-            notif.setStyle(textStyle);
-
-            myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
-                    + " weacons active", String.valueOf(false));
-        } else {
-            //InboxStyle
-            notif.setTicker("Weacon detected\n" + we.getName());
-            if (sound) {
-                notif.setLights(0xE6D820, 300, 100)
-                        .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
-            }
-            notif.setStyle(getInboxStyle());
-
-            myLog.notificationMultiple(title, sInbox, "Currently " + LogInManagement.getActiveWeacons().size()
-                    + " weacons active", String.valueOf(sound));
+        StringBuilder sb = new StringBuilder();
+        for (SpannableString s : summarizeByOneLine()) {
+            inboxStyle.addLine(s);
+            sb.append("   " + s + "\n");
         }
-
-        notif.setContentIntent(resultPendingIntent);//TODO whath to do when they click on in the notification
-
-        return notif;
-
+        sInbox = sb.toString();
+        return inboxStyle;
     }
 
+    public String getBusStopId() {
+        return we.getString("paradaId");
+    }
 
     private ArrayList processSantiago(String response) {
         ArrayList<BusLine> arr = new ArrayList<>();
 
         try {
-
-
             JSONObject json = new JSONObject(response);
             stopCode = json.getString("paradero");
             description = json.getString("nomett");
@@ -259,58 +190,6 @@ public class HelperBus implements WeaconHelper {
         return arr;
     }
 
-    private NotificationCompat.InboxStyle getInboxStyle() {
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
-        inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
-
-
-        StringBuilder sb = new StringBuilder();
-        for (SpannableString s : summarizeByOneLine()) {
-            inboxStyle.addLine(s);
-            sb.append("   " + s + "\n");
-        }
-        sInbox = sb.toString();
-        return inboxStyle;
-    }
-
-    /**
-     * Array with strings that summarizes each line: L1: 12 min, 18 min, 35 min
-     * ideal for single notification (inbox format)
-     *
-     * @return
-     */
-    public ArrayList<SpannableString> summarizeByOneLine() {
-        ArrayList<SpannableString> arr = new ArrayList<>();
-
-        if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
-            arr.add(new SpannableString("No info for this stop by now."));
-        } else {
-
-            for (Object o : we.fetchedElements) {
-                BusLine lt = (BusLine) o;
-                String name = lt.lineCode;
-
-                StringBuilder sb = new StringBuilder(name + " ");
-
-                for (Bus bus : lt.buses) {
-                    sb.append(bus.arrivalTimeText + ", ");
-                }
-
-                String s = sb.toString();
-                String sub = s.substring(0, s.length() - 2);
-
-                arr.add(StringUtils.getSpannableString(sub, name.length()));
-
-            }
-        }
-        return arr;
-    }
-
-    public String getBusStopId() {
-        return we.getString("paradaId");
-    }
-
     /**
      * Shows only the first arrival by line:  L1:10m | B3: 5m | R4:18m
      *
@@ -349,6 +228,39 @@ public class HelperBus implements WeaconHelper {
 
     public String summarizeAllLines() {
         return summarizeAllLines(false);
+    }
+
+    /**
+     * Array with strings that summarizes each line: L1: 12 min, 18 min, 35 min
+     * ideal for single notification (inbox format)
+     *
+     * @return
+     */
+    public ArrayList<SpannableString> summarizeByOneLine() {
+        ArrayList<SpannableString> arr = new ArrayList<>();
+
+        if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
+            arr.add(new SpannableString("No info for this stop by now."));
+        } else {
+
+            for (Object o : we.fetchedElements) {
+                BusLine lt = (BusLine) o;
+                String name = lt.lineCode;
+
+                StringBuilder sb = new StringBuilder(name + " ");
+
+                for (Bus bus : lt.buses) {
+                    sb.append(bus.arrivalTimeText + ", ");
+                }
+
+                String s = sb.toString();
+                String sub = s.substring(0, s.length() - 2);
+
+                arr.add(StringUtils.getSpannableString(sub, name.length()));
+
+            }
+        }
+        return arr;
     }
 
 

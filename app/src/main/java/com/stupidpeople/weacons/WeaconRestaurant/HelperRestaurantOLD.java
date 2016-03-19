@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 
@@ -29,17 +28,11 @@ import util.myLog;
 /**
  * Created by Milenko on 16/03/2016.
  */
-public class HelperRestaurant implements WeaconHelper {
+public class HelperRestaurantOLD implements WeaconHelper {
     private final WeaconParse we;
 
-    public HelperRestaurant(WeaconParse we) {
+    public HelperRestaurantOLD(WeaconParse we) {
         this.we = we;
-    }
-
-    public static void appendWithSpan(SpannableStringBuilder spannablestringbuilder, CharSequence charsequence, Object obj) {
-        int i = spannablestringbuilder.length();
-        spannablestringbuilder.append(charsequence);
-        spannablestringbuilder.setSpan(obj, i, spannablestringbuilder.length(), 33);
     }
 
     @Override
@@ -86,7 +79,6 @@ public class HelperRestaurant implements WeaconHelper {
                 } else {
                     continue;
                 }
-
             }
 
             if (arr.size() > 1)
@@ -179,7 +171,7 @@ public class HelperRestaurant implements WeaconHelper {
 
     @Override
     public Class getActivityClass() {
-        return null;
+        return CardsActivity.class;
     }
 
     @Override

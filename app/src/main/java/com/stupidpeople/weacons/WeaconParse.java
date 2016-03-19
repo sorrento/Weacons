@@ -14,9 +14,9 @@ import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
-import com.stupidpeople.weacons.WeaconAirport.HelperAirport;
-import com.stupidpeople.weacons.WeaconBus.HelperBus;
-import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant;
+import com.stupidpeople.weacons.WeaconAirport.HelperAiport2;
+import com.stupidpeople.weacons.WeaconBus.HelperBus2;
+import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant2;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 
 import org.jsoup.Connection;
@@ -40,7 +40,7 @@ public class WeaconParse extends ParseObject {
     static boolean forceFetching = false;
     public ArrayList fetchedElements;
     public boolean obsolete = false;
-    private WeaconHelper mHelper;
+    private HelperAbstract mHelper;
     private String[] cards;
 
     public WeaconParse() {
@@ -109,6 +109,15 @@ public class WeaconParse extends ParseObject {
 
     public static void ForceFetchingNextTime(ArrayList<WeaconParse> weaconsToNotify) {
         forceFetching = true;
+    }
+
+    public String getDescription() {
+        String message = getString("Description");
+        return message;
+    }
+
+    public String getImageParseUrl() {
+        return getParseFile("Logo").getUrl();
     }
 
     // Comparison of WeaconParse
@@ -190,7 +199,7 @@ public class WeaconParse extends ParseObject {
                 case accounting:
                     break;
                 case airport:
-                    this.setHelper(new HelperAirport(this));
+                    mHelper = new HelperAiport2(this);
                     break;
                 case amusement_park:
                     break;
@@ -215,7 +224,7 @@ public class WeaconParse extends ParseObject {
                 case bowling_alley:
                     break;
                 case bus_station:
-                    this.setHelper(new HelperBus(this));
+                    mHelper = new HelperBus2(this);
                     break;
                 //            case cafe:
                 //                break;
@@ -346,7 +355,12 @@ public class WeaconParse extends ParseObject {
                 //            case real_estate_agency:
                 //                break;
                 case restaurant:
-                    this.setHelper(new HelperRestaurant(this));
+                    if (getFetchingPartialUrl() == null) {
+                        //TODO solve n parese: separar el feching de notifiacacion por el de cartas
+                        mHelper = new HelperDefault(this);
+                    } else {
+                        mHelper = new HelperRestaurant2(this);
+                    }
                     break;
 //                            case roofing_contractor:
                 //                break;
@@ -383,6 +397,8 @@ public class WeaconParse extends ParseObject {
                 //            case zoo:
                 //                break;
                 case nothing:
+                    //TODO case type is not registerd
+                    myLog.add("TYPE NOT RECOGNIZED" + getType(), "aut");
                     break;
             }
         } catch (Exception e) {
@@ -391,35 +407,30 @@ public class WeaconParse extends ParseObject {
         return this;
     }
 
-    private void setHelper(WeaconHelper helper) {
-        mHelper = helper;
-    }
-
     public boolean notificationRequiresFetching() {
         return mHelper.notificationRequiresFetching();
     }
 
     public ArrayList processResponse(Connection.Response response) {
-        return mHelper.processResponse(response);
+        if (mHelper.notificationRequiresFetching()) {
+            return ((HelperAbstractFecthNotif) mHelper).processResponse(response);
+        } else {
+            myLog.add("Este weacon no tiene fetching" + getName(), "aut");
+            return null;
+        }
     }
 
     public String getFetchingFinalUrl() {
-        return mHelper.getFetchingFinalUrl();
+        if (mHelper.notificationRequiresFetching()) {
+            return ((HelperAbstractFecthNotif) mHelper).getFetchingFinalUrl();
+        } else {
+            myLog.add("Este weacon no tiene fetching" + getName(), "aut");
+            return null;
+        }
     }
 
     public String getFetchingPartialUrl() {
         return getString("FetchingUrl");
-    }
-    public String NotiSingleCompactTitle() {
-        return mHelper.NotiSingleCompactTitle();
-    }
-
-    public String NotiSingleCompactContent() {
-        return mHelper.NotiSingleCompactContent();
-    }
-
-    public String NotiSingleExpandedTitle() {
-        return mHelper.NotiSingleExpandedTitle();
     }
 
     public SpannableString NotiSingleExpandedContent() {
@@ -430,9 +441,6 @@ public class WeaconParse extends ParseObject {
         return mHelper.NotiOneLineSummary();
     }
 
-    public SpannableString getOneLineSummary() {
-        return mHelper.getOneLineSummary();
-    }
 
     /////////////////////////////////////////////////////
 
@@ -444,11 +452,6 @@ public class WeaconParse extends ParseObject {
     public Class getActivityClass() {
         return mHelper.getActivityClass();
     }
-
-
-    /*
-    TODO clean from here
-     */
 
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
         return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext);
@@ -493,7 +496,9 @@ public class WeaconParse extends ParseObject {
     }
 
     // OTHER
-
+   /*
+    TODO clean from here
+     */
     public String[] getCards() {
 
         try {
@@ -506,14 +511,6 @@ public class WeaconParse extends ParseObject {
         return cards;
     }
 
-    public String getDescription() {
-        String message = getString("Description");
-        return message;
-    }
-
-    public String getImageParseUrl() {
-        return getParseFile("Logo").getUrl();
-    }
 
     public int getRepeatedOffRemoveFromNotification() {
         int res;
@@ -528,8 +525,6 @@ public class WeaconParse extends ParseObject {
     public boolean near(ParseGeoPoint point, int kms) {
         return getGPS().distanceInKilometersTo(point) < kms;
     }
-
-    // Specific Helpers for specific weacons
 
 }
 

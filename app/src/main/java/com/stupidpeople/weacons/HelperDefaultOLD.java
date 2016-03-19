@@ -1,33 +1,29 @@
-package com.stupidpeople.weacons.WeaconAirport;
+package com.stupidpeople.weacons;
 
 import android.app.PendingIntent;
 import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
-import com.stupidpeople.weacons.WeaconHelper;
-import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.WeaconRestaurant.CardsActivity;
 
 import org.jsoup.Connection;
 
 import java.util.ArrayList;
 
-import static com.stupidpeople.weacons.StringUtils.getSpannableString;
-
 /**
- * Created by Milenko on 14/03/2016.
+ * Created by Milenko on 18/03/2016.
  */
-public class HelperAirport implements WeaconHelper {
+public class HelperDefaultOLD implements WeaconHelper {
     private final WeaconParse we;
 
-    //TODO airport meritates its own notification. Implementate that possibility
-    public HelperAirport(WeaconParse weaconParse) {
+    public HelperDefaultOLD(WeaconParse weaconParse) {
         this.we = weaconParse;
     }
 
     @Override
     public String typeString() {
-        return "AIRPORT";
+        return "Default";
     }
 
     @Override
@@ -52,7 +48,8 @@ public class HelperAirport implements WeaconHelper {
 
     @Override
     public String NotiSingleCompactContent() {
-        return we.getTypeString();
+//        return we.getTypeString();//TODO cambiar poninenbdo el getTypeString
+        return we.getDescription();
     }
 
     @Override
@@ -65,36 +62,25 @@ public class HelperAirport implements WeaconHelper {
         return SpannableString.valueOf(we.getDescription());
     }
 
-    //todo is this function redundant?
-    @Override
-    public SpannableString getOneLineSummary() {
-        String name;
-
-        if (we.getName().length() > 10) {
-            name = we.getName().substring(0, 10) + ".";
-        } else {
-            name = we.getName();
-        }
-
-        return getSpannableString(name + " " + "Click to get fligths", name.length());
-
-    }
-
     @Override
     public SpannableString NotiOneLineSummary() {
         return getOneLineSummary();
     }
 
     @Override
-    public Class getActivityClass() {
+    public SpannableString getOneLineSummary() {
+//        StringUtils.getSpannableString(we.getName()+". "+ we.getTypeString),we.getName().length());//TODO replace
+        StringUtils.getSpannableString(we.getName() + ". " + we.getDescription(), we.getName().length());
         return null;
-        //TODO put the cardactivity
     }
 
+    @Override
+    public Class getActivityClass() {
+        return CardsActivity.class;
+    }
 
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
-        return null;
-        //TODO may be is better that WeraconHelper is a class with default implementations and abstract methods
+        return null;//TODO completar
     }
 }
