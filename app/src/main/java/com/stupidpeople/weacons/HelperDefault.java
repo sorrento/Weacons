@@ -1,5 +1,6 @@
 package com.stupidpeople.weacons;
 
+import android.content.Context;
 import android.text.SpannableString;
 
 import util.parameters;
@@ -8,8 +9,10 @@ import util.parameters;
  * Created by Milenko on 19/03/2016.
  */
 public class HelperDefault extends HelperAbstract {
-    protected HelperDefault(WeaconParse we) {
-        super(we);
+
+
+    protected HelperDefault(WeaconParse we, Context ctx) {
+        super(we, ctx);
     }
 
     @Override

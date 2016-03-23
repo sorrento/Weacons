@@ -16,8 +16,8 @@ import com.stupidpeople.weacons.WeaconParse;
 public class HelperAiport2 extends HelperAbstract {
 //TODO airport meritates its own notification. Implementate that possibility
 
-    public HelperAiport2(WeaconParse we) {
-        super(we);
+    public HelperAiport2(WeaconParse we, Context ctx) {
+        super(we, ctx);
     }
 
     @Override
@@ -31,11 +31,11 @@ public class HelperAiport2 extends HelperAbstract {
     }
 
     @Override
-    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
+    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean anyInteresting) {
 
         //TODO agregar que vata a cards acivitys al pinchar en la notif, que diferencie arrivals, y agregarle el extra que necesita
 
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, false);
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, anyInteresting);
 
         NotificationCompat.Action DepartureAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Departures", resultPendingIntent);//TODO replace by planes and intents
         NotificationCompat.Action ArrivalAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Arrivals", resultPendingIntent);

@@ -2,7 +2,6 @@ package com.stupidpeople.weacons;
 
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
@@ -11,7 +10,6 @@ import org.jsoup.Connection;
 import java.util.ArrayList;
 
 import util.myLog;
-import util.parameters;
 
 /**
  * Created by Milenko on 18/03/2016.
@@ -19,9 +17,10 @@ import util.parameters;
 public abstract class HelperAbstractFecthNotif extends HelperAbstract {
     protected String sInbox;
 
-    public HelperAbstractFecthNotif(WeaconParse we) {
-        super(we);
+    protected HelperAbstractFecthNotif(WeaconParse we, Context ctx) {
+        super(we, ctx);
     }
+
 
     protected abstract ArrayList processResponse(Connection.Response response);
 
@@ -35,16 +34,11 @@ public abstract class HelperAbstractFecthNotif extends HelperAbstract {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, true);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
+        Notifications.addRefreshButton(notif);
+
         String title = NotiSingleCompactTitle();
-
-        //Refresh Button
-        Intent refreshIntent = new Intent(parameters.refreshIntentName);
-        PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
-
-        notif.addAction(actionRefresh);
 
 
         if (we.obsolete) {

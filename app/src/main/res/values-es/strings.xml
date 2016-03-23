@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Weacons</string>
+    <string name="press_refresh">Presione ACTUALIZAR.</string>
+    <string name="bus_stop">PARADA.</string>
+    <string name="weacons_around">" weacons por aquí cerca"</string>
+    <string name="refresh_button">Actualizar</string>
+    <string name="silence">Silencio</string>
+    <string name="type_busstop">PARADA DE AUTOBUS</string>
+</resources>

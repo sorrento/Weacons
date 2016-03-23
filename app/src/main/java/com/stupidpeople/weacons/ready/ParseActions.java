@@ -34,8 +34,9 @@ public abstract class ParseActions {
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
      *
      * @param callBackWeacons for returning the set of weacons in the zone in this scanning
+     * @param ctx
      */
-    public static void CheckSpotMatches(List<ScanResult> sr, final CallBackWeacons callBackWeacons) {
+    public static void CheckSpotMatches(List<ScanResult> sr, final CallBackWeacons callBackWeacons, final Context ctx) {
 
         ArrayList<String> bssids = new ArrayList<>();
         ArrayList<String> ssids = new ArrayList<>();
@@ -86,7 +87,7 @@ public abstract class ParseActions {
                     myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
 
                     // It's important always deliver built weacons (in this way, they are of subclasses, as bus
-                    WeaconParse.build(weaconHashSet);
+                    WeaconParse.build(weaconHashSet, ctx);
 
                     callBackWeacons.OnReceive(weaconHashSet);
 
@@ -99,7 +100,8 @@ public abstract class ParseActions {
 
     /***
      * get wifispots from parse in a area and pin them the object includes the weacon
-     *  @param bLocal  if should be queried in local database
+     *
+     * @param bLocal  if should be queried in local database
      * @param radio   kms
      * @param center  center of queried area
      * @param context
@@ -152,7 +154,79 @@ public abstract class ParseActions {
                 }
             });
         } catch (Exception e) {
-            myLog.add("---Error: failed retrieving SPOTS: " + e.getMessage(),tag);
+            myLog.add("---Error: failed retrieving SPOTS: " + e.getMessage(), tag);
         }
+    }
+
+    /**
+     * Mark in local parse that these weacons are interesting, so they will sound and will be fetched
+     * automatically (first time)
+     *
+     * @param notifiedWeacons
+     */
+    public static void AddToInteresting(ArrayList<WeaconParse> notifiedWeacons) {
+
+        for (final WeaconParse we : notifiedWeacons) {
+            ParseObject fav = new ParseObject("Favorites");
+            fav.put("WeaconId", we.getObjectId());//TODO ver si existe
+            fav.pinInBackground("Favoritos", new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (e == null) {
+                        myLog.add("se ha pinneado el favorito  " + we.getName(), tag);
+                    } else {
+                        myLog.add("No se ha pinneaso el favorito " + we.getName() + e.getLocalizedMessage(), tag);
+                    }
+                }
+            });
+        }
+    }
+
+    public static boolean isInteresting(String objectId) {
+        int i = 0;
+        try {
+//            myLog.add("Checkado si " + objectId + "es interesante", "aut");
+            ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
+            query.whereEqualTo("WeaconId", objectId);
+            query.fromPin("Favoritos");
+            i = query.count();
+//            myLog.add("     La cuenta ha dado " + i, "aut");
+        } catch (ParseException e) {
+            myLog.error(e);
+        }
+        boolean b = i > 0;
+        myLog.add("is interesting?" + b, tag);
+        return b;
+    }
+
+    public static void removeInteresting(ArrayList<WeaconParse> notifiedWeacons) {
+        ArrayList arr = new ArrayList();
+        for (WeaconParse we : notifiedWeacons) {
+            arr.add(we.getObjectId());
+        }
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
+        query.whereContainedIn("WeaconId", arr);
+        query.fromPin("Favoritos");
+        query.findInBackground(new FindCallback<ParseObject>() {
+            @Override
+            public void done(List<ParseObject> list, ParseException e) {
+                if (e == null) {
+                    myLog.add("Recibidos favoritos para borrar:" + list.size(), "aut");
+                    ParseObject.unpinAllInBackground("Favoritos", list, new DeleteCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e == null) {
+                                myLog.add("Borrads los elementso de favoritos", "aut");
+                            } else {
+                                myLog.add("No se han borrado los elementos de favo", "aut");
+                            }
+                        }
+                    });
+                } else {
+                    myLog.error(e);
+                }
+            }
+        });
+
     }
 }

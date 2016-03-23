@@ -1,11 +1,13 @@
 package com.stupidpeople.weacons.WeaconBus;
 
+import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.text.TextUtils;
 
 import com.stupidpeople.weacons.HelperAbstractFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusLineStCugat;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
@@ -32,9 +34,10 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
 
     private String description;
 
-    public HelperBus2(WeaconParse we) {
-        super(we);
+    public HelperBus2(WeaconParse we, Context ctx) {
+        super(we, ctx);
     }
+
 
     @Override
     protected ArrayList processResponse(Connection.Response response) {
@@ -55,16 +58,16 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
 
     @Override
     protected String typeString() {
-        return "BUS STOP";
+        return mContext.getString(R.string.type_busstop);
     }
 
     @Override
     public String NotiSingleCompactContent() {
         String s;
         if (we.obsolete) {
-            s = "Press REFRESH Button";
+            s = mContext.getString(R.string.press_refresh);
         } else {
-            s = "BUS STOP. " + summarizeAllLines();
+            s = mContext.getString(R.string.bus_stop) + summarizeAllLines();
         }
         return s;
     }

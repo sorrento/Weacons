@@ -1,13 +1,11 @@
 package com.stupidpeople.weacons;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
-import com.stupidpeople.weacons.WeaconRestaurant.CardsActivity;
+import com.stupidpeople.weacons.ListActivity.WeaconListActivity;
 
 import util.myLog;
 
@@ -15,11 +13,14 @@ import util.myLog;
  * Created by Milenko on 18/03/2016.
  */
 public abstract class HelperAbstract {
+    protected final Context mContext;
     protected WeaconParse we;
 
-    protected HelperAbstract(WeaconParse we) {
+    protected HelperAbstract(WeaconParse we, Context ctx) {
+        mContext = ctx;
         this.we = we;
     }
+
 
     protected abstract String typeString();
 
@@ -42,12 +43,12 @@ public abstract class HelperAbstract {
     }
 
     protected Class getActivityClass() {
-        return CardsActivity.class;
+        return WeaconListActivity.class; //TODO poner cards
     }
 
-    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
+    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
         String title = NotiSingleCompactTitle();
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, true);
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
 
 
         //Bigtext style
@@ -75,17 +76,10 @@ public abstract class HelperAbstract {
                 .setContentText(NotiSingleCompactContent())
                 .setAutoCancel(true)
                 .setTicker("Weacon detected\n" + we.getName());
-        if (sound) {
-            notif.setLights(0xE6D820, 300, 100)
-                    .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
-        }
 
+        if (sound) Notifications.addSound(notif);
         if (silenceButton) {
-            Intent resultIntent = new Intent(mContext, CardsActivity.class);//TODO  create the intent for Silence
-            PendingIntent resultPendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-            NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, "Turn Off", resultPendingIntent);//TODO to create the silence intent
-            notif.addAction(actionSilence);
+            Notifications.addSilenceButton(notif);
         }
 
         return notif;

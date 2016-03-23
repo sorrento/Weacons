@@ -18,6 +18,7 @@ import com.stupidpeople.weacons.WeaconAirport.HelperAiport2;
 import com.stupidpeople.weacons.WeaconBus.HelperBus2;
 import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant2;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
+import com.stupidpeople.weacons.ready.ParseActions;
 
 import org.jsoup.Connection;
 
@@ -42,6 +43,7 @@ public class WeaconParse extends ParseObject {
     public boolean obsolete = false;
     private HelperAbstract mHelper;
     private String[] cards;
+    private boolean isInteresting;
 
     public WeaconParse() {
     }
@@ -80,11 +82,11 @@ public class WeaconParse extends ParseObject {
         return sb.toString();
     }
 
-    public static void build(HashSet<WeaconParse> weaconHashSet) {
+    public static void build(HashSet<WeaconParse> weaconHashSet, Context ctx) {
         HashSet<WeaconParse> weaconHashSet2 = new HashSet<>();
         try {
             for (WeaconParse we : weaconHashSet) {
-                we.build();
+                we.build(ctx);
             }
         } catch (Exception e) {
             myLog.error(e);
@@ -193,13 +195,13 @@ public class WeaconParse extends ParseObject {
 
     ///////////////////////////////////////////////////// DELEGATES
 
-    public WeaconParse build() {
+    public WeaconParse build(Context ctx) {
         try {
             switch (getType()) {
                 case accounting:
                     break;
                 case airport:
-                    mHelper = new HelperAiport2(this);
+                    mHelper = new HelperAiport2(this, ctx);
                     break;
                 case amusement_park:
                     break;
@@ -224,7 +226,7 @@ public class WeaconParse extends ParseObject {
                 case bowling_alley:
                     break;
                 case bus_station:
-                    mHelper = new HelperBus2(this);
+                    mHelper = new HelperBus2(this, ctx);
                     break;
                 //            case cafe:
                 //                break;
@@ -357,9 +359,9 @@ public class WeaconParse extends ParseObject {
                 case restaurant:
                     if (getFetchingPartialUrl() == null) {
                         //TODO solve n parese: separar el feching de notifiacacion por el de cartas
-                        mHelper = new HelperDefault(this);
+                        mHelper = new HelperDefault(this, ctx);
                     } else {
-                        mHelper = new HelperRestaurant2(this);
+                        mHelper = new HelperRestaurant2(this, ctx);
                     }
                     break;
 //                            case roofing_contractor:
@@ -398,9 +400,12 @@ public class WeaconParse extends ParseObject {
                 //                break;
                 case nothing:
                     //TODO case type is not registerd
-                    myLog.add("TYPE NOT RECOGNIZED" + getType(), "aut");
+//                    myLog.add("TYPE NOT RECOGNIZED" + getType(), "aut");
                     break;
             }
+
+            isInteresting = ParseActions.isInteresting(getObjectId());
+
         } catch (Exception e) {
             myLog.add(Log.getStackTraceString(e), "err");
         }
@@ -415,7 +420,7 @@ public class WeaconParse extends ParseObject {
         if (mHelper.notificationRequiresFetching()) {
             return ((HelperAbstractFecthNotif) mHelper).processResponse(response);
         } else {
-            myLog.add("Este weacon no tiene fetching" + getName(), "aut");
+            myLog.add("Este weacon no tiene fetching" + getName(), "WARN");
             return null;
         }
     }
@@ -424,7 +429,7 @@ public class WeaconParse extends ParseObject {
         if (mHelper.notificationRequiresFetching()) {
             return ((HelperAbstractFecthNotif) mHelper).getFetchingFinalUrl();
         } else {
-            myLog.add("Este weacon no tiene fetching" + getName(), "aut");
+            myLog.add("Este weacon no tiene fetching" + getName(), "WARN");
             return null;
         }
     }
@@ -434,7 +439,14 @@ public class WeaconParse extends ParseObject {
     }
 
     public SpannableString NotiSingleExpandedContent() {
-        return mHelper.NotiSingleExpandedContent();
+
+        if (mHelper == null) {
+            String s = "Sorry, mhelper=null";
+            myLog.add(s, "WARN");
+            return SpannableString.valueOf(s);
+        } else {
+            return mHelper.NotiSingleExpandedContent();
+        }
     }
 
     public SpannableString NotiOneLineSummary() {
@@ -453,8 +465,8 @@ public class WeaconParse extends ParseObject {
         return mHelper.getActivityClass();
     }
 
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
-        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
+        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, isInteresting);
     }
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
@@ -477,7 +489,7 @@ public class WeaconParse extends ParseObject {
             public void OnEmptyAnswer() {
                 fetchedElements = new ArrayList();
 //                processResponse("");
-                myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "aut");
+                myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "WARN");
                 fetchedElementListener.OneTaskCompleted();
             }
         };
@@ -506,7 +518,7 @@ public class WeaconParse extends ParseObject {
             cards = new String[al.size()];
             al.toArray(cards);
         } catch (Exception e) {
-            myLog.add("--error: ther is no definition of cards in parse: " + e.getLocalizedMessage(), "aut");
+            myLog.error(e);
         }
         return cards;
     }
@@ -526,5 +538,8 @@ public class WeaconParse extends ParseObject {
         return getGPS().distanceInKilometersTo(point) < kms;
     }
 
+    public boolean isInteresting() {
+        return this.isInteresting;
+    }
 }
 

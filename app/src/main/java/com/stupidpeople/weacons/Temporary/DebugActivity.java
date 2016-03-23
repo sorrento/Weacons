@@ -2,18 +2,10 @@ package com.stupidpeople.weacons.Temporary;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.CompoundButton;
-import android.widget.Spinner;
 import android.widget.Switch;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.parse.LogInCallback;
 import com.parse.ParseException;
@@ -25,12 +17,8 @@ import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.ready.ParseActions;
 import com.stupidpeople.weacons.ready.WifiObserverService;
 
-import java.util.ArrayList;
-
 import util.myLog;
 import util.parameters;
-
-import static util.myLog.WriteUnhandledErrors;
 
 public class DebugActivity extends AppCompatActivity {
 
@@ -42,6 +30,7 @@ public class DebugActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_debug);
 
+        myLog.add("ON create", tag);
         myLog.initialize();
 
         retrieveSpotsAround(false, parameters.radioSpotsQuery);
@@ -51,7 +40,30 @@ public class DebugActivity extends AppCompatActivity {
         //PARSE
         ParseUserLogIn(); //TODO where to put the login in parse, and the load of weacons?
 
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myLog.add("Onresume", tag);
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        myLog.add("On postresume", tag);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        myLog.add("ON destroyr", tag);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        myLog.add("Se ha detenido la actividad princial (debug", tag);
     }
 
     private void initializeViews() {
@@ -83,7 +95,7 @@ public class DebugActivity extends AppCompatActivity {
             @Override
             public void LocationReceived(GPSCoordinates gps) {
                 if (gps == null) {
-                    myLog.add("Location is null", "aut");//TODO loaction shlould never be null
+                    myLog.add("Location is null", tag);//TODO loaction shlould never be null
                     gps = new GPSCoordinates(parameters.stCugat);
                 }
                 ParseActions.getSpots(bLocal, radio, gps, getApplicationContext());
@@ -91,7 +103,8 @@ public class DebugActivity extends AppCompatActivity {
 
             @Override
             public void LocationReceived(GPSCoordinates gps, double accuracy) {
-                myLog.add("recibido comprorecision, aunque no requrido", "aut");
+                myLog.add("recibido comprorecision, aunque no requrido", tag);
+
             }
         };
         new LocationAsker(this, locationCallback);

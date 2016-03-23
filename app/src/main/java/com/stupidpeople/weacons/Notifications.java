@@ -26,8 +26,6 @@ public abstract class Notifications {
     private static Context mContext;
     private static int mIdNoti = 103;
 
-    private static int currentId = 1;
-
     /**
      * Just for testing, it creates a notification with the latests occurrences
      *
@@ -56,13 +54,13 @@ public abstract class Notifications {
         mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
-    public static void showNotification(ArrayList<WeaconParse> notificables, boolean sound, boolean anyFetchable) {
+    public static void showNotification(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
         try {
             if (notificables.size() > 0) {
                 if (notificables.size() == 1) {
-                    sendOneWeacon(notificables.get(0), sound);
+                    sendOneWeacon(notificables.get(0), anyInterestingAppearing);
                 } else {
-                    sendSeveralWeacons(notificables, sound, anyFetchable);
+                    sendSeveralWeacons(notificables, anyInterestingAppearing, anyFetchable, anyIntesting);
                 }
             } else {
                 mNotificationManager.cancel(mIdNoti);
@@ -85,11 +83,10 @@ public abstract class Notifications {
 
             PendingIntent pendingIntent = getPendingIntent(we.getActivityClass());
 
-            NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, sound, mContext);
+            NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, sound, mContext, we.isInteresting());
             mNotificationManager.notify(mIdNoti, notification.build());
         } catch (Exception e) {
             myLog.error(e);
-            ;
         }
     }
 
@@ -100,13 +97,13 @@ public abstract class Notifications {
         return pendingIntent;
     }
 
-    private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean sound, boolean anyFetchable) {
+    private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
 
         NotificationCompat.Builder notif;
-        if (LogInManagement.anyChange) Collections.reverse(notificables);
 
+        if (LogInManagement.newAppearence) Collections.reverse(notificables);
 
-        String msg = Integer.toString(notificables.size()) + " weacons around you";
+        String msg = Integer.toString(notificables.size()) + mContext.getString(R.string.weacons_around);
 
         notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_noti_we_double)
@@ -117,21 +114,15 @@ public abstract class Notifications {
                 .setTicker(msg);
 //                .setDeleteIntent(pendingDeleteIntent) TODO what should hapen when notification are removed??
 
-        //Refresh Button
-        if (anyFetchable) {
-            Intent refreshIntent = new Intent(parameters.refreshIntentName);
-            PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-            NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, "Refresh", resultPendingIntentRefresh);
+//        myLog.add("en Servealr weacons. anyInterestingappea="+anyInterestingAppearing+"| anyIntersint= "+anyIntesting
+//                + "anyFetchanle= "+anyFetchable,"aut");
 
-            notif.addAction(actionRefresh);
-        }
+        if (anyInterestingAppearing) addSound(notif);
+        if (anyIntesting) addSilenceButton(notif);
+        if (anyFetchable) addRefreshButton(notif);
 
-        if (sound) {
-            notif.setLights(0xE6D820, 300, 100)
-                    .setVibrate(new long[]{0, 300, 150, 400, 100})
-                    .setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
-        }
 
+        //Inbox
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(msg);
         inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
@@ -148,11 +139,31 @@ public abstract class Notifications {
         Intent resultIntent = new Intent(mContext, WeaconListActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-
         notif.setContentIntent(pendingIntent);
 
-        myLog.notificationMultiple(msg, sb.toString(), "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(sound));
+        myLog.notificationMultiple(msg, sb.toString(), "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(anyInterestingAppearing));
         mNotificationManager.notify(mIdNoti, notif.build());
+    }
+
+    static void addSound(NotificationCompat.Builder notif) {
+        notif.setLights(0xE6D820, 300, 100)
+                .setVibrate(new long[]{0, 300, 150, 400, 100})
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS);
+    }
+
+    static void addSilenceButton(NotificationCompat.Builder notif) {
+        Intent resultIntent = new Intent(parameters.silenceIntentName);
+        PendingIntent resultPendingIntent = PendingIntent.getBroadcast(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, mContext.getString(R.string.silence), resultPendingIntent);//TODO to create the silence intent
+        notif.addAction(actionSilence);
+    }
+
+    static void addRefreshButton(NotificationCompat.Builder notif) {
+        Intent refreshIntent = new Intent(parameters.refreshIntentName);
+        PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, mContext.getString(R.string.refresh_button), resultPendingIntentRefresh);
+
+        notif.addAction(actionRefresh);
     }
 
 }

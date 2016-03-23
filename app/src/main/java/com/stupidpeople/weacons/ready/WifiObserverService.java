@@ -15,7 +15,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -60,8 +59,6 @@ public class WifiObserverService extends Service {
         try {
             myLog.initialize();
 
-            myLog.add("Started Service", tag);
-
             mContext = getApplicationContext();
             wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
 //TODO
@@ -73,12 +70,16 @@ public class WifiObserverService extends Service {
             receiverWifi = new WifiReceiver();
             IntentFilter intentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+            intentFilter.addAction(Intent.ACTION_SCREEN_ON);
             mContext.registerReceiver(receiverWifi, intentFilter);
             Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
 
-            //Refresh receiver
+            //Refresh & silence receiver
             refreshReceiver = new RefreshReceiver();
-            mContext.registerReceiver(refreshReceiver, new IntentFilter(parameters.refreshIntentName));
+            IntentFilter filter = new IntentFilter(parameters.refreshIntentName);
+            filter.addAction(parameters.silenceIntentName);
+            mContext.registerReceiver(refreshReceiver, filter);
+
 
         } catch (Exception e) {
             Toast.makeText(mContext, "Not posstible to activate detection ", Toast.LENGTH_LONG).show();
@@ -86,69 +87,6 @@ public class WifiObserverService extends Service {
         }
 
         return super.onStartCommand(intent, flags, startId);
-    }
-
-    //TODO implement notifications of working service
-    private void showRecordingNotification() {
-        mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        NotificationCompat.Builder notif;
-
-        notif = new NotificationCompat.Builder(this)
-                .setSmallIcon(android.R.drawable.ic_media_play)
-//                .setLargeIcon(we.getLogoRounded())
-                .setContentTitle("Service is active")
-//                .setContentText(we.getType())
-//                .setAutoCancel(true)
-                .setOngoing(true)
-//                .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
-//                .setLights(0xE6D820, 300, 100)
-                .setTicker("WIFI watching");
-//                .setDeleteIntent(pendingDeleteIntent)
-//                .addAction(actionSilence);
-//
-        mNotificationManager.notify(101, notif.build());
-
-
-//        Notification not = new Notification(R.drawable.icon, "Application started", System.currentTimeMillis());
-//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, main.class), Notification.FLAG_ONGOING_EVENT);
-//        not.flags = Notification.FLAG_ONGOING_EVENT;
-//        not.setLatestEventInfo(this, "Application Name", "Application Description", contentIntent);
-//        mNotificationManager.notify(1, not);
-    }
-
-    private void updateRecordingNotification(String title, String content) {
-//        mNotificationManager.cancel(101);
-
-        NotificationCompat.Builder notif;
-
-        notif = new NotificationCompat.Builder(this)
-                .setSmallIcon(android.R.drawable.ic_media_play)
-//                .setLargeIcon(we.getLogoRounded())
-                .setContentTitle(title)
-//                .setContentText(we.getType())
-//                .setAutoCancel(true)
-                .setOngoing(true)
-//                .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND | Notification.FLAG_SHOW_LIGHTS)
-//                .setLights(0xE6D820, 300, 100)
-                .setTicker("WIFI update");
-//                .setDeleteIntent(pendingDeleteIntent)
-//                .addAction(actionSilence);
-        //Bigtext style
-        NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
-        textStyle.setBigContentTitle("wifis around");
-        textStyle.bigText(content);
-//        textStyle.bigText(LogInManagement.getContabilidadString());
-        notif.setStyle(textStyle);
-
-        mNotificationManager.notify(101, notif.build());
-
-
-//        Notification not = new Notification(R.drawable.icon, "Application started", System.currentTimeMillis());
-//        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, main.class), Notification.FLAG_ONGOING_EVENT);
-//        not.flags = Notification.FLAG_ONGOING_EVENT;
-//        not.setLatestEventInfo(this, "Application Name", "Application Description", contentIntent);
-//        mNotificationManager.notify(1, not);
     }
 
     @Override
@@ -169,11 +107,19 @@ public class WifiObserverService extends Service {
     private class RefreshReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            String action;
             try {
-                myLog.add("+++++++++++++++REFRESHED PRESSED", "MHP");
-                myLog.add("estos son los weacons que habia" + Listar(LogInManagement.lastWeaconsDetected), tag);
-                LogInManagement.refresh(context);
+                action = intent.getAction();
+
+                myLog.add("+++Pressed:" + action, "aut");
+
+                if (action.equals(parameters.refreshIntentName)) {
+                    ParseActions.AddToInteresting(LogInManagement.getNotifiedWeacons());
+                    LogInManagement.refresh(context);
+
+                } else if (action.equals(parameters.silenceIntentName)) {
+                    ParseActions.removeInteresting(LogInManagement.getNotifiedWeacons());
+                }
             } catch (Exception e) {
                 myLog.error(e);
             }
@@ -181,6 +127,9 @@ public class WifiObserverService extends Service {
     }
 
     public class WifiReceiver extends BroadcastReceiver {
+
+        public WifiReceiver() {
+        }
 
         public void onReceive(Context c, Intent intent) {
             final String action = intent.getAction();
@@ -205,10 +154,13 @@ public class WifiObserverService extends Service {
                             myLog.add(" " + Listar(weaconHashSet), "MHP");
                             LogInManagement.setNewWeacons(weaconHashSet);
                         }
-                    });
+                    }, mContext);
 
                 } else if (action.equals("android.intent.action.BOOT_COMPLETED")) {
                     myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
+
+                } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
+                    myLog.add("Ha encendido la pantalla", "aut");
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }

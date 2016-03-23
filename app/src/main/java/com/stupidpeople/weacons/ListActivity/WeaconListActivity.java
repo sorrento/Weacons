@@ -31,6 +31,7 @@ public class WeaconListActivity extends ActionBarActivity {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_weacon_list);
 
+            myLog.add("opening la lista activity", "aut");
             mRecyclerView = new RecyclerView(this);
             mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
             mRecyclerView.hasFixedSize();

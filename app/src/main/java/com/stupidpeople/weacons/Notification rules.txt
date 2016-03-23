@@ -1,0 +1,13 @@
+
+Single
+    - Sonido y vibración
+        -
+    - Fething para nofitificación
+
+Several:
+
+
+-  Sonido y vibración cuando entra uno interesante
+-  Fetching:
+    - Cuando se aprieta
+    - cuando entra uno interesante que tiene fetching

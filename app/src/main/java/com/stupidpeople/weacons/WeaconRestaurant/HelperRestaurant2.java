@@ -25,8 +25,9 @@ import util.myLog;
  * Created by Milenko on 18/03/2016.
  */
 public class HelperRestaurant2 extends HelperAbstractFecthNotif {
-    public HelperRestaurant2(WeaconParse we) {
-        super(we);
+
+    public HelperRestaurant2(WeaconParse weaconParse, Context ctx) {
+        super(weaconParse, ctx);
     }
 
     @Override
@@ -49,7 +50,7 @@ public class HelperRestaurant2 extends HelperAbstractFecthNotif {
                 Element child = el.child(0);
 
                 if (child.tagName().equals("h1")) {
-                    if (arr.size() > 1) arrayGrande.add(arr);
+                    if (arr.size() > 0) arrayGrande.add(arr);
                     arr = new ArrayList<>();
                     arr.add(child.text());
                 } else if (child.tagName().equals("p")) {
@@ -106,40 +107,42 @@ public class HelperRestaurant2 extends HelperAbstractFecthNotif {
         //TODO only en ciertas horas el menú, por la tarde poner la decripcion
 
         SpannableString sst = null;
+        myLog.add("[inside helper. THis weackon " + we.getName() + "has fetchings elementss: " + we.fetchedElements.size(), "aut");
+        try {
+            for (Object o : we.fetchedElements) {
+                ArrayList<String> arr = (ArrayList<String>) o;
 
-        for (Object o : we.fetchedElements) {
-            ArrayList<String> arr = (ArrayList<String>) o;
+                String title = arr.get(0);
+                StringBuilder sb = new StringBuilder(title + ": ");
 
-            String title = arr.get(0);
-            StringBuilder sb = new StringBuilder(title + ": ");
+                // Dishes
+                for (int i = 1; i < arr.size() - 1; i++) {
+                    sb.append(arr.get(i));
+                    if (i < arr.size() - 2) {
+                        sb.append(" | ");
+                    }
+                }
 
-            // Dishes
-            for (int i = 1; i < arr.size() - 1; i++) {
-                sb.append(arr.get(i));
-                if (i < arr.size() - 2) {
-                    sb.append((" | "));
+//                myLog.add("Hasta ahora:\n" + sb.toString(), "aut");
+
+                SpannableString ssNew = StringUtils.getSpannableString(sb.toString(), title.length());
+
+                if (sst == null) {
+                    sst = ssNew;
+                } else {
+                    sst = SpannableString.valueOf(TextUtils.concat(sst, "\n", ssNew));
                 }
             }
-
-            myLog.add("Hasta ahora:\n" + sb.toString(), "aut");
-
-
-            SpannableString ssNew = StringUtils.getSpannableString(sb.toString(), title.length());
-
-            if (sst == null) {
-                sst = ssNew;
-            } else {
-                sst = SpannableString.valueOf(TextUtils.concat(sst, "\n", ssNew));
-            }
+        } catch (Exception e) {
+            myLog.error(e);
         }
 
         return sst;
-
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext) {
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, true);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
         String title = NotiSingleCompactTitle();
 
         //Bigtext style

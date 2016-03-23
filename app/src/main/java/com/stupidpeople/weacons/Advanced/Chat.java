@@ -36,14 +36,14 @@ public abstract class Chat {
 
     public static void WeChatIn(WeaconParse we) {
         //TODO LogInChat(we)
-        myLog.add("Chat In: " + we.getName(), tag);
+//        myLog.add("Chat In: " + we.getName(), tag);
         onChat.add(we);
     }
 
     public static void movingOutForChat(WeaconParse we) {
         //TODO     LogOutChat(we)
         onChat.remove(we);
-        myLog.add("ChatOut " + we.getName(), tag);
+//        myLog.add("ChatOut " + we.getName(), tag);
 
     }
 

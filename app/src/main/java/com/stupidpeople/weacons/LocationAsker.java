@@ -33,48 +33,9 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
         buildGoogleApiClient();
     }
 
-    protected synchronized void buildGoogleApiClient() {
-        try {
-            mGoogleApiClient = new GoogleApiClient.Builder(mContext)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-            mGoogleApiClient.connect();
-
-        } catch (Exception e) {
-            myLog.error(e);
-        }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-
-        if (mLastLocation == null) {
-            myLog.add("Last location is null", tag);
-            //TODO keep listenting until ther is a location (see map activity)
-            //mGoogleApiClient.disconnect(); no se ha desnocetado el servicio
-        } else {
-            GPSCoordinates gps = new GPSCoordinates(mLastLocation);
-            myLog.add("Last location is: " + gps, tag);
-            mGoogleApiClient.disconnect();
-            mLocationCallback.LocationReceived(gps);
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        myLog.add("Connection to google location has failed: " + connectionResult, tag);
-
-    }
-    /*
-    TODO chechk from here
-     */
-
     public LocationAsker(Context ctx, final LocationCallback locationCallback, final double accuracyNeeded) {
         this(ctx, locationCallback);
-        myLog.add("entrando en locationascker con precisio", "aut");
+//        myLog.add("entrando en locationascker con precisio", "aut");
 
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 
@@ -125,6 +86,44 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
         }
     }
 
+    protected synchronized void buildGoogleApiClient() {
+        try {
+            mGoogleApiClient = new GoogleApiClient.Builder(mContext)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+            mGoogleApiClient.connect();
+
+        } catch (Exception e) {
+            myLog.error(e);
+        }
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+
+        if (mLastLocation == null) {
+            myLog.add("Last location is null", tag);
+            //TODO keep listenting until ther is a location (see map activity)
+            //mGoogleApiClient.disconnect(); no se ha desnocetado el servicio
+        } else {
+            GPSCoordinates gps = new GPSCoordinates(mLastLocation);
+            myLog.add("Last location is: " + gps, tag);
+            mGoogleApiClient.disconnect();
+            mLocationCallback.LocationReceived(gps);
+        }
+    }
+    /*
+    TODO chechk from here
+     */
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        myLog.add("Connection to google location has failed: " + connectionResult, tag);
+
+    }
 
     private void removerListener(Location location) {
         try {

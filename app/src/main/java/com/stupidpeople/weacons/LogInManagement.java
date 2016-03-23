@@ -6,6 +6,7 @@ import android.widget.Toast;
 
 import com.stupidpeople.weacons.Advanced.Chat;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
+import com.stupidpeople.weacons.ready.ParseActions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,25 +17,25 @@ import java.util.Map;
 import util.myLog;
 import util.parameters;
 
-import static com.stupidpeople.weacons.WeaconParse.Listar;
-
 /**
  * Created by Milenko on 10/08/2015.
  * It manages the situation where the user approach or left a weacon.
  * It's responsible of notification, and login in/out the chat *
  */
-public abstract class LogInManagement {
+public class LogInManagement {
     private static final String tag = "LIM";
     public static HashSet<WeaconParse> lastWeaconsDetected;
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
     // last appeareance
-    public static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
+    //    public static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
     static CurrentSituation now;
+    static boolean newAppearence = false;
     private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
-    private static boolean sound;//should the notification be silent?
+    //    private static boolean sound;//should the notification be silent?
     private static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
-
     private static boolean lastTimeWeFetched;
+    private static boolean someoneQuitting = false;
+    private static boolean anyInterestinAppearing = false;
 
 
     /**
@@ -44,8 +45,8 @@ public abstract class LogInManagement {
     public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected) {
 
         lastWeaconsDetected = weaconsDetected;
-        anyChange = false;
-        sound = false;
+        someoneQuitting = false;
+        newAppearence = false;
 
         try {
             //Check differences with last scanning and keep accumulation history
@@ -54,14 +55,13 @@ public abstract class LogInManagement {
 
             now = new CurrentSituation(weaconsDetected, occurrences);
 
-            myLog.add("Entering or quitting any Weacon (anychange)?" + anyChange + "\n anyfetchable?" + now.anyFetchable() +
-                    "\n should fetch?" + now.shouldFetch + "\n Last time fetched " + lastTimeWeFetched +
-                    "\n  --> Total= " + (!anyChange && now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched), "MHP");
+            myLog.add("Entering:" + newAppearence + " | quitting: " + someoneQuitting + "\n anyfetchable?" + now.anyFetchable() +
+                    "\n should fetch?" + now.shouldFetch + "\n Last time fetched " + lastTimeWeFetched, "MHP");
 
             //Notify or change notification
-            if (anyChange || now.shouldFetch) {
+            if (newAppearence || someoneQuitting) {
                 Notify();
-            } else if (!anyChange && now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
+            } else if (now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
                 NotifyRemovingObsoleteInfo();
             }
 
@@ -113,6 +113,7 @@ public abstract class LogInManagement {
      * If present, just add 1
      */
     private static void checkAppearing() {
+        anyInterestinAppearing = false;
 
         Iterator<WeaconParse> it = lastWeaconsDetected.iterator();
         while (it.hasNext()) {
@@ -133,13 +134,23 @@ public abstract class LogInManagement {
                 }
             } else {
                 //First time
+                if (!anyInterestinAppearing) {
+                    anyInterestinAppearing = ParseActions.isInteresting(we.getObjectId());
+                }
                 movingInForNotification(we);
             }
         }
     }
 
     public static ArrayList<WeaconParse> getActiveWeacons() {
-        ArrayList arr = new ArrayList(occurrences.keySet());
+        ArrayList arr = new ArrayList();
+        if (occurrences != null) {
+//            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
+            arr = new ArrayList(occurrences.keySet());
+        } else {
+//            myLog.add("No tenemos weacons en occurrences", "aut");
+        }
+
         return arr;
     }
 
@@ -149,29 +160,29 @@ public abstract class LogInManagement {
         //removing last info
         myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
         for (WeaconParse we : weaconsToNotify) we.setObsolete(true);
-        Notifications.showNotification(weaconsToNotify, false, true);
+        Notifications.showNotification(weaconsToNotify, false, true, now.anyInteresting);
         lastTimeWeFetched = false;
     }
 
     private static void movingInForNotification(WeaconParse we) {
         occurrences.put(we, 1);
         myLog.add("Just entering in: " + we.getName(), tag);
-        anyChange = true;//Just appeared this weacon
-        sound = true;
+        newAppearence = true;
+//        anyChange = true;//Just appeared this weacon
         weaconsToNotify.add(we);
     }
 
     private static void movingOutForNotification(WeaconParse we) {
+        someoneQuitting = true;
         weaconsToNotify.remove(we);
         myLog.add("Remove from notification:" + we.getName(), tag);
-        anyChange = true;
+//        anyChange = true;
     }
 
 
     private static void Notify() {
-
         if (!now.anyFetchable()) {
-            Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
+            Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, false, now.anyInteresting);
             lastTimeWeFetched = false;
         } else {
             MultiTaskCompleted listener = new MultiTaskCompleted() {
@@ -185,7 +196,7 @@ public abstract class LogInManagement {
                     if (i == now.nFetchings) {
                         myLog.add("a lazanr la notificaicno congunta", tag);
                         lastTimeWeFetched = true;
-                        Notifications.showNotification(weaconsToNotify, sound, now.anyFetchable());
+                        Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, now.anyInteresting);
                     }
                 }
 
@@ -200,11 +211,11 @@ public abstract class LogInManagement {
             for (final WeaconParse we : weaconsToNotify) {
                 if (we.notificationRequiresFetching()) {
                     we.fetchForNotification(listener);
-
                 }
             }
         }
     }
+
 /////////////////
 
 
@@ -235,65 +246,48 @@ public abstract class LogInManagement {
         Notify();
     }
 
+    public static ArrayList<WeaconParse> getNotifiedWeacons() {
+        return weaconsToNotify;
+    }
+
 
     /**
      * Created by Milenko on 04/03/2016.
      */
     public static class CurrentSituation {
-        private final HashMap<WeaconParse, Integer> occurrences;
-        private final HashSet<WeaconParse> weacons;
         public int nFetchings;
         public boolean shouldFetch;
+        public boolean anyInteresting;
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
-            this.occurrences = occurrences;
-            this.weacons = weaconsDetected;
-            try {
-                nFetchings = countFetchingWeacons();
-                shouldFetch = shouldFetch();
 
-                myLog.add("conta: " + Listar(occurrences), "MHP");
+            int i = 0;
+
+            try {
+                for (WeaconParse we : weaconsDetected) {
+                    //Count
+                    if (we.notificationRequiresFetching()) i++;
+
+                    // Should fetch
+                    if ((we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) ||
+                            we.forceFetching) {/*avoid keep fetching if you live near a bus stop*/
+                        shouldFetch = true;
+                    }
+
+                    //Interesting
+                    if (we.isInteresting()) anyInteresting = true;
+
+                }
+
+                nFetchings = i;
 
             } catch (Exception e) {
                 myLog.error(e);
             }
         }
 
-        /**
-         * Indicates if should fetch. The criteria is "if has been active by more than n scanners, then no.
-         *
-         * @param
-         * @return
-         */
-        private boolean shouldFetch() {
-            boolean res = false;
-
-            if (anyFetchable()) {
-                Iterator<WeaconParse> it = weaconsToNotify.iterator();
-                while (it.hasNext() && !res) {
-                    WeaconParse we = it.next();
-                    if ((we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) ||
-                            we.forceFetching) {//avoid keep fetching if you live near a bus stop
-                        res = true;
-                        //                myLog.add(we.getName() + " requires feticn. this is the " + occurrences.get(we) + "time", tag);
-                    }
-                }
-            }
-
-            return res;
-        }
-
         public boolean anyFetchable() {
             return nFetchings > 0;
-        }
-
-        private int countFetchingWeacons() {
-            int i = 0;
-
-            for (WeaconParse we : weaconsToNotify) {
-                if (we.notificationRequiresFetching()) i++;
-            }
-            return i;
         }
 
     }

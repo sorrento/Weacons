@@ -1,15 +1,27 @@
+la notificacion desaparece al apretar...Debería seimpre?
+
+
+se puede actualizar demasiado rapido la notificacion, borrando lo que pone
 ---probar:
-----
-.- en Activity list bus salta u lina al inicio
+    - si se crea la tabla parse en local al poner un dato
 
- Versio:
-    .solo postre sale en nevritars
-    sale iconomuy pequeño
 
-        Quizas poner la fecha
-    - qué pasa cuando no es del tipo definido (como esade). Crear su tipo. o que al menos lo ignore.
+---- BUGS
+    - hay un problema de desconexion: al entrar en weaconslist, puede que no encuentra nada en LogManamege ActiveWeacons
+        -> quizas podría hacer lque esas variabeles estuvieran en Wifisrvice
+
+    - Algunas paradas no disparan. ¿Estan correctamente agregados las wifis (ejemplo, del estadio de aqui cerca
+
+--------------Do
+
+    - que aparezca sólo cuando está el refresh
+    - que boton silent los queite de intetesante
     - Repasar los TODO
     - arrglar ael boot
+
+
+-----------------
+    - qué pasa cuando no es del tipo definido (como esade). Crear su tipo. o que al menos lo ignore.
     Activity List
         - que se catualize solo y por boton
         - como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
@@ -27,15 +39,18 @@ on boot:
     que tenga el sevicio de escucha y notificaciones
 
 -------------------------
-Rellenar de airport los datos
 
 2) que el servicio sea persistente
 4) probar en el de rebeca, en el del trabajo , en el de amalia
 
 5) adaptar los datos para que la recepcion de wifi y deteccion sea más cercana
 
+ que el listsactivity se actualice
 
 ---- Lejano
+    -  que haga algunas muestras de autofecthing en paradas primera veces, y dialogo explicativo
+Rellenar de airport los datos
+    -tenía información de los nombres de las lineas en st cugat?
     - Refresh en menu de varios weacons ( o hacer hacia abajo)
     - Agregar timer (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
     - Mensajes en Español, catalán e inglés
@@ -51,6 +66,5 @@ Rellenar de airport los datos
 l hacer el build (verision obsoleta de files y unsafe(recompilar con detalles.. )(probar con ctrl F9)
 
 ----BUG
-    - el hacer reverse de la lista solo a veces
     - previsiones inestables: Pg. Sant M. L1: 52m. luego 20 y luego 52. Hay varias L1?
 
