@@ -250,6 +250,11 @@ public class LogInManagement {
         return weaconsToNotify;
     }
 
+    public static String bottomMessage(Context mContext) {
+        String summary = mContext.getString(R.string.currently_active);
+        return String.format(summary, getActiveWeacons().size());
+    }
+
 
     /**
      * Created by Milenko on 04/03/2016.
@@ -258,6 +263,7 @@ public class LogInManagement {
         public int nFetchings;
         public boolean shouldFetch;
         public boolean anyInteresting;
+        private ArrayList<WeaconParse> interestings = new ArrayList();
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
 
@@ -275,12 +281,16 @@ public class LogInManagement {
                     }
 
                     //Interesting
-                    if (we.isInteresting()) anyInteresting = true;
+                    if (we.isInteresting()) {
+                        interestings.add(we);
+                        anyInteresting = true;
+                    }
 
                 }
 
                 nFetchings = i;
 
+                myLog.add("Inters: " + WeaconParse.Listar(interestings), "NOTI");
             } catch (Exception e) {
                 myLog.error(e);
             }

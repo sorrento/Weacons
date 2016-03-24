@@ -39,7 +39,7 @@ public abstract class HelperAbstractFecthNotif extends HelperAbstract {
         Notifications.addRefreshButton(notif);
 
         String title = NotiSingleCompactTitle();
-
+        String body;
 
         if (we.obsolete) {
             //Bigtext style
@@ -50,21 +50,18 @@ public abstract class HelperAbstractFecthNotif extends HelperAbstract {
 
             notif.setStyle(textStyle);
 
-            myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
-                    + " weacons active", String.valueOf(false));
+            body = String.valueOf(msg);
         } else {
             //InboxStyle
             notif.setStyle(getInboxStyle());
-
-            myLog.notificationMultiple(title, sInbox, "Currently " + LogInManagement.getActiveWeacons().size()
-                    + " weacons active", String.valueOf(sound));
+            body = sInbox;
         }
-
         notif.setContentIntent(resultPendingIntent);
+
+        myLog.logNotification(title, body, LogInManagement.bottomMessage(mContext), String.valueOf(sound), isInteresting, true);
 
         return notif;
 
     }
-
 
 }

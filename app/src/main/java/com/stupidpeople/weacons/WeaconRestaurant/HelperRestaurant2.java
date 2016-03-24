@@ -144,18 +144,20 @@ public class HelperRestaurant2 extends HelperAbstractFecthNotif {
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
         NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
         String title = NotiSingleCompactTitle();
+        String summary = LogInManagement.bottomMessage(mContext);
 
         //Bigtext style
         SpannableString msg = NotiSingleExpandedContent();
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle(title)
-                .bigText(msg);
+                .bigText(msg)
+                .setSummaryText(summary);
         notif.setStyle(textStyle);
 
-        myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
-                + " weacons active", String.valueOf(false));
+        myLog.logNotification(title, String.valueOf(msg), summary,
+                String.valueOf(false), isInteresting, true);
 
-        notif.setContentIntent(resultPendingIntent);//TODO what to do when they click on in the notification
+        notif.setContentIntent(resultPendingIntent);
 
         return notif;
     }

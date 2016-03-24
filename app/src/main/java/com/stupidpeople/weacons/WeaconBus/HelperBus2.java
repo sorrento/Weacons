@@ -115,7 +115,7 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
     protected NotificationCompat.InboxStyle getInboxStyle() {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
-        inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
+        inboxStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
 
 
         StringBuilder sb = new StringBuilder();

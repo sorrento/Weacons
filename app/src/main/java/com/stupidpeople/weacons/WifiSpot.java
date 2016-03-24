@@ -26,14 +26,14 @@ public class WifiSpot extends ParseObject {
         return BSSID;
     }
 
-    public String getSSID() {
-        String SSID = getString("ssid");
-        return SSID;
-    }
-
     //SETTERS
     public void setBSSID(String BSSID) {
         put("bssid", BSSID);
+    }
+
+    public String getSSID() {
+        String SSID = getString("ssid");
+        return SSID;
     }
 
     public void setSSID(String SSID) {
@@ -104,9 +104,9 @@ public class WifiSpot extends ParseObject {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    myLog.add("spot saved ","aut");
+                    myLog.add("spot saved ", "aut");
                 } else {
-                    myLog.add("spot not saved " + e.getMessage(),"aut");
+                    myLog.add("spot not saved " + e.getMessage(), "aut");
                 }
             }
         });

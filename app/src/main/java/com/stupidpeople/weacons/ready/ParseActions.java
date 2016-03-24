@@ -74,20 +74,22 @@ public abstract class ParseActions {
                     if (n == 0) {
                         myLog.add("MegaQuery no match", tag);
                     } else { //There are matches
-                        StringBuilder sb = new StringBuilder("***********\n" + "From megaquery we have several matches: " + n + "\n");
+                        StringBuilder sb = new StringBuilder("***********\n");
 
                         for (WifiSpot spot : spots) {
                             sb.append("\t" + spot.summarizeWithWeacon() + "\n");
                             weaconHashSet.add(spot.getWeacon());
-//                            registerHitSSID(spot); todo,
+//                            registerHitSSID(spot); todo
                         }
+
+                        // It's important always deliver built weacons (in this way, they are of subclasses, as bus
+                        WeaconParse.build(weaconHashSet, ctx);
+
                         myLog.add(sb.toString(), tag);
+                        myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
                     }
 
-                    myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
 
-                    // It's important always deliver built weacons (in this way, they are of subclasses, as bus
-                    WeaconParse.build(weaconHashSet, ctx);
 
                     callBackWeacons.OnReceive(weaconHashSet);
 

@@ -86,7 +86,8 @@ public class WifiObserverService extends Service {
             myLog.add("error starign " + e.getLocalizedMessage(), tag);
         }
 
-        return super.onStartCommand(intent, flags, startId);
+//        return super.onStartCommand(intent, flags, startId);
+        return START_STICKY;
     }
 
     @Override
@@ -156,11 +157,15 @@ public class WifiObserverService extends Service {
                         }
                     }, mContext);
 
-                } else if (action.equals("android.intent.action.BOOT_COMPLETED")) {
-                    myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
+//                } else if (action.equals("android.intent.action.BOOT_COMPLETED")) {
+//                    myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
 
                 } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
                     myLog.add("Ha encendido la pantalla", "aut");
+                    //TODO refresh en encendido de pantalla
+//                    if(showingNotification&&LogInManagement.anyInteresting&&anyRequiresFetcing&&secsSinceNotification()>10){
+//                        RefreshNotification()
+//                    }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }

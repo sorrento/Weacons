@@ -69,8 +69,13 @@ public class myLog {
         myLog.add(Log.getStackTraceString(e), "err");
     }
 
-    public static void notificationMultiple(String title, String body, String summary, String sound) {
-        myLog.add("***********************************SoUND:" + sound + "\n" + title + "\n" + body + summary + "\n", "MHP");
+    public static void logNotification(String title, String body, String summary, String sound, boolean silencBtn, boolean refreshBtn) {
+        String btnSilence, btnRefresh;
+        btnSilence = silencBtn ? "SILENCE" : "-";
+        btnRefresh = refreshBtn ? "REFRESH" : "-";
+
+        myLog.add("***********************************SoUND:" + sound + "\n" + title + "\n" + body +
+                summary + "\n***" + btnSilence + "|" + btnRefresh, "NOTI");
     }
 
 

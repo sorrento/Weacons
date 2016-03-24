@@ -7,4 +7,5 @@
     <string name="refresh_button">Actualizar</string>
     <string name="silence">Silencio</string>
     <string name="type_busstop">PARADA DE AUTOBUS</string>
+    <string name="currently_active">Hay %1$d weacons activos</string>
 </resources>

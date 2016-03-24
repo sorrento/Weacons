@@ -48,6 +48,7 @@ public abstract class HelperAbstract {
 
     protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
         String title = NotiSingleCompactTitle();
+        String summary = LogInManagement.bottomMessage(mContext);
         NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
 
 
@@ -55,12 +56,11 @@ public abstract class HelperAbstract {
         SpannableString msg = NotiSingleExpandedContent();
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle(title)
-                .bigText(msg);
-
+                .bigText(msg)
+                .setSummaryText(summary);
         notif.setStyle(textStyle);
 
-        myLog.notificationMultiple(title, String.valueOf(msg), "Currently " + LogInManagement.getActiveWeacons().size()
-                + " weacons active", String.valueOf(false));
+        myLog.logNotification(title, String.valueOf(msg), summary, String.valueOf(false), isInteresting, false);
 
         notif.setContentIntent(resultPendingIntent);
 

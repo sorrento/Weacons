@@ -120,12 +120,13 @@ public abstract class Notifications {
         if (anyInterestingAppearing) addSound(notif);
         if (anyIntesting) addSilenceButton(notif);
         if (anyFetchable) addRefreshButton(notif);
+        String summary = LogInManagement.bottomMessage(mContext);
 
 
         //Inbox
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(msg);
-        inboxStyle.setSummaryText("Currently " + LogInManagement.getActiveWeacons().size() + " weacons active");
+        inboxStyle.setSummaryText(summary);
 
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we : notificables) {
@@ -135,13 +136,14 @@ public abstract class Notifications {
 
         notif.setStyle(inboxStyle);
 
-
+        // On Click
         Intent resultIntent = new Intent(mContext, WeaconListActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         notif.setContentIntent(pendingIntent);
 
-        myLog.notificationMultiple(msg, sb.toString(), "Currently " + LogInManagement.getActiveWeacons().size() + " weacons active", String.valueOf(anyInterestingAppearing));
+        myLog.logNotification(msg, sb.toString(), summary,
+                String.valueOf(anyInterestingAppearing), anyIntesting, anyFetchable);
+
         mNotificationManager.notify(mIdNoti, notif.build());
     }
 
