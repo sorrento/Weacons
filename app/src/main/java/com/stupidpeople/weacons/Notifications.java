@@ -12,6 +12,8 @@ import com.stupidpeople.weacons.ListActivity.WeaconListActivity;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import util.myLog;
 import util.parameters;
@@ -19,11 +21,15 @@ import util.parameters;
 /**
  * Created by Milenko on 17/07/2015.
  */
-public abstract class Notifications {
+public class Notifications {
 
+    public static boolean isShowingNotification = false;
     static String tag = "NOTI";
+    static Timer t = new Timer();
+    static boolean obsolete = false;
     private static NotificationManager mNotificationManager;
     private static Context mContext;
+    private static int idNotiOcurrnces = 102;
     private static int mIdNoti = 103;
 
     /**
@@ -46,7 +52,7 @@ public abstract class Notifications {
         textStyle.bigText(WeaconParse.Listar(occurrences));
         notif.setStyle(textStyle);
 
-        mNotificationManager.notify(102, notif.build()); //todo verified this id
+        mNotificationManager.notify(idNotiOcurrnces, notif.build());
     }
 
     public static void Initialize(Context act) {
@@ -56,13 +62,28 @@ public abstract class Notifications {
 
     public static void showNotification(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
         try {
+            t.cancel();
             if (notificables.size() > 0) {
+
+                if (anyFetchable && anyIntesting && !obsolete) {
+                    t = new Timer();
+                    t.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            myLog.add("han pasado los 30seg", tag);
+                            LogInManagement.NotifyRemovingObsoleteInfo();
+                        }
+                    }, 30000, 550000);
+
+                }
+                isShowingNotification = true;
                 if (notificables.size() == 1) {
                     sendOneWeacon(notificables.get(0), anyInterestingAppearing);
                 } else {
                     sendSeveralWeacons(notificables, anyInterestingAppearing, anyFetchable, anyIntesting);
                 }
             } else {
+                isShowingNotification = false;
                 mNotificationManager.cancel(mIdNoti);
                 myLog.add("Borrada la notifcacion porque no estamos en área de ninguno.", tag);
             }
@@ -98,6 +119,8 @@ public abstract class Notifications {
     }
 
     private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
+        Intent delete = new Intent(parameters.deleteIntentName);
+        PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notif;
 
@@ -109,13 +132,10 @@ public abstract class Notifications {
                 .setSmallIcon(R.drawable.ic_noti_we_double)
                 .setLargeIcon(notificables.get(0).getLogoRounded())
                 .setContentTitle(msg)
-                .setContentText(notificables.get(0).getName() + " and others.")
+                .setContentText(notificables.get(0).getName() + mContext.getString(R.string.and_others))
                 .setAutoCancel(true)
+                .setDeleteIntent(pIntentDelete)
                 .setTicker(msg);
-//                .setDeleteIntent(pendingDeleteIntent) TODO what should hapen when notification are removed??
-
-//        myLog.add("en Servealr weacons. anyInterestingappea="+anyInterestingAppearing+"| anyIntersint= "+anyIntesting
-//                + "anyFetchanle= "+anyFetchable,"aut");
 
         if (anyInterestingAppearing) addSound(notif);
         if (anyIntesting) addSilenceButton(notif);
@@ -126,7 +146,7 @@ public abstract class Notifications {
         //Inbox
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(msg);
-        inboxStyle.setSummaryText(summary);
+        if (LogInManagement.othersActive()) inboxStyle.setSummaryText(summary);
 
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we : notificables) {
@@ -156,7 +176,8 @@ public abstract class Notifications {
     static void addSilenceButton(NotificationCompat.Builder notif) {
         Intent resultIntent = new Intent(parameters.silenceIntentName);
         PendingIntent resultPendingIntent = PendingIntent.getBroadcast(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp, mContext.getString(R.string.silence), resultPendingIntent);//TODO to create the silence intent
+        NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp,
+                mContext.getString(R.string.silence), resultPendingIntent);
         notif.addAction(actionSilence);
     }
 
@@ -168,4 +189,13 @@ public abstract class Notifications {
         notif.addAction(actionRefresh);
     }
 
+    public static void refreshNotifications() {
+        Intent refreshIntent = new Intent(parameters.refreshIntentName);
+        myLog.add("mandando un inten t parra refrescar las notificaciones", "aut");
+        mContext.sendBroadcast(refreshIntent);
+    }
+
+    public static boolean areObsolete() {
+        return obsolete;
+    }
 }

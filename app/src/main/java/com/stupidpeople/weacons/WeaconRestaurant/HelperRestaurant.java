@@ -6,7 +6,7 @@ import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.text.TextUtils;
 
-import com.stupidpeople.weacons.HelperAbstractFecthNotif;
+import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
@@ -24,9 +24,9 @@ import util.myLog;
 /**
  * Created by Milenko on 18/03/2016.
  */
-public class HelperRestaurant2 extends HelperAbstractFecthNotif {
+public class HelperRestaurant extends HelperBaseFecthNotif {
 
-    public HelperRestaurant2(WeaconParse weaconParse, Context ctx) {
+    public HelperRestaurant(WeaconParse weaconParse, Context ctx) {
         super(weaconParse, ctx);
     }
 
@@ -107,7 +107,6 @@ public class HelperRestaurant2 extends HelperAbstractFecthNotif {
         //TODO only en ciertas horas el menú, por la tarde poner la decripcion
 
         SpannableString sst = null;
-        myLog.add("[inside helper. THis weackon " + we.getName() + "has fetchings elementss: " + we.fetchedElements.size(), "aut");
         try {
             for (Object o : we.fetchedElements) {
                 ArrayList<String> arr = (ArrayList<String>) o;
@@ -150,8 +149,9 @@ public class HelperRestaurant2 extends HelperAbstractFecthNotif {
         SpannableString msg = NotiSingleExpandedContent();
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
                 .setBigContentTitle(title)
-                .bigText(msg)
-                .setSummaryText(summary);
+                .bigText(msg);
+        if (LogInManagement.othersActive()) textStyle.setSummaryText(summary);
+
         notif.setStyle(textStyle);
 
         myLog.logNotification(title, String.valueOf(msg), summary,

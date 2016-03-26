@@ -11,3 +11,27 @@ Several:
 -  Fetching:
     - Cuando se aprieta
     - cuando entra uno interesante que tiene fetching
+
+
+
+  -----------------
+
+- hacer que haga el feching sólo en la parada que me interesa
+	Que muestre luz siempre que salte una
+	que muestre notif mientras sea relevante
+
+	que suene sólo cuando sabemos que interesará, por ejemplo
+		- las primeras paradas que detecte en un unsuario
+		-las que sabemos que le son de interés
+			- ha hecho refresh
+
+	Cuando refrescar:
+	Cuando hacer fetch
+		- cuando lo piden
+		- para paradas que sabemos que son interesantes para el usuario. (las que ha hecho refresh en la última semana
+		- cuando es interesante y encendemos la pantalla
+		- la campana siencio signific
+
+	-> los que son de interés suena al aparcer y se hace el fetching al sonar, y cuando enciende la pantalla
+		SOn de interes los que hace refresh
+		dejan de serlo despues de 4 dias o veces en que se muestran  y no lo miran

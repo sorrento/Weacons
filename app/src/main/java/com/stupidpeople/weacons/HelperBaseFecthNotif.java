@@ -14,10 +14,10 @@ import util.myLog;
 /**
  * Created by Milenko on 18/03/2016.
  */
-public abstract class HelperAbstractFecthNotif extends HelperAbstract {
+public abstract class HelperBaseFecthNotif extends HelperBase {
     protected String sInbox;
 
-    protected HelperAbstractFecthNotif(WeaconParse we, Context ctx) {
+    protected HelperBaseFecthNotif(WeaconParse we, Context ctx) {
         super(we, ctx);
     }
 
@@ -47,7 +47,8 @@ public abstract class HelperAbstractFecthNotif extends HelperAbstract {
             NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
                     .setBigContentTitle(title)
                     .bigText(msg);
-
+            if (LogInManagement.othersActive())
+                textStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
             notif.setStyle(textStyle);
 
             body = String.valueOf(msg);

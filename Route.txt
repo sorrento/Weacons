@@ -1,38 +1,21 @@
-la notificacion desaparece al apretar...Debería seimpre?
-
-
-se puede actualizar demasiado rapido la notificacion, borrando lo que pone
 ---probar:
-    - si se crea la tabla parse en local al poner un dato
-
+    - que la permanencia del feching sea por tiempo, por ejemplo 30 segundos, no por scaneos arbitrairo
+    - que se refresquen al encender la pantalla si están obsoletos
 
 ---- BUGS
+    - Se apaga el servicio (boot) le he puesto sticky a ver si cambia
+        - será por error o simple kill?
     - hay un problema de desconexion: al entrar en weaconslist, puede que no encuentra nada en LogManamege ActiveWeacons
         -> quizas podría hacer lque esas variabeles estuvieran en Wifisrvice
 
     - Algunas paradas no disparan. ¿Estan correctamente agregados las wifis (ejemplo, del estadio de aqui cerca
 
 --------------Do
-
-    - que aparezca sólo cuando está el refresh
-    - que boton silent los queite de intetesante
-    - Repasar los TODO
-    - arrglar ael boot
-
-
------------------
-    - qué pasa cuando no es del tipo definido (como esade). Crear su tipo. o que al menos lo ignore.
-    Activity List
-        - que se catualize solo y por boton
-        - como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
-----
-do Weacaon list activity
-	Response.body()' on a null object reference
-		"Av. Torre Blanca (ESADE)"
-----------
-
-on boot:
-    http://stackoverflow.com/questions/2784441/trying-to-start-a-service-on-boot-on-android
+    first run
+        (launch service)
+    - carga de weacaons:
+        - cuando? cada cuanto? donde en codigo
+    - botón para estoy en parada
 
 ----
 1) settings para encender o apagar el servicio
@@ -42,14 +25,19 @@ on boot:
 
 2) que el servicio sea persistente
 4) probar en el de rebeca, en el del trabajo , en el de amalia
-
 5) adaptar los datos para que la recepcion de wifi y deteccion sea más cercana
-
  que el listsactivity se actualice
 
 ---- Lejano
+    - el log de parse se debe hacer en el servicio, no?
+        - y la carga de lugares
+    - he visto que no sehace fetch de los 3, isno solo 2
+    - en algunos pcasos pone "lines not availables. " Es verdad o debería decir "press refresj
+    - monitoriza el ius de memoria dle servicio (25MB
+    - En ListAcivity, como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
+    - reestructurar las notificaciones: unificar uno o varios, etapas de preparación , feching, etc
     -  que haga algunas muestras de autofecthing en paradas primera veces, y dialogo explicativo
-Rellenar de airport los datos
+    - Rellenar de airport los datos
     -tenía información de los nombres de las lineas en st cugat?
     - Refresh en menu de varios weacons ( o hacer hacia abajo)
     - Agregar timer (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo

@@ -5,7 +5,7 @@ import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.text.TextUtils;
 
-import com.stupidpeople.weacons.HelperAbstractFecthNotif;
+import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
@@ -28,13 +28,13 @@ import util.parameters;
 /**
  * Created by Milenko on 18/03/2016.
  */
-public class HelperBus2 extends HelperAbstractFecthNotif {
+public class HelperBus extends HelperBaseFecthNotif {
     String updateTime;
     String stopCode;
 
     private String description;
 
-    public HelperBus2(WeaconParse we, Context ctx) {
+    public HelperBus(WeaconParse we, Context ctx) {
         super(we, ctx);
     }
 
@@ -62,6 +62,11 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
     }
 
     @Override
+    protected int getRepeatedOffRemoveFromNotification() {
+        return 1;
+    }
+
+    @Override
     public String NotiSingleCompactContent() {
         String s;
         if (we.obsolete) {
@@ -79,8 +84,7 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
         try {
 
             if (we.obsolete) {
-                msg = SpannableString.valueOf("Please press REFRESH to have updated information about the estimated " +
-                        "arrival times of buses at this stop.");
+                msg = SpannableString.valueOf(mContext.getString(R.string.press_refresh_bus_long));
             } else {
                 for (SpannableString s : summarizeByOneLine()) {
                     msg = SpannableString.valueOf(TextUtils.concat(msg, "\n", s));
@@ -104,7 +108,7 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
         }
 
         if (we.obsolete) {
-            greyPart = we.getTypeString() + ". Press Refresh.";
+            greyPart = we.getTypeString() + ". " + mContext.getString(R.string.press_refresh);
         } else {
             greyPart = summarizeAllLines();
         }
@@ -115,8 +119,8 @@ public class HelperBus2 extends HelperAbstractFecthNotif {
     protected NotificationCompat.InboxStyle getInboxStyle() {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
-        inboxStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
-
+        if (LogInManagement.othersActive())
+            inboxStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
 
         StringBuilder sb = new StringBuilder();
         for (SpannableString s : summarizeByOneLine()) {

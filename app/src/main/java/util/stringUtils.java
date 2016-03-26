@@ -36,47 +36,6 @@ public class stringUtils {
         return sa;
     }
 
-    //TODO mover todo esto como estatic de linea stcugat
-
-//    /**
-//     * reformat the times as
-//     * L1: 3 min, 4 min, 50 min.
-//     * L9: 6min, 72 min.
-//     *
-//     * @return
-//     */
-//    public static String TimesSummarySorted(ArrayList<LineTimeStCgOld> lineTimes) {
-//        String substring = "No info";
-//
-//        if (lineTimes.size() > 0) {
-//            try {
-//                formatter form = new formatter(lineTimes);
-//                HashMap<String, ArrayList<LineTimeStCgOld>> tableLines = form.getTable();
-//
-//                StringBuilder sb = new StringBuilder();
-//                for (String name : tableLines.keySet()) {
-//                    sb.append(summaryLineTimes(name, tableLines.get(name)) + "\n");
-//                }
-//                String s = sb.toString();
-//                substring = s.substring(0, s.length() - 2);
-//
-//            } catch (Exception e) {
-//                myLog.add("error mostrando resumen ordenado de timeline" + e.getLocalizedMessage());
-//            }
-//        }
-//
-//        return substring;
-//    }
-//
-//    public static String summaryLineTimes(String name, ArrayList<LineTimeStCgOld> lineTimes) {
-//        StringBuilder sb = new StringBuilder(name + ": ");
-//        for (LineTimeStCgOld lineTime : lineTimes) {
-//            sb.append(lineTime.roundedTime + ", ");
-//        }
-//        String s = sb.toString();
-//        return (s.substring(0, s.length() - 2) + ".");
-//    }
-
     //TODO mover a utils images o similar
     public static Bitmap drawableToBitmap(Drawable drawable) {
         if (drawable instanceof BitmapDrawable) {

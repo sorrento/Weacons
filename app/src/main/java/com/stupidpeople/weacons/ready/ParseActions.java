@@ -170,7 +170,7 @@ public abstract class ParseActions {
 
         for (final WeaconParse we : notifiedWeacons) {
             ParseObject fav = new ParseObject("Favorites");
-            fav.put("WeaconId", we.getObjectId());//TODO ver si existe
+            fav.put("WeaconId", we.getObjectId());
             fav.pinInBackground("Favoritos", new SaveCallback() {
                 @Override
                 public void done(ParseException e) {

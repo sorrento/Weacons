@@ -8,7 +8,7 @@ import util.parameters;
 /**
  * Created by Milenko on 19/03/2016.
  */
-public class HelperDefault extends HelperAbstract {
+public class HelperDefault extends HelperBase {
 
 
     protected HelperDefault(WeaconParse we, Context ctx) {

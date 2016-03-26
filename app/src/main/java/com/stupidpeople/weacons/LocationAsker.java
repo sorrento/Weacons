@@ -106,7 +106,6 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
 
         if (mLastLocation == null) {
             myLog.add("Last location is null", tag);
-            //TODO keep listenting until ther is a location (see map activity)
             //mGoogleApiClient.disconnect(); no se ha desnocetado el servicio
         } else {
             GPSCoordinates gps = new GPSCoordinates(mLastLocation);
@@ -115,9 +114,6 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
             mLocationCallback.LocationReceived(gps);
         }
     }
-    /*
-    TODO chechk from here
-     */
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {

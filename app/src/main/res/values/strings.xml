@@ -64,5 +64,8 @@
     <string name="refresh_button">Refresh</string>
     <string name="silence">Silence</string>
     <string name="type_busstop">BUS STOP</string>
-    <string name="currently_active">Currently %1$d weacons active</string>
+    <string name="currently_active">And other %1$d weacons active</string>
+    <string name="and_others">" and others."</string>
+    <string name="press_refresh_bus_long">Please press REFRESH to have updated information about the estimated arrival times of buses at this stop.</string>
+    <string name="currently_active_one">And other weacon still active</string>
 </resources>

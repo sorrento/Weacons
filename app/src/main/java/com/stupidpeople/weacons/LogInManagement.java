@@ -28,7 +28,7 @@ public class LogInManagement {
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
     // last appeareance
     //    public static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
-    static CurrentSituation now;
+    public static CurrentSituation now;
     static boolean newAppearence = false;
     private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     //    private static boolean sound;//should the notification be silent?
@@ -61,8 +61,8 @@ public class LogInManagement {
             //Notify or change notification
             if (newAppearence || someoneQuitting) {
                 Notify();
-            } else if (now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
-                NotifyRemovingObsoleteInfo();
+//            } else if (now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
+//                NotifyRemovingObsoleteInfo();
             }
 
             Notifications.notifyOccurrences(occurrences);
@@ -156,10 +156,13 @@ public class LogInManagement {
 
     //Notifications
 
-    private static void NotifyRemovingObsoleteInfo() {
+    static void NotifyRemovingObsoleteInfo() {
         //removing last info
         myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
-        for (WeaconParse we : weaconsToNotify) we.setObsolete(true);
+        for (WeaconParse we : weaconsToNotify) {
+            Notifications.obsolete = true;
+            we.setObsolete(true);
+        }
         Notifications.showNotification(weaconsToNotify, false, true, now.anyInteresting);
         lastTimeWeFetched = false;
     }
@@ -185,6 +188,12 @@ public class LogInManagement {
             Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, false, now.anyInteresting);
             lastTimeWeFetched = false;
         } else {
+            if (!now.anyInteresting) {
+                Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, now.anyInteresting);
+                lastTimeWeFetched = false;
+                return;
+            }
+
             MultiTaskCompleted listener = new MultiTaskCompleted() {
                 int i = 0;
 
@@ -196,6 +205,7 @@ public class LogInManagement {
                     if (i == now.nFetchings) {
                         myLog.add("a lazanr la notificaicno congunta", tag);
                         lastTimeWeFetched = true;
+                        Notifications.obsolete = false;
                         Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, now.anyInteresting);
                     }
                 }
@@ -251,8 +261,23 @@ public class LogInManagement {
     }
 
     public static String bottomMessage(Context mContext) {
-        String summary = mContext.getString(R.string.currently_active);
-        return String.format(summary, getActiveWeacons().size());
+        int n = numberOfActiveNonNotified();
+        String summary = n > 1 ? mContext.getString(R.string.currently_active) : mContext.getString(R.string.currently_active_one);
+        return String.format(summary, n);
+    }
+
+    /**
+     * indicates if there are wecons active that are not present in the notification
+     *
+     * @return
+     */
+    public static boolean othersActive() {
+        return numberOfActiveNonNotified() > 0;
+
+    }
+
+    private static int numberOfActiveNonNotified() {
+        return getActiveWeacons().size() - getNotifiedWeacons().size();
     }
 
 

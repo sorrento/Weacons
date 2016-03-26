@@ -61,8 +61,7 @@ public class WifiObserverService extends Service {
 
             mContext = getApplicationContext();
             wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-//TODO
-//            showRecordingNotification();
+
             Notifications.Initialize(this);
 
 
@@ -74,10 +73,11 @@ public class WifiObserverService extends Service {
             mContext.registerReceiver(receiverWifi, intentFilter);
             Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
 
-            //Refresh & silence receiver
+            //Refresh & silence & delete notif receiver
             refreshReceiver = new RefreshReceiver();
             IntentFilter filter = new IntentFilter(parameters.refreshIntentName);
             filter.addAction(parameters.silenceIntentName);
+            filter.addAction(parameters.deleteIntentName);
             mContext.registerReceiver(refreshReceiver, filter);
 
 
@@ -120,6 +120,9 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(parameters.silenceIntentName)) {
                     ParseActions.removeInteresting(LogInManagement.getNotifiedWeacons());
+                    //Delete notification
+                } else if (action.equals(parameters.deleteIntentName)) {
+                    Notifications.isShowingNotification = false;
                 }
             } catch (Exception e) {
                 myLog.error(e);
@@ -162,10 +165,11 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
                     myLog.add("Ha encendido la pantalla", "aut");
-                    //TODO refresh en encendido de pantalla
-//                    if(showingNotification&&LogInManagement.anyInteresting&&anyRequiresFetcing&&secsSinceNotification()>10){
-//                        RefreshNotification()
-//                    }
+
+                    if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
+                            LogInManagement.now.anyFetchable() && Notifications.areObsolete()) {
+                        Notifications.refreshNotifications();
+                    }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }

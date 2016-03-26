@@ -15,8 +15,8 @@ import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.stupidpeople.weacons.WeaconAirport.HelperAiport2;
-import com.stupidpeople.weacons.WeaconBus.HelperBus2;
-import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant2;
+import com.stupidpeople.weacons.WeaconBus.HelperBus;
+import com.stupidpeople.weacons.WeaconRestaurant.HelperRestaurant;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 
@@ -41,7 +41,7 @@ public class WeaconParse extends ParseObject {
     static boolean forceFetching = false;
     public ArrayList fetchedElements;
     public boolean obsolete = false;
-    private HelperAbstract mHelper;
+    private HelperBase mHelper;
     private String[] cards;
     private boolean isInteresting;
 
@@ -153,7 +153,6 @@ public class WeaconParse extends ParseObject {
     public parameters.typeOfWeacon getType() {
         String type = getString("Type");
         parameters.typeOfWeacon sol = parameters.typeOfWeacon.nothing;
-        //TODO implement types of weacons as a hasthabels
         if (type.equals("bus_stop")) {
             sol = parameters.typeOfWeacon.bus_station;
         } else if (type.equals("AIRPORT")) {
@@ -226,7 +225,7 @@ public class WeaconParse extends ParseObject {
                 case bowling_alley:
                     break;
                 case bus_station:
-                    mHelper = new HelperBus2(this, ctx);
+                    mHelper = new HelperBus(this, ctx);
                     break;
                 //            case cafe:
                 //                break;
@@ -361,7 +360,7 @@ public class WeaconParse extends ParseObject {
                         //TODO solve n parese: separar el feching de notifiacacion por el de cartas
                         mHelper = new HelperDefault(this, ctx);
                     } else {
-                        mHelper = new HelperRestaurant2(this, ctx);
+                        mHelper = new HelperRestaurant(this, ctx);
                     }
                     break;
 //                            case roofing_contractor:
@@ -418,7 +417,7 @@ public class WeaconParse extends ParseObject {
 
     public ArrayList processResponse(Connection.Response response) {
         if (mHelper.notificationRequiresFetching()) {
-            return ((HelperAbstractFecthNotif) mHelper).processResponse(response);
+            return ((HelperBaseFecthNotif) mHelper).processResponse(response);
         } else {
             myLog.add("Este weacon no tiene fetching" + getName(), "WARN");
             return null;
@@ -427,7 +426,7 @@ public class WeaconParse extends ParseObject {
 
     public String getFetchingFinalUrl() {
         if (mHelper.notificationRequiresFetching()) {
-            return ((HelperAbstractFecthNotif) mHelper).getFetchingFinalUrl();
+            return ((HelperBaseFecthNotif) mHelper).getFetchingFinalUrl();
         } else {
             myLog.add("Este weacon no tiene fetching" + getName(), "WARN");
             return null;
@@ -511,27 +510,10 @@ public class WeaconParse extends ParseObject {
    /*
     TODO clean from here
      */
-    public String[] getCards() {
-
-        try {
-            List<Object> al = getList("cards");
-            cards = new String[al.size()];
-            al.toArray(cards);
-        } catch (Exception e) {
-            myLog.error(e);
-        }
-        return cards;
-    }
 
 
     public int getRepeatedOffRemoveFromNotification() {
-        int res;
-        if (getType().equals("bus_stop")) {
-            res = 1;
-        } else {
-            res = parameters.repeatedOffRemoveFromNotification;
-        }
-        return res;
+        return mHelper.getRepeatedOffRemoveFromNotification();
     }
 
     public boolean near(ParseGeoPoint point, int kms) {

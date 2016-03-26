@@ -2,11 +2,10 @@ package com.stupidpeople.weacons;
 
 import android.location.Location;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseGeoPoint;
 
 public class GPSCoordinates {
-    //TODO chche this GPS class
+
     private double latitude = 0;
     private double longitude = 0;
 
@@ -49,7 +48,4 @@ public class GPSCoordinates {
         return new ParseGeoPoint(latitude, longitude);
     }
 
-//    public LatLng getLatLng() {
-//        return new LatLng(latitude, longitude);
-//    }
 }

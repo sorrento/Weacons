@@ -6,6 +6,9 @@
     <string name="weacons_around">" weacons por aquí cerca"</string>
     <string name="refresh_button">Actualizar</string>
     <string name="silence">Silencio</string>
-    <string name="type_busstop">PARADA DE AUTOBUS</string>
-    <string name="currently_active">Hay %1$d weacons activos</string>
+    <string name="type_busstop">PARADA</string>
+    <string name="currently_active">Más otros %1$d weacons activos</string>
+    <string name="and_others">" y algún otro."</string>
+    <string name="press_refresh_bus_long">Presiones ACTUALIZAR para obtener información actualizada sobre los tiempo de llegada de autobuses a esta parada.</string>
+    <string name="currently_active_one">Y otro weacon aún activo</string>
 </resources>

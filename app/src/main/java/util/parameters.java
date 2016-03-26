@@ -54,6 +54,7 @@ public class parameters {
     public static ParseGeoPoint santiago = new ParseGeoPoint(-33.45, -70.666667);
     public static String refreshIntentName = "REFRESH";
     public static String silenceIntentName = "SILENCE";
+    public static String deleteIntentName = "DELETE_NOTIF";
 
     public enum CardType {COMPANY, SCHEDULE, LINKEDIN, NEWS, FLIGHTS}
 

@@ -95,7 +95,7 @@ public class DebugActivity extends AppCompatActivity {
             @Override
             public void LocationReceived(GPSCoordinates gps) {
                 if (gps == null) {
-                    myLog.add("Location is null", tag);//TODO loaction shlould never be null
+                    myLog.add("Location is null", tag);
                     gps = new GPSCoordinates(parameters.stCugat);
                 }
                 ParseActions.getSpots(bLocal, radio, gps, getApplicationContext());

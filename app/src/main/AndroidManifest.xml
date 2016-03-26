@@ -9,7 +9,6 @@
     <!--For log-->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-    <!--TODO cambiar icon-->
     <application
         android:name=".ready.Weacons"
         android:allowBackup="true"

@@ -5,7 +5,7 @@ import android.content.Context;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 
-import com.stupidpeople.weacons.HelperAbstract;
+import com.stupidpeople.weacons.HelperBase;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 
@@ -13,7 +13,7 @@ import com.stupidpeople.weacons.WeaconParse;
  * Created by Milenko on 18/03/2016.
  */
 
-public class HelperAiport2 extends HelperAbstract {
+public class HelperAiport2 extends HelperBase {
 //TODO airport meritates its own notification. Implementate that possibility
 
     public HelperAiport2(WeaconParse we, Context ctx) {
