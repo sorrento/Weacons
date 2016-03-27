@@ -2,11 +2,15 @@ package com.stupidpeople.weacons.Temporary;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.Toast;
 
+import com.parse.GetCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseException;
 import com.parse.ParseUser;
@@ -14,16 +18,27 @@ import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
 import com.stupidpeople.weacons.R;
+import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.WifiAsker;
+import com.stupidpeople.weacons.preguntaWifi;
 import com.stupidpeople.weacons.ready.ParseActions;
 import com.stupidpeople.weacons.ready.WifiObserverService;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import util.myLog;
-import util.parameters;
+
+import static com.stupidpeople.weacons.WeaconParse.ListarSR;
 
 public class DebugActivity extends AppCompatActivity {
 
     private Switch swDetection;
     private String tag = "DBG";
+    private Context mContext;
+    private GPSCoordinates mGps;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +48,9 @@ public class DebugActivity extends AppCompatActivity {
         myLog.add("ON create", tag);
         myLog.initialize();
 
-        retrieveSpotsAround(false, parameters.radioSpotsQuery);
-
         initializeViews();
+
+        mContext = this;
 
         //PARSE
         ParseUserLogIn(); //TODO where to put the login in parse, and the load of weacons?
@@ -84,32 +99,6 @@ public class DebugActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * Load the spots from parse that are around from current postion
-     *
-     * @param bLocal If they are stored in local database
-     * @param radio
-     */
-    private void retrieveSpotsAround(final boolean bLocal, final double radio) {
-        LocationCallback locationCallback = new LocationCallback() {
-            @Override
-            public void LocationReceived(GPSCoordinates gps) {
-                if (gps == null) {
-                    myLog.add("Location is null", tag);
-                    gps = new GPSCoordinates(parameters.stCugat);
-                }
-                ParseActions.getSpots(bLocal, radio, gps, getApplicationContext());
-            }
-
-            @Override
-            public void LocationReceived(GPSCoordinates gps, double accuracy) {
-                myLog.add("recibido comprorecision, aunque no requrido", tag);
-
-            }
-        };
-        new LocationAsker(this, locationCallback);
-    }
-
     private void ParseUserLogIn() {
 
         ParseUser user = ParseUser.getCurrentUser();
@@ -129,6 +118,97 @@ public class DebugActivity extends AppCompatActivity {
 
         } else {
             myLog.add("Ya tenia user,", tag);
+        }
+    }
+
+    public void OnClickImIn(View view) {
+
+        Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
+
+        final GetCallback<WeaconParse> oneParadaCallback = new GetCallback<WeaconParse>() {
+            @Override
+            public void done(WeaconParse we, ParseException e) {
+                if (e == null) {
+                    int distance = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) / 1000);
+
+                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distance);
+
+                    //2. Check if the nearest weacon is inside 15 mts
+                    String msg2;
+                    if (distance < 15) {
+                        msg2 = getString(R.string.updating_data);
+                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_SHORT).show();
+                        SendWifis(we.getParadaId());
+                    } else {
+                        msg2 = getString(R.string.go_closer);
+                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_SHORT).show();
+                    }
+                    myLog.add(msg + msg2, tag);
+
+                } else {
+                    myLog.error(e);
+                }
+
+            }
+        };
+
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void LocationReceived(GPSCoordinates gps) {
+                myLog.add("tenemos localización   pero sin accuracy" + gps, "aut");
+
+            }
+
+            @Override
+            public void LocationReceived(GPSCoordinates gps, double accuracy) {
+                Toast.makeText(mContext, "Got Position, Accuracy =" + accuracy, Toast.LENGTH_SHORT).show();
+                myLog.add("Ya tenemos la loclizacion con precicion:" + accuracy + gps, tag);
+                mGps = gps;
+                ParseActions.getClosestBusStop(gps, oneParadaCallback);
+            }
+        };
+
+        //1. Get accurate position <10m
+        new LocationAsker(mContext, locationCallback, 10);
+    }
+
+    /**
+     * Capture wifis, Keep the five with highest power, Write in web and in local
+     * //Marcar como interesting, para que le salte.//TODO
+     *
+     * @param paradaId
+     */
+    public void SendWifis(final String paradaId) {
+        new WifiAsker(mContext, new preguntaWifi() {
+            @Override
+            public void OnReceiveWifis(List<ScanResult> sr) {
+                Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
+                myLog.add("Recibidos los wifis forzados para parada", tag);
+
+                myLog.add("****Befor sort\n" + ListarSR(sr), tag);
+                Collections.sort(sr, new srComparator());
+                myLog.add("****aftersort\n" + ListarSR(sr), tag);
+
+                try {
+                    List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 4) : sr;
+                    ParseActions.assignSpotsToWeacon(paradaId, srShort, mGps, mContext);
+                } catch (Exception e) {
+                    myLog.error(e);
+                }
+            }
+
+            @Override
+            public void noWifiDetected() {
+                myLog.add("error recibiendo los sopotsde manera forzasa", "WARN");
+            }
+        });
+    }
+
+    class srComparator implements Comparator<ScanResult> {
+
+        @Override
+        public int compare(ScanResult lhs, ScanResult rhs) {
+            return lhs.level - rhs.level;
         }
     }
 }

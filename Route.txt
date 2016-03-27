@@ -1,38 +1,38 @@
 ---probar:
     - que la permanencia del feching sea por tiempo, por ejemplo 30 segundos, no por scaneos arbitrairo
     - que se refresquen al encender la pantalla si están obsoletos
+    - si no tengo datos qué pasa
+    - Carga de weacaons:
+        - que lo hace en first run
+        - que cuando se agrega una parada
+        - que se suben sólo los 5 wifis relevantes
+        - Cuando te sales del perímetro: [LoadWeacons if Needed]
+
+    - botón para estoy en parada
+        - probar a agregar una parada
 
 ---- BUGS
     - Se apaga el servicio (boot) le he puesto sticky a ver si cambia
-        - será por error o simple kill?
+        - será por error o simple kill? puede ser el optimizador de samsun
     - hay un problema de desconexion: al entrar en weaconslist, puede que no encuentra nada en LogManamege ActiveWeacons
         -> quizas podría hacer lque esas variabeles estuvieran en Wifisrvice
-
     - Algunas paradas no disparan. ¿Estan correctamente agregados las wifis (ejemplo, del estadio de aqui cerca
 
 --------------Do
-    first run
-        (launch service)
-    - carga de weacaons:
-        - cuando? cada cuanto? donde en codigo
-    - botón para estoy en parada
+    - First run de la app: (launch service)
+    - que la primera parada quq encuentre sea interesante, y que muestre dialogo explicatico
+    - WeaconList se actualice
+    - Verificar que el primer mensaje en una parada es "not available
+    - hacer un refresh de los weacons locales cada cierto tiempo ¿en wifi?
 
-----
-1) settings para encender o apagar el servicio
-    que tenga el sevicio de escucha y notificaciones
-
--------------------------
-
-2) que el servicio sea persistente
+---------------
 4) probar en el de rebeca, en el del trabajo , en el de amalia
 5) adaptar los datos para que la recepcion de wifi y deteccion sea más cercana
- que el listsactivity se actualice
+-  que el listsactivity se actualice
 
 ---- Lejano
     - el log de parse se debe hacer en el servicio, no?
         - y la carga de lugares
-    - he visto que no sehace fetch de los 3, isno solo 2
-    - en algunos pcasos pone "lines not availables. " Es verdad o debería decir "press refresj
     - monitoriza el ius de memoria dle servicio (25MB
     - En ListAcivity, como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
     - reestructurar las notificaciones: unificar uno o varios, etapas de preparación , feching, etc

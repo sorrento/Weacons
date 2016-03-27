@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.net.NetworkInfo;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -45,6 +46,7 @@ public class WifiObserverService extends Service {
     private WifiReceiver receiverWifi;
     private NotificationManager mNotificationManager;
     private RefreshReceiver refreshReceiver;
+    private SharedPreferences prefs = null;
 
     @Nullable
     @Override
@@ -80,6 +82,13 @@ public class WifiObserverService extends Service {
             filter.addAction(parameters.deleteIntentName);
             mContext.registerReceiver(refreshReceiver, filter);
 
+
+            //Load weacons if first time
+            prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
+            if (prefs.getBoolean("firstrunService", true)) {
+                ParseActions.getSpotsForBusStops(this);
+                prefs.edit().putBoolean("firstrunService", false).commit();
+            }
 
         } catch (Exception e) {
             Toast.makeText(mContext, "Not posstible to activate detection ", Toast.LENGTH_LONG).show();

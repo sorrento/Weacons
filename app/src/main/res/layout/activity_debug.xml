@@ -39,6 +39,12 @@
                 android:text="Detect"
                 android:textSize="9dp" />
 
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="OnClickImIn"
+                android:text="In BusStop" />
+
         </LinearLayout>
 
         <LinearLayout
