@@ -1,4 +1,5 @@
 ---probar:
+    - parada de Madrif
     - que la permanencia del feching sea por tiempo, por ejemplo 30 segundos, no por scaneos arbitrairo
     - que se refresquen al encender la pantalla si están obsoletos
     - si no tengo datos qué pasa
@@ -20,6 +21,12 @@
 
 --------------Do
     - First run de la app: (launch service)
+    - cuandeo se aprieta actualizar:
+    	- que aparezca el botón silenciar si no estaba
+
+    - Cuando se aprieta silenciiar
+    	- que desaparezca silenciar
+    - cuando creo una parada, que sse quede como interesante
     - que la primera parada quq encuentre sea interesante, y que muestre dialogo explicatico
     - WeaconList se actualice
     - Verificar que el primer mensaje en una parada es "not available
@@ -31,6 +38,7 @@
 -  que el listsactivity se actualice
 
 ---- Lejano
+- Tendremos problema con bus BCN. El weacon tiene que saber de que tipo es.. (quizas por la url?)
     - el log de parse se debe hacer en el servicio, no?
         - y la carga de lugares
     - monitoriza el ius de memoria dle servicio (25MB

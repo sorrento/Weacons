@@ -1,9 +1,13 @@
 package com.stupidpeople.weacons;
 
+import android.net.wifi.ScanResult;
+
 import com.parse.ParseClassName;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
+
+import java.util.ArrayList;
 
 /**
  * Created by Milenko on 30/07/2015.
@@ -24,17 +28,29 @@ public class WifiSpot extends ParseObject {
     public WifiSpot() {
     }
 
+    public WifiSpot(ScanResult r, WeaconParse weBusStop, GPSCoordinates gps) {
+        this(r.SSID, r.BSSID, weBusStop, gps.getLatitude(), gps.getLongitude());
+    }
+
+    public static String Listar(ArrayList<WifiSpot> newOnes) {
+        StringBuilder sb = new StringBuilder();
+        for (WifiSpot ws : newOnes) {
+            sb.append(ws.summarizeWithWeacon() + "\n");
+        }
+        return null;
+    }
+
     //GETTERS
     public String getBSSID() {
         String BSSID = getString("bssid");
         return BSSID;
     }
 
+    //SETTERS
+
     public void setBSSID(String BSSID) {
         put("bssid", BSSID);
     }
-
-    //SETTERS
 
     public String getSSID() {
         String SSID = getString("ssid");
@@ -79,5 +95,4 @@ public class WifiSpot extends ParseObject {
     public void setAutomatic(boolean automatic) {
         put("Automatic", automatic);
     }
-
 }

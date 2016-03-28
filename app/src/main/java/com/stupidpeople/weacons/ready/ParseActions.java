@@ -334,106 +334,86 @@ public abstract class ParseActions {
      * create in parse the SSID not already created, an assign the weacon of the bustop.
      * Also register the intensities
      *
-     * @param paradaId
+     * @param weBusStop
      * @param sr
      * @param ctx
      */
-    public static void assignSpotsToWeacon(final String paradaId, final List<ScanResult> sr, final GPSCoordinates gps, final Context ctx) {
+    public static void assignSpotsToWeacon(final WeaconParse weBusStop, final List<ScanResult> sr, final GPSCoordinates gps, final Context ctx) {
         final ArrayList<String> macs = new ArrayList<>();
         for (ScanResult r : sr) {
             macs.add(r.BSSID);
         }
 
-        ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
-        query.whereEqualTo("paradaId", paradaId);
-        query.getFirstInBackground(new GetCallback<WeaconParse>() {
+        // Create only the new ones
+        ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
+        query.whereContainedIn("bssid", macs);
+        query.findInBackground(new FindCallback<WifiSpot>() {
             @Override
-            public void done(final WeaconParse weParada, ParseException e) {
+            public void done(List<WifiSpot> list, ParseException e) {
+                List<String> spotsAlreadyCreated = new ArrayList<>();
+                final ArrayList<WifiSpot> newOnes = new ArrayList<>();
+
                 if (e == null) {
-                    final String weId = weParada.getObjectId();
+                    myLog.add("Detected: " + sr.size() + " alread created: " + list.size(), tag);
+                    for (WifiSpot ws : list) {
+                        spotsAlreadyCreated.add(ws.getBSSID());
+                    }
 
-                    // Create only the new ones
-                    ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
-                    query.whereContainedIn("bssid", macs);
-                    query.findInBackground(new FindCallback<WifiSpot>() {
+                    for (ScanResult r : sr) {
+                        if (!spotsAlreadyCreated.contains(r.BSSID)) {
+                            newOnes.add(new WifiSpot(r, weBusStop, gps));
+                        }
+                    }
+
+                    //Upload batch
+                    WifiSpot.saveAllInBackground(newOnes, new SaveCallback() {
                         @Override
-                        public void done(List<WifiSpot> list, ParseException e) {
-                            List<String> spotsAlreadyCreated = new ArrayList<>();
-                            final ArrayList<WifiSpot> newOnes = new ArrayList<>();
-
+                        public void done(ParseException e) {
                             if (e == null) {
-                                myLog.add("Detected: " + sr.size() + " alread created: " + list.size(), tag);
-                                for (WifiSpot ws : list) {
-                                    spotsAlreadyCreated.add(ws.getBSSID());
-                                }
 
-                                final WeaconParse we = (WeaconParse) ParseObject.createWithoutData("Weacon", weId);
-                                for (ScanResult r : sr) {
-                                    if (!spotsAlreadyCreated.contains(r.BSSID)) {
-                                        WifiSpot ws = new WifiSpot(r.SSID, r.BSSID, we, gps.getLatitude(), gps.getLongitude());
-                                        newOnes.add(ws);
-                                    }
-                                }
+                                myLog.add("subidos varios wifispots: " + WifiSpot.Listar(newOnes), tag);
+                                String text = "se ha subido la parada:" + weBusStop.getName();
+                                myLog.add(text, "DBG");
+                                Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 
-                                //Upload batch
-                                WifiSpot.saveAllInBackground(newOnes, new SaveCallback() {
-                                    @Override
-                                    public void done(ParseException e) {
-                                        if (e == null) {
-                                            myLog.add("subidos varios wifispots " + newOnes.size(), tag);
-                                            Toast.makeText(ctx, "se ha subido la parada:" + weParada.getName(), Toast.LENGTH_SHORT).show();
-
-                                            //create the weMeasured
-                                            final ParseObject weMeasured = ParseObject.create("WeMeasured");
-                                            weMeasured.put("weacon", we);
-                                            weMeasured.saveInBackground(new SaveCallback() {
-                                                @Override
-                                                public void done(ParseException e) {
-                                                    if (e == null) {
-                                                        final ArrayList<ParseObject> intiensities = new ArrayList<ParseObject>();
-                                                        for (ScanResult r : sr) {
-                                                            ParseObject intensity = ParseObject.create("Intensities");
-                                                            intensity.put("level", r.level);
-                                                            intensity.put("weMeasured", weMeasured);
-                                                            intensity.put("ssid", r.SSID);
-                                                            intensity.put("bssid", r.BSSID);
-                                                            intiensities.add(intensity);
-                                                        }
-                                                        ParseObject.saveAllInBackground(intiensities, new SaveCallback() {
-                                                            @Override
-                                                            public void done(ParseException e) {
-                                                                if (e == null) {
-                                                                    myLog.add("saved several intensities " + intiensities.size(), tag);
-                                                                    // aumentar el n_scannings del weacon  en uno
-                                                                    we.increment("n_scannings");
-                                                                    we.saveInBackground(new SaveCallback() {
-                                                                        @Override
-                                                                        public void done(ParseException e) {
-                                                                            if (e == null) {
-                                                                                myLog.add("incrementado el we de parada en uno", tag);
-                                                                            } else
-                                                                                myLog.error(e);
-                                                                        }
-                                                                    });
-                                                                } else {
-                                                                    myLog.error(e);
-                                                                }
-                                                            }
-                                                        });
-                                                    } else {
-                                                        myLog.error(e);
-                                                    }
-                                                }
-                                            });
-
-                                        } else {
-                                            myLog.error(e);
-                                        }
-                                    }
-                                });
+                                SaveIntensities(sr, weBusStop);
                             } else {
                                 myLog.error(e);
                             }
+                        }
+                    });
+
+                } else {
+                    myLog.error(e);
+                }
+            }
+        });
+    }
+
+    private static void SaveIntensities(List<ScanResult> sr, final WeaconParse weBusStop) {
+        final ArrayList<ParseObject> intensities = new ArrayList<ParseObject>();
+        for (ScanResult r : sr) {
+            ParseObject intensity = ParseObject.create("Intensities");
+            intensity.put("level", r.level);
+            intensity.put("weMeasured", weBusStop);
+            intensity.put("ssid", r.SSID);
+            intensity.put("bssid", r.BSSID);
+            intensities.add(intensity);
+        }
+        ParseObject.saveAllInBackground(intensities, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("saved several intensities " + intensities.size(), tag);
+                    // aumentar el n_scannings del weacon  en uno
+                    weBusStop.increment("n_scannings");
+                    weBusStop.saveInBackground(new SaveCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e == null) {
+                                myLog.add("incrementado el we de parada en uno", tag);
+                            } else
+                                myLog.error(e);
                         }
                     });
                 } else {
@@ -441,6 +421,5 @@ public abstract class ParseActions {
                 }
             }
         });
-
     }
 }

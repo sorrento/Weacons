@@ -288,7 +288,7 @@ public class LogInManagement {
         public int nFetchings;
         public boolean shouldFetch;
         public boolean anyInteresting;
-        private ArrayList<WeaconParse> interestings = new ArrayList();
+        private ArrayList<WeaconParse> interestingOnes = new ArrayList();
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
 
@@ -307,15 +307,15 @@ public class LogInManagement {
 
                     //Interesting
                     if (we.isInteresting()) {
-                        interestings.add(we);
+                        interestingOnes.add(we);
                         anyInteresting = true;
                     }
 
                 }
 
                 nFetchings = i;
-
-                myLog.add("Inters: " + WeaconParse.Listar(interestings), "NOTI");
+                if (interestingOnes.size() > 0)
+                    myLog.add("Inters: " + WeaconParse.Listar(interestingOnes), "NOTI");
             } catch (Exception e) {
                 myLog.error(e);
             }

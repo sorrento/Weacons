@@ -10,7 +10,7 @@ import org.json.JSONObject;
  * Created by Milenko on 02/02/2016.
  */
 public class BusStCugat extends Bus {
-    private String lineCode;
+
     private String stopCode;
     private int lineState;//=1 means working
     private int routeId;//=1 or 2, probably the direction

@@ -96,7 +96,7 @@ public class WeaconParse extends ParseObject {
     public static String ListarSR(List<ScanResult> sr) {
         StringBuilder sb = new StringBuilder();
         for (ScanResult s : sr) {
-            sb.append(s.SSID + " | " + s.BSSID + "\n");
+            sb.append(s.SSID + " | " + s.BSSID + " | " + s.level + "\n");
         }
         return sb.toString();
     }

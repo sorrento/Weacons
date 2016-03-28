@@ -9,7 +9,7 @@ import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
-import com.stupidpeople.weacons.WeaconBus.SantCugat.BusLineStCugat;
+import com.stupidpeople.weacons.WeaconBus.Madrid.BusMadrid;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
 import com.stupidpeople.weacons.WeaconBus.Santiago.BusLineSantiago;
 import com.stupidpeople.weacons.WeaconParse;
@@ -29,25 +29,20 @@ import util.parameters;
  * Created by Milenko on 18/03/2016.
  */
 public class HelperBus extends HelperBaseFecthNotif {
-    String updateTime;
-    String stopCode;
-
-    private String description;
 
     public HelperBus(WeaconParse we, Context ctx) {
         super(we, ctx);
     }
 
-
     @Override
     protected ArrayList processResponse(Connection.Response response) {
         ArrayList arr = new ArrayList();
 
-        if (we.near(parameters.stCugat, 20)) {
-            arr = processStCugat(response.body());
-        } else if (we.near(parameters.santiago, 20)) {
-            arr = processSantiago(response.body());
-        }
+        if (we.near(parameters.stCugat, 20)) arr = processStCugat(response.body());
+        else if (we.near(parameters.santiago, 20)) arr = processSantiago(response.body());
+        else if (we.near(parameters.madrid, 30)) arr = processMadrid(response.body());
+        else if (we.near(parameters.barcelona, 20))
+            arr = processBarcelona(response.body());//TODO separar por ciudad, usar quizas la url para difenreciar la ciudad
         return arr;
     }
 
@@ -135,68 +130,6 @@ public class HelperBus extends HelperBaseFecthNotif {
         return we.getString("paradaId");
     }
 
-    private ArrayList processSantiago(String response) {
-        ArrayList<BusLine> arr = new ArrayList<>();
-
-        try {
-            JSONObject json = new JSONObject(response);
-            stopCode = json.getString("paradero");
-            description = json.getString("nomett");
-            updateTime = json.getString("fechaprediccion") + "|" + json.getString("horaprediccion");
-
-            JSONObject services = json.getJSONObject("servicios");
-            JSONArray items = services.getJSONArray("item");
-            myLog.add("tenemos algunso servicios de bus:" + items.length(), "aut");
-
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject item = items.getJSONObject(i);
-                if (!(item.getString("codigorespuesta").equals("00") || item.getString("codigorespuesta").equals("01")))
-                    continue;
-                myLog.add("oneitem: " + item.toString(), "aut");
-                BusLineSantiago line = new BusLineSantiago(item);
-                arr.add(line);
-            }
-
-        } catch (JSONException e) {
-            myLog.error(e);
-        }
-        return arr;
-    }
-
-    private ArrayList processStCugat(String response) {
-        HashMap<String, BusLine> tableLines = new HashMap<>();
-
-        try {
-            JSONArray mJsonArray = new JSONArray(response);
-
-            for (int i = 0; i < mJsonArray.length(); i++) {
-                JSONObject json = mJsonArray.getJSONObject(i);
-                BusStCugat bus = new BusStCugat(json);
-
-                if (stopCode == null) { //put this info in the stop, only once
-                    stopCode = bus.getStopCode();
-                    updateTime = bus.getUpdateTime();
-                }
-
-                String lineCode = bus.getLineCode();
-                if (tableLines.containsKey(lineCode)) {
-                    BusLine busLine = tableLines.get(lineCode);
-                    busLine.addBus(bus);
-                } else {
-                    tableLines.put(lineCode, new BusLineStCugat(lineCode, bus));
-                }
-            }
-        } catch (Exception e) {
-            myLog.error(e);
-        }
-
-        ArrayList<BusLine> arr = new ArrayList<>();
-        for (BusLine line : tableLines.values()) {
-            arr.add(line);
-        }
-        return arr;
-    }
-
     /**
      * Shows only the first arrival by line:  L1:10m | B3: 5m | R4:18m
      *
@@ -204,7 +137,7 @@ public class HelperBus extends HelperBaseFecthNotif {
      * @return
      */
     public String summarizeAllLines(boolean compact) {
-        String substring = "No info Available";
+        String substring = mContext.getString(R.string.press_refresh);
 
         int del = 0;
 
@@ -270,5 +203,100 @@ public class HelperBus extends HelperBaseFecthNotif {
         return arr;
     }
 
+    //Specific cities
 
+    private ArrayList processStCugat(String response) {
+        BusStopSituation situation = new BusStopSituation();
+
+        try {
+            JSONArray mJsonArray = new JSONArray(response);
+
+            for (int i = 0; i < mJsonArray.length(); i++) {
+                JSONObject json = mJsonArray.getJSONObject(i);
+                situation.add(new BusStCugat(json));
+            }
+        } catch (Exception e) {
+            myLog.error(e);
+        }
+
+        return situation.getBusLines();
+    }
+
+    private ArrayList processMadrid(String response) {
+        BusStopSituation busStopSituation = new BusStopSituation();
+
+        try {
+            JSONArray jLines = new JSONObject(response).getJSONArray("lines");
+
+            for (int i = 0; i < jLines.length(); i++) {
+                JSONObject jLine = jLines.getJSONObject(i);
+                busStopSituation.add(new BusMadrid(jLine));
+            }
+
+        } catch (Exception e) {
+            myLog.error(e);
+        }
+
+        return busStopSituation.getBusLines();
+    }
+
+    private ArrayList processSantiago(String response) {
+        //Santiago strucuture is different becaus come gathered by line, not isolated buses
+        ArrayList<BusLine> arr = new ArrayList<>();
+
+        try {
+            JSONObject json = new JSONObject(response);
+            //not used:
+//            stopCode = json.getString("paradero");
+//            description = json.getString("nomett");
+//            updateTime = json.getString("fechaprediccion") + "|" + json.getString("horaprediccion");
+
+            JSONArray jLines = json.getJSONObject("servicios").getJSONArray("item");
+            myLog.add("tenemos algunso servicios de bus:" + jLines.length(), "aut");
+
+            for (int i = 0; i < jLines.length(); i++) {
+                JSONObject jLine = jLines.getJSONObject(i);
+                if (!(jLine.getString("codigorespuesta").equals("00") || jLine.getString("codigorespuesta").equals("01")))
+                    continue;
+                myLog.add("oneitem: " + jLine.toString(), "aut");
+
+                arr.add(new BusLineSantiago(jLine));
+            }
+
+        } catch (JSONException e) {
+            myLog.error(e);
+        }
+        return arr;
+    }
+
+    private ArrayList processBarcelona(String response) {
+        return null;//TODO Barcelona bus
+    }
+
+    //** Reorganize the times for buses, gathering by line
+    private class BusStopSituation {
+        private HashMap<String, BusLine> tableLines = new HashMap<>();
+
+        public BusStopSituation() {
+            tableLines = new HashMap<>();
+        }
+
+        public void add(Bus bus) {
+            String lineCode = bus.getLineCode();
+            if (tableLines.containsKey(lineCode)) {
+                BusLine busLine = tableLines.get(lineCode);
+                busLine.addBus(bus);
+            } else {
+                tableLines.put(lineCode, new BusLine(bus));
+            }
+        }
+
+        public ArrayList getBusLines() {
+            ArrayList<BusLine> arr = new ArrayList<>();
+            for (BusLine line : tableLines.values()) {
+                arr.add(line);
+            }
+            return arr;
+        }
+    }
 }

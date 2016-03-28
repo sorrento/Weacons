@@ -6,13 +6,13 @@ import java.util.ArrayList;
 /**
  * Created by Milenko on 02/02/2016.
  */
-public abstract class BusLine {
-    public String lineCode;
+public class BusLine {
+    public String lineCode, destination;
     public ArrayList<Bus> buses = new ArrayList<>();
 
-    public BusLine(String lineCode, Bus bus) {
-        this.lineCode = lineCode;
-//        buses = new ArrayList<>();
+    public BusLine(Bus bus) {
+        this.lineCode = bus.lineCode;
+        destination = bus.destination;
         addBus(bus);
     }
 
@@ -21,17 +21,6 @@ public abstract class BusLine {
 
     public void addBus(Bus bus) {
         buses.add(bus);
-    }
-
-    public String summary() {
-        StringBuilder sb = new StringBuilder(lineCode + " ");
-        for (Bus bus : buses) {
-            sb.append(bus.arrivalTimeText + " | ");
-        }
-
-        String s = sb.toString();
-
-        return s;
     }
 
     public int getShortestTime() {

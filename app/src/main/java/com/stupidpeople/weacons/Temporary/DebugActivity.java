@@ -129,19 +129,19 @@ public class DebugActivity extends AppCompatActivity {
             @Override
             public void done(WeaconParse we, ParseException e) {
                 if (e == null) {
-                    int distance = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) / 1000);
+                    int distanceMts = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
 
-                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distance);
+                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distanceMts);
 
                     //2. Check if the nearest weacon is inside 15 mts
                     String msg2;
-                    if (distance < 15) {
+                    if (distanceMts < 15) {
                         msg2 = getString(R.string.updating_data);
-                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_SHORT).show();
-                        SendWifis(we.getParadaId());
+                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
+                        SendWifis(we);
                     } else {
                         msg2 = getString(R.string.go_closer);
-                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
                     }
                     myLog.add(msg + msg2, tag);
 
@@ -176,22 +176,20 @@ public class DebugActivity extends AppCompatActivity {
      * Capture wifis, Keep the five with highest power, Write in web and in local
      * //Marcar como interesting, para que le salte.//TODO
      *
-     * @param paradaId
+     * @param we
      */
-    public void SendWifis(final String paradaId) {
+    public void SendWifis(final WeaconParse we) {
         new WifiAsker(mContext, new preguntaWifi() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
                 Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
-                myLog.add("Recibidos los wifis forzados para parada", tag);
 
-                myLog.add("****Befor sort\n" + ListarSR(sr), tag);
                 Collections.sort(sr, new srComparator());
                 myLog.add("****aftersort\n" + ListarSR(sr), tag);
 
                 try {
-                    List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 4) : sr;
-                    ParseActions.assignSpotsToWeacon(paradaId, srShort, mGps, mContext);
+                    List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 5) : sr;
+                    ParseActions.assignSpotsToWeacon(we, srShort, mGps, mContext);
                 } catch (Exception e) {
                     myLog.error(e);
                 }
@@ -208,7 +206,7 @@ public class DebugActivity extends AppCompatActivity {
 
         @Override
         public int compare(ScanResult lhs, ScanResult rhs) {
-            return lhs.level - rhs.level;
+            return rhs.level - lhs.level;
         }
     }
 }

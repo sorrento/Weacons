@@ -52,6 +52,10 @@ public class parameters {
     //Coords
     public static ParseGeoPoint stCugat = new ParseGeoPoint(41.474722, 2.086667);
     public static ParseGeoPoint santiago = new ParseGeoPoint(-33.45, -70.666667);
+    public static ParseGeoPoint madrid = new ParseGeoPoint(40.418889, -3.691944);
+    public static ParseGeoPoint barcelona = new ParseGeoPoint(41.3825, 2.176944);
+
+
     public static String refreshIntentName = "REFRESH";
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
