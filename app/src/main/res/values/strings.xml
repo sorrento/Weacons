@@ -72,4 +72,5 @@
     <string name="distance_bus_stop">The nearest bus stop is %1$s\nd = %2$d mts.</string>
     <string name="updating_data">\nUpdating Data...</string>
     <string name="go_closer">\nPlease go closer.</string>
+    <string name="refreshing_notif">Refreshing notification...</string>
 </resources>

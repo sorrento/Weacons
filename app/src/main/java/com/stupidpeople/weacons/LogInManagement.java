@@ -194,34 +194,38 @@ public class LogInManagement {
                 return;
             }
 
-            MultiTaskCompleted listener = new MultiTaskCompleted() {
-                int i = 0;
+            NotifyMultipleFetching(anyInterestinAppearing, now.anyInteresting);
+        }
+    }
 
-                @Override
-                public void OneTaskCompleted() {
-                    i += 1;
-                    myLog.add("terminada ina task=" + i + "/" + now.nFetchings, "MHP");
+    public static void NotifyMultipleFetching(final boolean anyInterestinAppearing, final boolean anyInteresting) {
+        MultiTaskCompleted listener = new MultiTaskCompleted() {
+            int i = 0;
 
-                    if (i == now.nFetchings) {
-                        myLog.add("a lazanr la notificaicno congunta", tag);
-                        lastTimeWeFetched = true;
-                        Notifications.obsolete = false;
-                        Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, now.anyInteresting);
-                    }
+            @Override
+            public void OneTaskCompleted() {
+                i += 1;
+                myLog.add("terminada ina task=" + i + "/" + now.nFetchings, "MHP");
+
+                if (i == now.nFetchings) {
+                    myLog.add("a lazanr la notificaicno congunta", tag);
+                    lastTimeWeFetched = true;
+                    Notifications.obsolete = false;
+                    Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, anyInteresting);
                 }
+            }
 
-                @Override
-                public void OnError(Exception e) {
-                    i++;
-                    myLog.add("Teminada una tarea, pero con error " + i + "/" + now.nFetchings, "MHP");
-                    myLog.add(Log.getStackTraceString(e), "err");
-                }
-            };
+            @Override
+            public void OnError(Exception e) {
+                i++;
+                myLog.add("Teminada una tarea, pero con error " + i + "/" + now.nFetchings, "MHP");
+                myLog.add(Log.getStackTraceString(e), "err");
+            }
+        };
 
-            for (final WeaconParse we : weaconsToNotify) {
-                if (we.notificationRequiresFetching()) {
-                    we.fetchForNotification(listener);
-                }
+        for (final WeaconParse we : weaconsToNotify) {
+            if (we.notificationRequiresFetching()) {
+                we.fetchForNotification(listener);
             }
         }
     }
@@ -234,13 +238,11 @@ public class LogInManagement {
         return weaconsToNotify.contains(we);
     }
 
-
     public static void refresh(Context ctx) {
-        myLog.add("refresing the notification", tag);
-        Toast.makeText(ctx, "Refreshing notification...", Toast.LENGTH_SHORT).show();
+        myLog.add("Refreshing the notification", tag);
+        Toast.makeText(ctx, R.string.refreshing_notif, Toast.LENGTH_SHORT).show();
         NotifyForcingFetching();
     }
-
 
     private static void NotifyForcingFetching() {
 
@@ -252,8 +254,7 @@ public class LogInManagement {
         } catch (Exception e) {
             myLog.error(e);
         }
-
-        Notify();
+        NotifyMultipleFetching(false, true);
     }
 
     public static ArrayList<WeaconParse> getNotifiedWeacons() {

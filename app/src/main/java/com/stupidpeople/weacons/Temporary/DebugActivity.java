@@ -20,7 +20,8 @@ import com.stupidpeople.weacons.LocationCallback;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiAsker;
-import com.stupidpeople.weacons.preguntaWifi;
+import com.stupidpeople.weacons.askScanResults;
+import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 import com.stupidpeople.weacons.ready.WifiObserverService;
 
@@ -179,7 +180,7 @@ public class DebugActivity extends AppCompatActivity {
      * @param we
      */
     public void SendWifis(final WeaconParse we) {
-        new WifiAsker(mContext, new preguntaWifi() {
+        new WifiAsker(mContext, new askScanResults() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
                 Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
@@ -188,8 +189,33 @@ public class DebugActivity extends AppCompatActivity {
                 myLog.add("****aftersort\n" + ListarSR(sr), tag);
 
                 try {
+                    MultiTaskCompleted assignTask = new MultiTaskCompleted() {
+                        @Override
+                        public void OneTaskCompleted() {
+                            //Reload weacons in the area after upload everything
+                            ParseActions.getSpotsForBusStops(mGps.getGeoPoint(), new MultiTaskCompleted() {
+                                @Override
+                                public void OneTaskCompleted() {
+                                    //And finally, make the new stop "interesting".
+                                    ParseActions.AddToInteresting(we);
+                                }
+
+                                @Override
+                                public void OnError(Exception e) {
+
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void OnError(Exception e) {
+                            myLog.error(e);
+                        }
+                    };
+
                     List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 5) : sr;
-                    ParseActions.assignSpotsToWeacon(we, srShort, mGps, mContext);
+
+                    ParseActions.assignSpotsToWeacon(we, srShort, mGps, mContext, assignTask);
                 } catch (Exception e) {
                     myLog.error(e);
                 }

@@ -15,4 +15,5 @@
     <string name="distance_bus_stop">La parada más cercana es %1$s\nd = %2$d mts.</string>
     <string name="go_closer">\nPor favor acérquese a la parada</string>
     <string name="updating_data">\nActualizando los datos...</string>
+    <string name="refreshing_notif">Actualizando la notificación...</string>
 </resources>

@@ -103,11 +103,12 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
 
     @Override
     protected SpannableString NotiSingleExpandedContent() {
-        //        if(fetched()) TODO, putdescription if not fetched
-        //TODO only en ciertas horas el menú, por la tarde poner la decripcion
+        if (we.fetchedElements == null || we.fetchedElements.size() == 0)
+            return SpannableString.valueOf(we.getDescription());
 
         SpannableString sst = null;
         try {
+            //TODO only en ciertas horas el menú, por la tarde poner la decripcion
             for (Object o : we.fetchedElements) {
                 ArrayList<String> arr = (ArrayList<String>) o;
 

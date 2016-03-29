@@ -60,12 +60,13 @@ public class Notifications {
         mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
-    public static void showNotification(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
+    public static void showNotification(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing,
+                                        boolean anyFetchable, boolean anyInteresting) {
         try {
             t.cancel();
             if (notificables.size() > 0) {
 
-                if (anyFetchable && anyIntesting && !obsolete) {
+                if (anyFetchable && anyInteresting && !obsolete) {
                     t = new Timer();
                     t.schedule(new TimerTask() {
                         @Override
@@ -80,7 +81,7 @@ public class Notifications {
                 if (notificables.size() == 1) {
                     sendOneWeacon(notificables.get(0), anyInterestingAppearing);
                 } else {
-                    sendSeveralWeacons(notificables, anyInterestingAppearing, anyFetchable, anyIntesting);
+                    sendSeveralWeacons(notificables, anyInterestingAppearing, anyFetchable, anyInteresting);
                 }
             } else {
                 isShowingNotification = false;
@@ -118,7 +119,8 @@ public class Notifications {
         return pendingIntent;
     }
 
-    private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
+    private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables,
+                                           boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 

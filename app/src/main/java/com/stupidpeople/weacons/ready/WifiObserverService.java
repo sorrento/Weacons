@@ -85,6 +85,7 @@ public class WifiObserverService extends Service {
 
             //Load weacons if first time
             prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
+            myLog.add("Is first time rumning" + prefs.getBoolean("firstrunService", true), "aut");
             if (prefs.getBoolean("firstrunService", true)) {
                 ParseActions.getSpotsForBusStops(this);
                 prefs.edit().putBoolean("firstrunService", false).commit();
@@ -158,6 +159,11 @@ public class WifiObserverService extends Service {
                     List<ScanResult> sr = wifiManager.getScanResults();
 
                     iScan++;
+                    if (iScan % 30 == 0) {
+                        ParseActions.DownloadWeaconsIfNeded(mContext);
+                    }
+
+
                     myLog.add(Integer.toString(iScan) + "--------------------------------------------------------------", "MHP");
                     myLog.add("\tSSIDS:" + sr.size() + "\n" + WeaconParse.ListarSR(sr), tag);
 

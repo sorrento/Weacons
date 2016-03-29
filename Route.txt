@@ -1,4 +1,5 @@
 ---probar:
+
     - parada de Madrif
     - que la permanencia del feching sea por tiempo, por ejemplo 30 segundos, no por scaneos arbitrairo
     - que se refresquen al encender la pantalla si están obsoletos
@@ -11,27 +12,23 @@
 
     - botón para estoy en parada
         - probar a agregar una parada
+    - cuando creo una parada, que sse quede como interesante
+    - Que la carga de weacons no sea por moviciemtto solo; también por tiempo (se actualice)
+    - cuandeo se aprieta actualizar:
+            - que aparezca el botón silenciar si no estaba
+    - Cuando se aprieta silenciar
+	- que desaparezca silenciar
 
 ---- BUGS
     - Se apaga el servicio (boot) le he puesto sticky a ver si cambia
         - será por error o simple kill? puede ser el optimizador de samsun
     - hay un problema de desconexion: al entrar en weaconslist, puede que no encuentra nada en LogManamege ActiveWeacons
         -> quizas podría hacer lque esas variabeles estuvieran en Wifisrvice
-    - Algunas paradas no disparan. ¿Estan correctamente agregados las wifis (ejemplo, del estadio de aqui cerca
 
 --------------Do
     - First run de la app: (launch service)
-    - cuandeo se aprieta actualizar:
-    	- que aparezca el botón silenciar si no estaba
-
-    - Cuando se aprieta silenciiar
-    	- que desaparezca silenciar
-    - cuando creo una parada, que sse quede como interesante
-    - que la primera parada quq encuentre sea interesante, y que muestre dialogo explicatico
+    - que la primera parada quq encuentre sea interesante desde la instalación sea, y que muestre dialogo explicatico
     - WeaconList se actualice
-    - Verificar que el primer mensaje en una parada es "not available
-    - hacer un refresh de los weacons locales cada cierto tiempo ¿en wifi?
-
 ---------------
 4) probar en el de rebeca, en el del trabajo , en el de amalia
 5) adaptar los datos para que la recepcion de wifi y deteccion sea más cercana
@@ -41,12 +38,12 @@
 - Tendremos problema con bus BCN. El weacon tiene que saber de que tipo es.. (quizas por la url?)
     - el log de parse se debe hacer en el servicio, no?
         - y la carga de lugares
-    - monitoriza el ius de memoria dle servicio (25MB
+    - monitoriza el ius de memoria dle servicio (25MB)
     - En ListAcivity, como hay espacio, que se ponga el nombre de la linea (si lo tengo..)
     - reestructurar las notificaciones: unificar uno o varios, etapas de preparación , feching, etc
     -  que haga algunas muestras de autofecthing en paradas primera veces, y dialogo explicativo
     - Rellenar de airport los datos
-    -tenía información de los nombres de las lineas en st cugat?
+    - tenía información de los nombres de las lineas en st cugat?
     - Refresh en menu de varios weacons ( o hacer hacia abajo)
     - Agregar timer (no depender tanto de los intervalos entre scannings)si pasas mucho rato, tambien deberi aactaulizar lo que muestra, o quitarlo
     - Mensajes en Español, catalán e inglés

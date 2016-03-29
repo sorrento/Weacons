@@ -15,12 +15,12 @@ import util.myLog;
  * Created by halatm on 08/12/2015.
  */
 public class WifiAsker {
-    private final preguntaWifi mListener;
+    private final askScanResults mListener;
     private final WifiReceiver receiver;
     private final Context mContext;
     private WifiManager wifi;
 
-    public WifiAsker(Context context, preguntaWifi listener) {
+    public WifiAsker(Context context, askScanResults listener) {
         mListener = listener;
         mContext = context;
 

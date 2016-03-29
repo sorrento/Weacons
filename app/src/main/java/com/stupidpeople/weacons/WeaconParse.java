@@ -398,8 +398,7 @@ public class WeaconParse extends ParseObject {
                 //            case zoo:
                 //                break;
                 case nothing:
-                    //TODO case type is not registerd
-//                    myLog.add("TYPE NOT RECOGNIZED" + getType(), "aut");
+                    mHelper = new HelperDefault(this, ctx);
                     break;
             }
 
