@@ -1,3 +1,20 @@
+---DONE
+	﻿- En parada Ventura Gassol aparace "not available". ¿realmente no había?.
+		- aparece en inglés
+	TEST -parece quecon muy poca batería corta el servicio
+			- cuando se conecta el cargador, verificamos si está el servicio
+		- Al silenciar, se queda la info por más de 30 segundos (se reinicia el timer pero no se asigna tarea, tal vez??
+		- versio no sale refresh (en single notif), pero creo que si lo escribe en el log
+
+	﻿- EEE this object is not available in offline: [solved, no se cargaban con include weacon
+
+	- los pinnes de internos y los de internet tienen constantemente un delay
+		- poner el nombre del pin en el log
+		- es posible que no se haga bien el pin
+
+	- La barra de abajo "weacons around" no se actualiza con la realidad
+	coninuar actualizando fectch de barcelona
+
 ---probar:
 
     - parada de Madrif

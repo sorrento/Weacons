@@ -73,4 +73,5 @@
     <string name="updating_data">\nUpdating Data...</string>
     <string name="go_closer">\nPlease go closer.</string>
     <string name="refreshing_notif">Refreshing notification...</string>
+    <string name="no_lines_available">No lines available</string>
 </resources>

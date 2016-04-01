@@ -5,6 +5,7 @@ package com.stupidpeople.weacons.ready;
  */
 
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,10 +20,15 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.GeofencingRequest;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -31,22 +37,27 @@ import util.parameters;
 
 import static com.stupidpeople.weacons.WeaconParse.Listar;
 import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
+import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeded;
 
 /**
  * Created by Milenko on 04/10/2015.
  */
-public class WifiObserverService extends Service {
+public class WifiObserverService extends Service implements ResultCallback<Status> {
 
+    public static boolean serviceIsActive;
     String tag = "wos";
     int iScan = 0;
-
+    List mGeofenceList = new ArrayList();
+    long lat, lon, radInMts, milSecs;
+    String id;
     private Context mContext;
     private WifiManager wifiManager;
-
     private WifiReceiver receiverWifi;
     private NotificationManager mNotificationManager;
     private RefreshReceiver refreshReceiver;
     private SharedPreferences prefs = null;
+    private PendingIntent mGeofencePendingIntent;
+    private GoogleApiClient mGoogleApiClient;
 
     @Nullable
     @Override
@@ -57,7 +68,7 @@ public class WifiObserverService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         myLog.add("Starting service ", tag);
-
+        serviceIsActive = true;
         try {
             myLog.initialize();
 
@@ -89,7 +100,33 @@ public class WifiObserverService extends Service {
             if (prefs.getBoolean("firstrunService", true)) {
                 ParseActions.getSpotsForBusStops(this);
                 prefs.edit().putBoolean("firstrunService", false).commit();
+            } else {
+                DownloadWeaconsIfNeded(this);
             }
+
+            //Add geofences
+//            mGeofenceList = new ArrayList();
+//            mGeofenceList.add(new Geofence.Builder()
+//                    .setRequestId(id)
+//                    .setCircularRegion(lat, lon, radInMts)
+//                            //.setExpirationDuration(SyncStateContract.Constants.GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+//                    .setExpirationDuration(milSecs)
+//                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER | Geofence.GEOFENCE_TRANSITION_EXIT)
+//                    .build());
+//
+//            LocationServices.GeofencingApi.addGeofences(
+//                    mGoogleApiClient,
+//                    getGeofencingRequest(),
+//                    getGeofencePendingIntent()
+//            ).setResultCallback(this);
+
+            //TO STOP it:
+//            LocationServices.GeofencingApi.removeGeofences(
+//                    mGoogleApiClient,
+//                    // This is the same pending intent that was used in addGeofences().
+//                    getGeofencePendingIntent()
+//            ).setResultCallback(this); // Result processed in onResult().
+//
 
         } catch (Exception e) {
             Toast.makeText(mContext, "Not posstible to activate detection ", Toast.LENGTH_LONG).show();
@@ -103,16 +140,40 @@ public class WifiObserverService extends Service {
     @Override
     public void onDestroy() {
         myLog.add("Destroying ", tag);
+
         try {
 //            mNotificationManager.cancel(101);
             Toast.makeText(mContext, "Detection Service OFF", Toast.LENGTH_LONG).show();
             mContext.unregisterReceiver(receiverWifi);
             mContext.unregisterReceiver(refreshReceiver);
+            serviceIsActive = false;
             super.onDestroy();
         } catch (Exception e) {
             Toast.makeText(mContext, "Not possible to turn off detection", Toast.LENGTH_LONG).show();
             myLog.add("error destroying: " + e.getLocalizedMessage(), tag);
         }
+    }
+
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
+    }
+
+    private PendingIntent getGeofencePendingIntent() {
+        // Reuse the PendingIntent if we already have it.
+        if (mGeofencePendingIntent != null) return mGeofencePendingIntent;
+
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    @Override
+    public void onResult(Status status) {
+
     }
 
     private class RefreshReceiver extends BroadcastReceiver {
@@ -130,9 +191,11 @@ public class WifiObserverService extends Service {
 
                 } else if (action.equals(parameters.silenceIntentName)) {
                     ParseActions.removeInteresting(LogInManagement.getNotifiedWeacons());
+
                     //Delete notification
                 } else if (action.equals(parameters.deleteIntentName)) {
                     Notifications.isShowingNotification = false;
+
                 }
             } catch (Exception e) {
                 myLog.error(e);

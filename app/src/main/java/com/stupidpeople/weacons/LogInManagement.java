@@ -61,8 +61,6 @@ public class LogInManagement {
             //Notify or change notification
             if (newAppearence || someoneQuitting) {
                 Notify();
-//            } else if (now.anyFetchable() && !now.shouldFetch && lastTimeWeFetched) {
-//                NotifyRemovingObsoleteInfo();
             }
 
             Notifications.notifyOccurrences(occurrences);
@@ -95,8 +93,8 @@ public class LogInManagement {
                     entry.setValue(n - 1);
 
                     if (n < -parameters.repeatedOffToDisappear) {
-                        myLog.add("Forget it, too far: " + we.getName(), tag);
                         itOld.remove();
+                        Notify(); //to remove from the message bar (currently around...)
                     } else if (n == -we.getRepeatedOffRemoveFromNotification() && IsInNotification(we)) {
                         movingOutForNotification(we); //remove from notification
                     } else if (n == -parameters.repeatedOffToChatOff && Chat.IsInChat(we)) {

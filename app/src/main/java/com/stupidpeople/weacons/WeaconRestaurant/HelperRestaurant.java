@@ -8,6 +8,7 @@ import android.text.TextUtils;
 
 import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
 
@@ -142,9 +143,9 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
 
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
         String title = NotiSingleCompactTitle();
         String summary = LogInManagement.bottomMessage(mContext);
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
 
         //Bigtext style
         SpannableString msg = NotiSingleExpandedContent();
@@ -154,6 +155,9 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
         if (LogInManagement.othersActive()) textStyle.setSummaryText(summary);
 
         notif.setStyle(textStyle);
+
+        if (we.getFetchingPartialUrl() != null)
+            Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
 
         myLog.logNotification(title, String.valueOf(msg), summary,
                 String.valueOf(false), isInteresting, true);

@@ -11,7 +11,6 @@ import android.util.Log;
 
 import com.parse.ParseClassName;
 import com.parse.ParseException;
-import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.stupidpeople.weacons.WeaconAirport.HelperAiport2;
@@ -171,14 +170,17 @@ public class WeaconParse extends ParseObject {
     public Bitmap getLogo() {
         Bitmap bm = null;
         try {
-            ParseFile parseFile = getParseFile("Logo");
-            byte[] bitmapdata = new byte[0];
-            bitmapdata = parseFile.getData();
+            byte[] bitmapdata = getParseFile("Logo").getData();
             bm = BitmapFactory.decodeByteArray(bitmapdata, 0, bitmapdata.length);
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return bm;
+    }
+
+
+    public String getLogoFileName() {
+        return getParseFile("Logo").getName();
     }
 
     public Bitmap getLogoRounded() {

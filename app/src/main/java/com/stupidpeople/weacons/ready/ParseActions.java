@@ -86,7 +86,7 @@ public abstract class ParseActions {
                     callBackWeacons.OnReceive(weaconHashSet);
 
                 } else {
-                    myLog.add("EEE en Chechkspotmarches:" + e, tag);
+                    myLog.add("EEE en Chechkspotmarches:" + e.getLocalizedMessage(), tag);
                 }
             }
         });
@@ -130,7 +130,7 @@ public abstract class ParseActions {
                                             @Override
                                             public void done(ParseException e) {
                                                 if (e == null) {
-                                                    myLog.add("Wecaons pinned ok", tag);
+                                                    myLog.add("Wecaons pinned ok", "aut");
                                                     Toast.makeText(context, "Weacons Loaded", Toast.LENGTH_SHORT).show();
                                                 } else {
                                                     myLog.add("---Error retrieving Weacons from web: " + e.getMessage(), tag);
@@ -177,6 +177,7 @@ public abstract class ParseActions {
      * @param pos
      */
     public static void getSpotsForBusStops(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
+
         //Query Weacon
         ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
         queryWe.whereNear("GPS", pos)
@@ -187,31 +188,24 @@ public abstract class ParseActions {
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
         query.whereMatchesQuery("associated_place", queryWe)
                 .setLimit(1000)
+                .include("associated_place")
                 .findInBackground(new FindCallback<WifiSpot>() {
                     @Override
                     public void done(List<WifiSpot> list, ParseException e) {
                         if (e == null) {
                             myLog.add("****el numero de wifispots recogideos es: " + list.size(), "aut");
-                            pinSpotsInLocal(list);
+                            try {
+                                ParseObject.unpinAll(parameters.pinWeacons);
+                                ParseObject.pinAll(parameters.pinWeacons, list);
+                            } catch (ParseException e1) {
+                                myLog.error(e);
+                            }
                             if (mtc != null) mtc.OneTaskCompleted();
                         } else {
                             myLog.error(e);
                         }
                     }
                 });
-    }
-
-    private static void pinSpotsInLocal(List<WifiSpot> spots) {
-        ParseObject.pinAllInBackground(parameters.pinWeacons, spots, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    myLog.add("Wecaons pinned ok", tag);
-                } else {
-                    myLog.add("---Error retrieving Weacons from web: " + e.getMessage(), tag);
-                }
-            }
-        });//TODO si funciona quitar el callback
     }
 
     /**
@@ -265,35 +259,35 @@ public abstract class ParseActions {
         ArrayList arr = new ArrayList();
 
         //To remove the Silence button:
-        LogInManagement.NotifyMultipleFetching(false, false);
+        LogInManagement.NotifyMultipleFetching(false, true);//interesting=true for starting the timer 30segs
 
         for (WeaconParse we : notifiedWeacons) {
             arr.add(we.getObjectId());
         }
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
-        query.whereContainedIn("WeaconId", arr);
-        query.fromPin("Favoritos");
-        query.findInBackground(new FindCallback<ParseObject>() {
-            @Override
-            public void done(List<ParseObject> list, ParseException e) {
-                if (e == null) {
-                    myLog.add("Recibidos favoritos para borrar:" + list.size(), "aut");
-                    ParseObject.unpinAllInBackground("Favoritos", list, new DeleteCallback() {
-                        @Override
-                        public void done(ParseException e) {
-                            if (e == null) {
-                                myLog.add("Borrads los elementso de favoritos", "aut");
-                            } else {
-                                myLog.add("No se han borrado los elementos de favo", "aut");
-                            }
+        query.whereContainedIn("WeaconId", arr)
+                .fromPin("Favoritos")
+                .findInBackground(new FindCallback<ParseObject>() {
+                    @Override
+                    public void done(List<ParseObject> list, ParseException e) {
+                        if (e == null) {
+                            myLog.add("Recibidos favoritos para borrar:" + list.size(), "aut");
+                            ParseObject.unpinAllInBackground("Favoritos", list, new DeleteCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    if (e == null) {
+                                        myLog.add("Borrads los elementso de favoritos", "aut");
+                                    } else {
+                                        myLog.add("No se han borrado los elementos de favo", "aut");
+                                    }
+                                }
+                            });
+                        } else {
+                            myLog.error(e);
                         }
-                    });
-                } else {
-                    myLog.error(e);
-                }
-            }
-        });
+                    }
+                });
 
     }
 
@@ -395,6 +389,7 @@ public abstract class ParseActions {
                 } else {
                     myLog.error(e);
                 }
+
             }
         });
     }
@@ -405,30 +400,31 @@ public abstract class ParseActions {
      */
 
     public static void DownloadWeaconsIfNeded(Context ctx) {
+        myLog.add("VEamos si se necesita bajar weacons:", "OJO");
         //AskLocation
         new LocationAsker(ctx, new LocationCallback() {
             @Override
             public void LocationReceived(final GPSCoordinates gps) {
                 final ParseGeoPoint point = gps.getGeoPoint();
-
+                myLog.add("Hemos recibido la localizacion, gracias", "OJO");
                 final booleanCallback newInAreaCB = new booleanCallback() {
                     @Override
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are new SPOTS in the zone , gonna update", "aut");
+                            myLog.add("***There are new SPOTS in the zone , gonna update", "OJO");
                             getSpotsForBusStops(point, null);
                         } else {
-                            myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "aut");
+                            myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "OJO");
                         }
                     }
                 };
-                booleanCallback bcb = new booleanCallback() {
+                booleanCallback anyUpdatedCallback = new booleanCallback() {
                     @Override
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are newer in the zone (updatedAt), gonna update", "aut");
+                            myLog.add("***There are newer in the zone (updatedAt), gonna update", "OJO");
                             getSpotsForBusStops(point, null);
                         } else {
                             //Check if we moved
@@ -437,7 +433,7 @@ public abstract class ParseActions {
                     }
                 };
 
-                anyUpdated(point, bcb);
+                anyUpdated(point, anyUpdatedCallback);
             }
 
             @Override
@@ -468,7 +464,7 @@ public abstract class ParseActions {
                         @Override
                         public void done(int i, ParseException e) {
                             myLog.add("[SPOTs]En 1km hay:" + nLocal + "(local) y " + i + "(web)", "aut");
-                            bcb.OnResult(nLocal == i);
+                            bcb.OnResult(nLocal != i);
                         }
                     });
         } catch (ParseException e) {
@@ -499,13 +495,25 @@ public abstract class ParseActions {
                     .getFirstInBackground(new GetCallback<WifiSpot>() {
                         @Override
                         public void done(WifiSpot wifiSpot, ParseException e) {
-                            Date dateWeb = wifiSpot.getUpdatedAt();
-                            myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "aut");
-                            bcb.OnResult(dateWeb.after(wiLocal.getUpdatedAt()));
+                            if (e != null) {
+                                myLog.add("tenemos un error al recibir los de la web en la zona:" + e, "OJO");
+                            } else {
+                                if (wifiSpot == null) {
+                                    myLog.add("wifispoit de la web es null", "OJO");
+
+                                } else {
+                                    Date dateWeb = wifiSpot.getUpdatedAt();
+                                    myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "OJO");
+                                    myLog.add("obWeb=" + wifiSpot.getObjectId() + " OBLocal=" + wiLocal.getObjectId(), "OJO");
+                                    myLog.add("obWeb=" + wifiSpot + " OBLocal=" + wiLocal, "OJO");
+                                    bcb.OnResult(dateWeb.after(wiLocal.getUpdatedAt()));
+                                }
+                            }
+
                         }
                     });
         } catch (ParseException e) {
-            e.printStackTrace();
+            myLog.error(e);
         }
     }
 

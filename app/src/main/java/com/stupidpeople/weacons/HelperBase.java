@@ -85,9 +85,7 @@ public abstract class HelperBase {
                 .setTicker("Weacon detected\n" + we.getName());
 
         if (sound) Notifications.addSound(notif);
-        if (silenceButton) {
-            Notifications.addSilenceButton(notif);
-        }
+        if (silenceButton) Notifications.addSilenceButton(notif);
 
         return notif;
     }

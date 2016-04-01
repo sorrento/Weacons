@@ -9,6 +9,7 @@ import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
+import com.stupidpeople.weacons.WeaconBus.Barcelona.BusBarcelona;
 import com.stupidpeople.weacons.WeaconBus.Madrid.BusMadrid;
 import com.stupidpeople.weacons.WeaconBus.SantCugat.BusStCugat;
 import com.stupidpeople.weacons.WeaconBus.Santiago.BusLineSantiago;
@@ -18,31 +19,73 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Connection;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import util.myLog;
-import util.parameters;
 
 /**
  * Created by Milenko on 18/03/2016.
  */
 public class HelperBus extends HelperBaseFecthNotif {
 
+    city mCity;
+
     public HelperBus(WeaconParse we, Context ctx) {
         super(we, ctx);
+        this.mCity = determineCity(we);
+    }
+
+    private city determineCity(WeaconParse we) {
+        //TODO esto debe venir de BBDD, no del nombre del logo....
+        city res = null;
+        String fileName = we.getLogoFileName();
+
+        switch (fileName) {
+            case "tfss-85aa0c47-517e-4312-9eed-884796b51ced-logo_bus.jpg":
+                res = city.SANT_CUGAT;
+                break;
+            case "tfss-2fc23731-3306-4908-b049-3ffe0a3601a3-logoBCN2.jpg":
+                res = city.BARCELONA;
+                break;
+            case "tfss-575fd5ef-9e37-4150-8a16-43fc6a1cc69b-logoMadrid2.jpg":
+                res = city.MADRID;
+                break;
+            case "tfss-c074f51b-0696-436a-b8a5-1e0d4c0222b3-Logo%20Transantiago_red.jpg":
+                res = city.SANTIAGO;
+                break;
+            default:
+                myLog.add("NO se identifica la cirdad del bus:" + we.getName(), "WARN");
+        }
+
+
+        return res;
     }
 
     @Override
     protected ArrayList processResponse(Connection.Response response) {
         ArrayList arr = new ArrayList();
+        String bo = response.body();
 
-        if (we.near(parameters.stCugat, 20)) arr = processStCugat(response.body());
-        else if (we.near(parameters.santiago, 20)) arr = processSantiago(response.body());
-        else if (we.near(parameters.madrid, 30)) arr = processMadrid(response.body());
-        else if (we.near(parameters.barcelona, 20))
-            arr = processBarcelona(response.body());//TODO separar por ciudad, usar quizas la url para difenreciar la ciudad
+        switch (mCity) {
+            case SANT_CUGAT:
+                arr = processStCugat(bo);
+                break;
+            case BARCELONA:
+                arr = processBarcelona(response);//it's html, not JSON
+                break;
+            case MADRID:
+                arr = processMadrid(bo);
+                break;
+            case SANTIAGO:
+                arr = processSantiago(bo);
+            default:
+                myLog.add("No podemos procesar respuesta porqeu no sé que ciudad es", "WARN");
+        }
         return arr;
     }
 
@@ -71,7 +114,6 @@ public class HelperBus extends HelperBaseFecthNotif {
         }
         return s;
     }
-
 
     @Override
     public SpannableString NotiSingleExpandedContent() {
@@ -141,10 +183,13 @@ public class HelperBus extends HelperBaseFecthNotif {
 
         int del = 0;
 
-        if (we.fetchedElements == null || we.fetchedElements.size() == 0)
-            return "No lines available";
+        if (we.fetchedElements == null)
+            substring = mContext.getString(R.string.press_refresh);
 
-        if (we.fetchedElements.size() > 0) {
+        else if (we.fetchedElements.size() == 0)
+            substring = mContext.getString(R.string.no_lines_available);
+
+        else if (we.fetchedElements.size() > 0) {
             StringBuilder sb = new StringBuilder();
 
             for (Object o : we.fetchedElements) {
@@ -170,12 +215,6 @@ public class HelperBus extends HelperBaseFecthNotif {
         return summarizeAllLines(false);
     }
 
-    /**
-     * Array with strings that summarizes each line: L1: 12 min, 18 min, 35 min
-     * ideal for single notification (inbox format)
-     *
-     * @return
-     */
     public ArrayList<SpannableString> summarizeByOneLine() {
         ArrayList<SpannableString> arr = new ArrayList<>();
 
@@ -203,7 +242,12 @@ public class HelperBus extends HelperBaseFecthNotif {
         return arr;
     }
 
-    //Specific cities
+    /**
+     * Array with strings that summarizes each line: L1: 12 min, 18 min, 35 min
+     * ideal for single notification (inbox format)
+     *
+     * @return
+     */
 
     private ArrayList processStCugat(String response) {
         BusStopSituation situation = new BusStopSituation();
@@ -221,6 +265,10 @@ public class HelperBus extends HelperBaseFecthNotif {
 
         return situation.getBusLines();
     }
+
+    /**
+     * Specific cities
+     */
 
     private ArrayList processMadrid(String response) {
         BusStopSituation busStopSituation = new BusStopSituation();
@@ -269,11 +317,29 @@ public class HelperBus extends HelperBaseFecthNotif {
         return arr;
     }
 
-    private ArrayList processBarcelona(String response) {
-        return null;//TODO Barcelona bus
+    private ArrayList processBarcelona(Connection.Response response) {
+        BusStopSituation bst = null;
+
+        try {
+            Document doc = response.parse();
+
+            Elements xmlBuses = doc.select("div[id=linia_amb");
+            bst = new BusStopSituation();
+
+            for (Element xmlBus : xmlBuses) {
+                BusBarcelona bus = new BusBarcelona(xmlBus);
+                bst.add(bus);
+            }
+
+        } catch (Exception e) {
+            myLog.error(e);
+        }
+        return bst.getBusLines();
     }
 
-    //** Reorganize the times for buses, gathering by line
+    enum city {SANT_CUGAT, BARCELONA, MADRID, SANTIAGO}
+
+    // Reorganize the times for buses, gathering by line
     private class BusStopSituation {
         private HashMap<String, BusLine> tableLines = new HashMap<>();
 
@@ -299,4 +365,5 @@ public class HelperBus extends HelperBaseFecthNotif {
             return arr;
         }
     }
+
 }

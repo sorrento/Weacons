@@ -77,6 +77,7 @@ public class Notifications {
                     }, 30000, 550000);
 
                 }
+
                 isShowingNotification = true;
                 if (notificables.size() == 1) {
                     sendOneWeacon(notificables.get(0), anyInterestingAppearing);
@@ -183,7 +184,7 @@ public class Notifications {
         notif.addAction(actionSilence);
     }
 
-    static void addRefreshButton(NotificationCompat.Builder notif) {
+    public static void addRefreshButton(NotificationCompat.Builder notif) {
         Intent refreshIntent = new Intent(parameters.refreshIntentName);
         PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, mContext.getString(R.string.refresh_button), resultPendingIntentRefresh);

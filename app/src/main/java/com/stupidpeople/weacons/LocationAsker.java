@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import util.myLog;
@@ -15,7 +16,8 @@ import util.myLog;
 /**
  * Created by Milenko on 25/09/2015.
  */
-public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     LocationCallback mLocationCallback;
     String tag = "LocAsk";
@@ -26,6 +28,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
     private LocationManager locationManager;
     private LocationListener locationListener;
     private double mPrecision;
+    private LocationRequest mLocationRequest;
 
     public LocationAsker(Context ctx, final LocationCallback locationCallback) {
         mContext = ctx;
@@ -106,13 +109,26 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
 
         if (mLastLocation == null) {
             myLog.add("Last location is null", tag);
-            //mGoogleApiClient.disconnect(); no se ha desnocetado el servicio
+            // Create the LocationRequest object
+            mLocationRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                    .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
         } else {
-            GPSCoordinates gps = new GPSCoordinates(mLastLocation);
-            myLog.add("Last location is: " + gps, tag);
-            mGoogleApiClient.disconnect();
-            mLocationCallback.LocationReceived(gps);
+            myLog.add("Localizacion recibida a la primera", tag);
+            LocationReceivedOk(mLastLocation);
         }
+    }
+
+    private void LocationReceivedOk(Location mLastLocation) {
+        GPSCoordinates gps = new GPSCoordinates(mLastLocation);
+        myLog.add("Last location is: " + gps, tag);
+        mGoogleApiClient.disconnect();
+        mLocationCallback.LocationReceived(gps);
     }
 
     @Override
@@ -137,4 +153,14 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks, Googl
         myLog.add("Connection to google location was suspended", tag);
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+        myLog.add("Localización obtenida mediante solicitude de updates", tag);
+        if (location == null) {
+            myLog.add("Hemos recibido un update null", tag);
+        } else {
+            myLog.add("Tenemos la localización from updates:" + location, tag);
+            LocationReceivedOk(location);
+        }
+    }
 }

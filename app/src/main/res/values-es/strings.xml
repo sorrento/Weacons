@@ -16,4 +16,5 @@
     <string name="go_closer">\nPor favor acérquese a la parada</string>
     <string name="updating_data">\nActualizando los datos...</string>
     <string name="refreshing_notif">Actualizando la notificación...</string>
+    <string name="no_lines_available">No hay líneas disponibles</string>
 </resources>
