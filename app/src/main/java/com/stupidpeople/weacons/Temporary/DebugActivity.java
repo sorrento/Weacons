@@ -17,6 +17,7 @@ import com.parse.ParseUser;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
+import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiAsker;
@@ -27,6 +28,7 @@ import com.stupidpeople.weacons.ready.WifiObserverService;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
 import util.myLog;
@@ -54,8 +56,16 @@ public class DebugActivity extends AppCompatActivity {
         mContext = this;
 
         //PARSE
-        ParseUserLogIn(); //TODO where to put the login in parse, and the load of weacons?
+//        ParseUserLogIn(); //TODO where to put the login in parse, and the load of weacons?
 
+        startServiceIfNeeded();
+
+    }
+
+    private void startServiceIfNeeded() {
+        boolean isActive = WifiObserverService.serviceIsActive;
+        myLog.add("Is service active: " + isActive, tag);
+        if (!isActive) mContext.startService(new Intent(mContext, WifiObserverService.class));
     }
 
     @Override
@@ -137,9 +147,16 @@ public class DebugActivity extends AppCompatActivity {
                     //2. Check if the nearest weacon is inside 15 mts
                     String msg2;
                     if (distanceMts < 15) {
+                        //The notification is forced to show the recently acquired
+                        HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
+                        we.setInteresting(true);
+                        myHash.add(we);
+                        LogInManagement.setNewWeacons(myHash);
+
                         msg2 = getString(R.string.updating_data);
                         Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
                         SendWifis(we);
+
                     } else {
                         msg2 = getString(R.string.go_closer);
                         Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
@@ -156,7 +173,11 @@ public class DebugActivity extends AppCompatActivity {
         LocationCallback locationCallback = new LocationCallback() {
             @Override
             public void LocationReceived(GPSCoordinates gps) {
-                myLog.add("tenemos localización   pero sin accuracy" + gps, "aut");
+                myLog.add("tenemos localización   pero sin accuracy" + gps, tag);
+            }
+
+            @Override
+            public void NotPossibleToReachAccuracy() {
 
             }
 
@@ -183,7 +204,7 @@ public class DebugActivity extends AppCompatActivity {
         new WifiAsker(mContext, new askScanResults() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
-                Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
 
                 Collections.sort(sr, new srComparator());
                 myLog.add("****aftersort\n" + ListarSR(sr), tag);

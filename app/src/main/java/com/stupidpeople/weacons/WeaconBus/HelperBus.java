@@ -219,7 +219,7 @@ public class HelperBus extends HelperBaseFecthNotif {
         ArrayList<SpannableString> arr = new ArrayList<>();
 
         if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
-            arr.add(new SpannableString("No info for this stop by now."));
+            arr.add(new SpannableString(mContext.getString(R.string.no_info_stop_nybow)));
         } else {
 
             for (Object o : we.fetchedElements) {

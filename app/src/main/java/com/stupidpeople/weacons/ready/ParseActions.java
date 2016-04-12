@@ -18,6 +18,7 @@ import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
 import com.stupidpeople.weacons.booleanCallback;
@@ -164,6 +165,11 @@ public abstract class ParseActions {
             }
 
             @Override
+            public void NotPossibleToReachAccuracy() {
+
+            }
+
+            @Override
             public void LocationReceived(GPSCoordinates gps, double accuracy) {
 
             }
@@ -178,13 +184,13 @@ public abstract class ParseActions {
      */
     public static void getSpotsForBusStops(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
 
-        //Query Weacon
+        //Query Weacons
         ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
         queryWe.whereNear("GPS", pos)
                 .setLimit(300)
                 .whereEqualTo("Type", "bus_stop");
 
-        //Query Spots
+        //Query WifiSpots
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
         query.whereMatchesQuery("associated_place", queryWe)
                 .setLimit(1000)
@@ -195,7 +201,7 @@ public abstract class ParseActions {
                         if (e == null) {
                             myLog.add("****el numero de wifispots recogideos es: " + list.size(), "aut");
                             try {
-                                ParseObject.unpinAll(parameters.pinWeacons);
+//                                ParseObject.unpinAll(parameters.pinWeacons); TODO is it necesary to unpin?
                                 ParseObject.pinAll(parameters.pinWeacons, list);
                             } catch (ParseException e1) {
                                 myLog.error(e);
@@ -259,7 +265,7 @@ public abstract class ParseActions {
         ArrayList arr = new ArrayList();
 
         //To remove the Silence button:
-        LogInManagement.NotifyMultipleFetching(false, true);//interesting=true for starting the timer 30segs
+        LogInManagement.NotifyMultipleFetching(false, false);//interesting=true for starting the timer 30segs
 
         for (WeaconParse we : notifiedWeacons) {
             arr.add(we.getObjectId());
@@ -341,7 +347,7 @@ public abstract class ParseActions {
                             if (e == null) {
 
                                 myLog.add("subidos varios wifispots: " + WifiSpot.Listar(newOnes), tag);
-                                String text = "se ha subido la parada:" + weBusStop.getName();
+                                String text = ctx.getString(R.string.busstop_uploaded) + weBusStop.getName();
                                 myLog.add(text, "DBG");
                                 Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 
@@ -359,6 +365,7 @@ public abstract class ParseActions {
             }
         });
     }
+
 
     private static void SaveIntensities(List<ScanResult> sr, final WeaconParse weBusStop) {
         final ArrayList<ParseObject> intensities = new ArrayList<ParseObject>();
@@ -395,10 +402,9 @@ public abstract class ParseActions {
     }
 
     /**
-     * Check if there is some weacon newer in the area (respect to the last update) and if the nearest weacon
-     * is the same as the one on local
+     * Check if there is some newer weacons in the area (respect to the last pinning in local) and if the nearest weacon
+     * is the same as the one on local (to check if we are in new area)
      */
-
     public static void DownloadWeaconsIfNeded(Context ctx) {
         myLog.add("VEamos si se necesita bajar weacons:", "OJO");
         //AskLocation
@@ -406,7 +412,6 @@ public abstract class ParseActions {
             @Override
             public void LocationReceived(final GPSCoordinates gps) {
                 final ParseGeoPoint point = gps.getGeoPoint();
-                myLog.add("Hemos recibido la localizacion, gracias", "OJO");
                 final booleanCallback newInAreaCB = new booleanCallback() {
                     @Override
                     public void OnResult(boolean b) {
@@ -434,6 +439,11 @@ public abstract class ParseActions {
                 };
 
                 anyUpdated(point, anyUpdatedCallback);
+            }
+
+            @Override
+            public void NotPossibleToReachAccuracy() {
+
             }
 
             @Override
@@ -488,9 +498,16 @@ public abstract class ParseActions {
                     .orderByDescending("updatedAt");
             final WifiSpot wiLocal = query.getFirst();
 
-            // en web
+            // Web
+            //Query Weacons first
+            ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
+            queryWe.whereNear("GPS", point)
+                    .setLimit(300)
+                    .whereEqualTo("Type", "bus_stop");
+
             ParseQuery<WifiSpot> queryW = ParseQuery.getQuery(WifiSpot.class);
             queryW.whereWithinKilometers("GPS", point, 1)
+                    .whereMatchesQuery("associated_place", queryWe)
                     .orderByDescending("updatedAt")
                     .getFirstInBackground(new GetCallback<WifiSpot>() {
                         @Override

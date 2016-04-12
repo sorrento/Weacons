@@ -5,6 +5,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -23,11 +24,9 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
     String tag = "LocAsk";
     Context mContext;
     GoogleApiClient mGoogleApiClient;
-
-
+    int iFail;
     private LocationManager locationManager;
     private LocationListener locationListener;
-    private double mPrecision;
     private LocationRequest mLocationRequest;
 
     public LocationAsker(Context ctx, final LocationCallback locationCallback) {
@@ -36,10 +35,10 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         buildGoogleApiClient();
     }
 
-    public LocationAsker(Context ctx, final LocationCallback locationCallback, final double accuracyNeeded) {
+    public LocationAsker(final Context ctx, final LocationCallback locationCallback, final double accuracyNeeded) {
         this(ctx, locationCallback);
 //        myLog.add("entrando en locationascker con precisio", "aut");
-
+        iFail = 0;
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 
         locationListener = new LocationListener() {
@@ -50,7 +49,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 //                if (location.hasSpeed()) return;
                 if (location.hasAccuracy()) {
                     double accuracy = location.getAccuracy();
-                    if (accuracy < accuracyNeeded) {
+                    if (accuracy <= accuracyNeeded) {
 
                         String s = "estamos a con precision mejor de 10 mtes " + accuracy;
                         myLog.add(s, tag);
@@ -59,9 +58,16 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 //                        mLocationCallback.LocationReceived(new GPSCoordinates(location), accuracy);
                         removerListener(location);
                     } else {
-                        String text = "estamos a con precision peor de 10 mtes " + accuracy;
+                        iFail++;
+                        String text = ctx.getString(R.string.location_precision) + accuracy;
                         myLog.add(text, tag);
-//                        Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
+                        if (iFail == 10) {
+                            text = ctx.getString(R.string.unable_gps_precision);
+                            myLog.add(text, tag);
+                            Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
+                            removerListener(null);
+                        }
                     }
                 }
             }
@@ -108,7 +114,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
         if (mLastLocation == null) {
-            myLog.add("Last location is null", tag);
+            myLog.add("Last location is null: gonna ask an update", tag);
             // Create the LocationRequest object
             mLocationRequest = LocationRequest.create()
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
@@ -143,7 +149,11 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         } catch (SecurityException e) {
             myLog.error(e);
         }
-        mLocationCallback.LocationReceived(new GPSCoordinates(location), location.getAccuracy());
+        if (location == null) {
+            mLocationCallback.NotPossibleToReachAccuracy();
+        } else {
+            mLocationCallback.LocationReceived(new GPSCoordinates(location), location.getAccuracy());
+        }
         mGoogleApiClient.disconnect();
     }
 

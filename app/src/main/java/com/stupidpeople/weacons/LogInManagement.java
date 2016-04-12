@@ -1,6 +1,7 @@
 package com.stupidpeople.weacons;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ public class LogInManagement {
     private static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
     private static boolean lastTimeWeFetched;
     private static boolean someoneQuitting = false;
-    private static boolean anyInterestinAppearing = false;
+    private static boolean anyInterestingAppearing = false;
 
 
     /**
@@ -63,11 +64,16 @@ public class LogInManagement {
                 Notify();
             }
 
-            Notifications.notifyOccurrences(occurrences);
+            if (isMilenkosPhone()) Notifications.notifyOccurrences(occurrences);
 
         } catch (Exception e) {
             myLog.add(Log.getStackTraceString(e), "err");
         }
+    }
+
+    private static boolean isMilenkosPhone() {
+        String model = Build.MODEL;
+        return model.equals("GT-I9505");//Samsung S4
     }
 
     /**
@@ -111,7 +117,7 @@ public class LogInManagement {
      * If present, just add 1
      */
     private static void checkAppearing() {
-        anyInterestinAppearing = false;
+        anyInterestingAppearing = false;
 
         Iterator<WeaconParse> it = lastWeaconsDetected.iterator();
         while (it.hasNext()) {
@@ -132,8 +138,8 @@ public class LogInManagement {
                 }
             } else {
                 //First time
-                if (!anyInterestinAppearing) {
-                    anyInterestinAppearing = ParseActions.isInteresting(we.getObjectId());
+                if (!anyInterestingAppearing) {
+                    anyInterestingAppearing = ParseActions.isInteresting(we.getObjectId());
                 }
                 movingInForNotification(we);
             }
@@ -183,16 +189,16 @@ public class LogInManagement {
 
     private static void Notify() {
         if (!now.anyFetchable()) {
-            Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, false, now.anyInteresting);
+            Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, false, now.anyInteresting);
             lastTimeWeFetched = false;
         } else {
             if (!now.anyInteresting) {
-                Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, now.anyInteresting);
+                Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, true, now.anyInteresting);
                 lastTimeWeFetched = false;
                 return;
             }
 
-            NotifyMultipleFetching(anyInterestinAppearing, now.anyInteresting);
+            NotifyMultipleFetching(anyInterestingAppearing, now.anyInteresting);
         }
     }
 

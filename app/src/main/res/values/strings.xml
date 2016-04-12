@@ -61,7 +61,7 @@
     <string name="press_refresh">Press REFRESH Button</string>
     <string name="bus_stop">BUS STOP. </string>
     <string name="weacons_around">" weacons around you"</string>
-    <string name="refresh_button" translatable="false">Refresh</string>
+    <string name="refresh_button">Refresh</string>
     <string name="silence">Silence</string>
     <string name="type_busstop">BUS STOP</string>
     <string name="currently_active">And other %1$d weacons active</string>
@@ -74,4 +74,8 @@
     <string name="go_closer">\nPlease go closer.</string>
     <string name="refreshing_notif">Refreshing notification...</string>
     <string name="no_lines_available">No lines available</string>
+    <string name="no_info_stop_nybow">No info for this stop by now.</string>
+    <string name="location_precision">"Location precision (mts): "</string>
+    <string name="unable_gps_precision">Unable to get enough GPS precision</string>
+    <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
 </resources>

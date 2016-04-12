@@ -23,7 +23,6 @@ import util.myLog;
 public class WeaconListActivity extends ActionBarActivity {
     private RecyclerView mRecyclerView;
     private WeaconAdapter adapter;
-//    private Intent intentWeb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +38,8 @@ public class WeaconListActivity extends ActionBarActivity {
             mRecyclerView.addItemDecoration(new DividerItemDecoration(getResources().getDrawable(R.drawable.abc_list_divider_mtrl_alpha)));
 
             //Fill the list with launched
-
+            //TODO if there is no data, refresh
+            //TODO implement refresh button here (tirando para abajo
             adapter = new WeaconAdapter(this, LogInManagement.getActiveWeacons());
             adapter.setOnClickListener(new View.OnClickListener() {
                 @Override

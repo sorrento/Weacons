@@ -1,12 +1,10 @@
 ---DONE
-	﻿- En parada Ventura Gassol aparace "not available". ¿realmente no había?.
-		- aparece en inglés
+
 	TEST -parece quecon muy poca batería corta el servicio
-			- cuando se conecta el cargador, verificamos si está el servicio
 		- Al silenciar, se queda la info por más de 30 segundos (se reinicia el timer pero no se asigna tarea, tal vez??
 		- versio no sale refresh (en single notif), pero creo que si lo escribe en el log
 
-	﻿- EEE this object is not available in offline: [solved, no se cargaban con include weacon
+	﻿-  EEE this object is not available in offline: [solved, no se cargaban con include weacon
 
 	- los pinnes de internos y los de internet tienen constantemente un delay
 		- poner el nombre del pin en el log
@@ -16,10 +14,7 @@
 	coninuar actualizando fectch de barcelona
 
 ---probar:
-
     - parada de Madrif
-    - que la permanencia del feching sea por tiempo, por ejemplo 30 segundos, no por scaneos arbitrairo
-    - que se refresquen al encender la pantalla si están obsoletos
     - si no tengo datos qué pasa
     - Carga de weacaons:
         - que lo hace en first run
@@ -37,8 +32,6 @@
 	- que desaparezca silenciar
 
 ---- BUGS
-    - Se apaga el servicio (boot) le he puesto sticky a ver si cambia
-        - será por error o simple kill? puede ser el optimizador de samsun
     - hay un problema de desconexion: al entrar en weaconslist, puede que no encuentra nada en LogManamege ActiveWeacons
         -> quizas podría hacer lque esas variabeles estuvieran en Wifisrvice
 

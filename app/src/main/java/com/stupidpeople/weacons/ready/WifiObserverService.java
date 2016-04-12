@@ -24,6 +24,10 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.GeofencingRequest;
+import com.parse.LogInCallback;
+import com.parse.ParseAnonymousUtils;
+import com.parse.ParseException;
+import com.parse.ParseUser;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
@@ -94,6 +98,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             mContext.registerReceiver(refreshReceiver, filter);
 
 
+            LogInParse();
+
             //Load weacons if first time
             prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
             myLog.add("Is first time rumning" + prefs.getBoolean("firstrunService", true), "aut");
@@ -137,8 +143,22 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         return START_STICKY;
     }
 
+    private void LogInParse() {
+        ParseAnonymousUtils.logIn(new LogInCallback() {
+            @Override
+            public void done(ParseUser parseUser, ParseException e) {
+                if (e == null) {
+                    myLog.add("Looged as anonimous", tag);
+                } else {
+                    myLog.add("NOTLooged as anonimous", tag);
+                }
+            }
+        });
+    }
+
     @Override
     public void onDestroy() {
+        super.onDestroy();
         myLog.add("Destroying ", tag);
 
         try {
@@ -147,7 +167,6 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             mContext.unregisterReceiver(receiverWifi);
             mContext.unregisterReceiver(refreshReceiver);
             serviceIsActive = false;
-            super.onDestroy();
         } catch (Exception e) {
             Toast.makeText(mContext, "Not possible to turn off detection", Toast.LENGTH_LONG).show();
             myLog.add("error destroying: " + e.getLocalizedMessage(), tag);
@@ -159,6 +178,38 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
         return builder.build();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        myLog.add("****On trim level" + level, "OJO");
+//        ActivityManager.getMyMemoryState( ActivityManager.RunningAppProcessInfo ll);
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
+        myLog.add("***ON rebind", "OJO");
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+        myLog.add("***on task removed", "OJO");
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        myLog.add("***on unbind", "OJO");
+        return super.onUnbind(intent);
+    }
+
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        myLog.add("**********On Low Memory", "OJO");
     }
 
     private PendingIntent getGeofencePendingIntent() {

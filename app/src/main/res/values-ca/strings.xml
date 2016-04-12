@@ -1,4 +1,24 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Weacons</string>
+ <string name='app_name'>Weacons</string>
+ <string name='press_refresh'>Premeu el botó ACTUALITZAR</string>
+ <string name='bus_stop'>PARADA D\'AUTOBÚS.</string>
+ <string name='weacons_around'>" weacons al teu voltant"</string>
+ <string name='silence'>Silenci</string>
+ <string name='type_busstop'>PARADA D\'AUTOBÚS.</string>
+ <string name='currently_active'>I altres 1%$d weacons actius</string>
+ <string name='and_others'>" i altres."</string>
+ <string name='press_refresh_bus_long'>Si us plau, feu clic ACTUALITZAR per tenir informació actualitzada sobre els temps d\'arribada estimats d\'autobusos en aquesta parada.</string>
+ <string name='currently_active_one'>I un altre weacon encara actiu</string>
+ <string name='looking_for_busstop'>Buscant parada d\'autobús prop d\'aquí...</string>
+ <string name='distance_bus_stop'>La parada d\'autobús més propera és a %1$s\nd = %2$d mts.</string>
+ <string name='updating_data'>\nActualitzant les dades...</string>
+ <string name='go_closer'>\nSi us plau, ves més a prop.</string>
+ <string name='refreshing_notif'>Refrescant notificació...</string>
+ <string name='no_lines_available'>No hi ha línies disponibles</string>
+ <string name='no_info_stop_nybow'>No hi ha informació sobre aquesta parada per ara.</string>
+ <string name="refresh_button">ACTUALITZAR</string>
+ <string name="location_precision">"Precisió de la ubicació (mts): "</string>
+ <string name="unable_gps_precision">No es pot obtenir la precisió del GPS</string>
+ <string name="busstop_uploaded">"S\'ha pujat la parada: "</string>
 </resources>

@@ -525,9 +525,13 @@ public class WeaconParse extends ParseObject {
         return this.isInteresting;
     }
 
+    public void setInteresting(boolean b) {
+        this.isInteresting = b;
+        ParseActions.AddToInteresting(this);
+    }
+
     public String getParadaId() {
         return getString("paradaId");
     }
-
 }
 

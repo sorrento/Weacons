@@ -35,9 +35,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-
                 android:text="Detect"
-                android:textSize="9dp" />
+                android:textSize="9dp"
+                android:visibility="invisible" />
 
             <Button
                 android:layout_width="wrap_content"

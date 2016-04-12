@@ -17,4 +17,8 @@
     <string name="updating_data">\nActualizando los datos...</string>
     <string name="refreshing_notif">Actualizando la notificación...</string>
     <string name="no_lines_available">No hay líneas disponibles</string>
+    <string name="no_info_stop_nybow">No hay datos ahora mismo.</string>
+    <string name="location_precision">"Precisión de la ubicación (mts): "</string>
+    <string name="unable_gps_precision">No se puede obtener la precisión del GPS</string>
+    <string name="busstop_uploaded">"Se ha subido la parada: "</string>
 </resources>

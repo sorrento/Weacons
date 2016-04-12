@@ -23,10 +23,14 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".BatteryStatusReceiver">
+
+        <receiver android:name=".ServiceRevival">
             <intent-filter>
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
+                <action android:name="android.intent.action.BATTERY_LOW" />
+                <action android:name="android.intent.action.AIRPLANE_MODE"></action>
             </intent-filter>
+
         </receiver>
 
         <activity android:name=".Temporary.DebugActivity">
