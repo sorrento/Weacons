@@ -37,10 +37,14 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 
     public LocationAsker(final Context ctx, final LocationCallback locationCallback, final double accuracyNeeded) {
         this(ctx, locationCallback);
-//        myLog.add("entrando en locationascker con precisio", "aut");
         iFail = 0;
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(ctx, R.string.turn_on_gps, Toast.LENGTH_SHORT).show();
+            return;
+
+        }
         locationListener = new LocationListener() {
 
             @Override
@@ -51,11 +55,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
                     double accuracy = location.getAccuracy();
                     if (accuracy <= accuracyNeeded) {
 
-                        String s = "estamos a con precision mejor de 10 mtes " + accuracy;
-                        myLog.add(s, tag);
-
-//                        Toast.makeText(mContext, s, Toast.LENGTH_SHORT).show();
-//                        mLocationCallback.LocationReceived(new GPSCoordinates(location), accuracy);
+                        myLog.add("estamos a con precision mejor de 10 mtes " + accuracy, tag);
                         removerListener(location);
                     } else {
                         iFail++;

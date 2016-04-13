@@ -22,6 +22,7 @@ import com.stupidpeople.weacons.ready.ParseActions;
 import org.jsoup.Connection;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,12 +38,13 @@ import util.stringUtils;
  */
 @ParseClassName("Weacon")
 public class WeaconParse extends ParseObject {
-    static boolean forceFetching = false;
     public ArrayList fetchedElements;
     public boolean obsolete = false;
     private HelperBase mHelper;
     private String[] cards;
     private boolean isInteresting;
+    private boolean inHome;
+    private Date timeFirstApperaringInThisRow;
 
     public WeaconParse() {
     }
@@ -108,9 +110,6 @@ public class WeaconParse extends ParseObject {
         }
     }
 
-    public static void ForceFetchingNextTime(ArrayList<WeaconParse> weaconsToNotify) {
-        forceFetching = true;
-    }
 
     public String getDescription() {
         String message = getString("Description");
@@ -228,6 +227,7 @@ public class WeaconParse extends ParseObject {
                     break;
                 case bus_station:
                     mHelper = new HelperBus(this, ctx);
+                    inHome = ParseActions.IsHome(this);
                     break;
                 //            case cafe:
                 //                break;
@@ -465,12 +465,11 @@ public class WeaconParse extends ParseObject {
         return mHelper.getActivityClass();
     }
 
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
-        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, isInteresting);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
+        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, refreshButton);
     }
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
-        forceFetching = false;
         obsolete = false;
 
         fetchingResults elementsListener = new fetchingResults() {
@@ -532,6 +531,30 @@ public class WeaconParse extends ParseObject {
 
     public String getParadaId() {
         return getString("paradaId");
+    }
+
+    /**
+     * Indicates if this weacon is detectable from a place where the person spends more tha half a
+     * an hour
+     *
+     * @return
+     */
+    public boolean inHome() {
+        return inHome;
+    }
+
+    public Date getTimeFirstApperaringInThisRow() {
+        return timeFirstApperaringInThisRow;
+    }
+
+    public void setTimeFirstApperaringInThisRow(Date timeFirstApperaringInThisRow) {
+        this.timeFirstApperaringInThisRow = timeFirstApperaringInThisRow;
+    }
+
+    public void setInHome(boolean inHome) {
+        myLog.add("Se ha considerado home este weacon:" + getName(), "OJO");
+        ParseActions.setHome(this);
+        this.inHome = inHome;
     }
 }
 

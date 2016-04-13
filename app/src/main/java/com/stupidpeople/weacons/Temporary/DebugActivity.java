@@ -33,8 +33,6 @@ import java.util.List;
 
 import util.myLog;
 
-import static com.stupidpeople.weacons.WeaconParse.ListarSR;
-
 public class DebugActivity extends AppCompatActivity {
 
     private Switch swDetection;
@@ -119,10 +117,14 @@ public class DebugActivity extends AppCompatActivity {
             //TODO eencript parse user & pass
             ParseUser.logInInBackground("sorrento2", "spidey", new LogInCallback() {
                 public void done(ParseUser user, ParseException e) {
-                    if (user != null) {
-                        myLog.add("Logged in", tag);
+                    if (e == null) {
+                        if (user != null) {
+                            myLog.add("Logged in", tag);
+                        } else {
+                            myLog.add("User is null (anonymous)", tag);
+                        }
                     } else {
-                        myLog.add("Not Logged in", tag);
+                        myLog.error(e);
                     }
                 }
             });
@@ -141,7 +143,7 @@ public class DebugActivity extends AppCompatActivity {
             public void done(WeaconParse we, ParseException e) {
                 if (e == null) {
                     int distanceMts = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
-
+                    we.build(mContext);
                     String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distanceMts);
 
                     //2. Check if the nearest weacon is inside 15 mts
@@ -204,10 +206,7 @@ public class DebugActivity extends AppCompatActivity {
         new WifiAsker(mContext, new askScanResults() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
-//                Toast.makeText(mContext, "Recibidos " + sr.size() + "wifis", Toast.LENGTH_SHORT).show();
-
                 Collections.sort(sr, new srComparator());
-                myLog.add("****aftersort\n" + ListarSR(sr), tag);
 
                 try {
                     MultiTaskCompleted assignTask = new MultiTaskCompleted() {

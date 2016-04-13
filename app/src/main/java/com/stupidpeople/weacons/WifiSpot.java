@@ -37,7 +37,7 @@ public class WifiSpot extends ParseObject {
         for (WifiSpot ws : newOnes) {
             sb.append(ws.summarizeWithWeacon() + "\n");
         }
-        return null;
+        return sb.toString();
     }
 
     //GETTERS

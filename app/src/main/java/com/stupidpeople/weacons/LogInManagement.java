@@ -10,6 +10,7 @@ import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -27,10 +28,10 @@ public class LogInManagement {
     private static final String tag = "LIM";
     public static HashSet<WeaconParse> lastWeaconsDetected;
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
-    // last appeareance
+    // last appearance
     //    public static boolean anyChange = false;  //if entering or quitting a weacon in the last scanning. We may have some persistence
     public static CurrentSituation now;
-    static boolean newAppearence = false;
+    static boolean newAppearance = false;
     private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     //    private static boolean sound;//should the notification be silent?
     private static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
@@ -47,7 +48,7 @@ public class LogInManagement {
 
         lastWeaconsDetected = weaconsDetected;
         someoneQuitting = false;
-        newAppearence = false;
+        newAppearance = false;
 
         try {
             //Check differences with last scanning and keep accumulation history
@@ -56,11 +57,12 @@ public class LogInManagement {
 
             now = new CurrentSituation(weaconsDetected, occurrences);
 
-            myLog.add("Entering:" + newAppearence + " | quitting: " + someoneQuitting + "\n anyfetchable?" + now.anyFetchable() +
-                    "\n should fetch?" + now.shouldFetch + "\n Last time fetched " + lastTimeWeFetched, "MHP");
+            myLog.add("Entering:" + newAppearance + " | quitting: " + someoneQuitting + "\n anyfetchable?" + now.anyFetchable() +
+                    "\n should fetch?" + now.shouldFetch + "\n Last time fetched " + lastTimeWeFetched
+                    + " anyhome" + now.anyHome, tag);
 
             //Notify or change notification
-            if (newAppearence || someoneQuitting) {
+            if (newAppearance || someoneQuitting) {
                 Notify();
             }
 
@@ -100,7 +102,7 @@ public class LogInManagement {
 
                     if (n < -parameters.repeatedOffToDisappear) {
                         itOld.remove();
-                        Notify(); //to remove from the message bar (currently around...)
+                        Notify(); //to remove from the message bar ("currently around...")
                     } else if (n == -we.getRepeatedOffRemoveFromNotification() && IsInNotification(we)) {
                         movingOutForNotification(we); //remove from notification
                     } else if (n == -parameters.repeatedOffToChatOff && Chat.IsInChat(we)) {
@@ -174,7 +176,7 @@ public class LogInManagement {
     private static void movingInForNotification(WeaconParse we) {
         occurrences.put(we, 1);
         myLog.add("Just entering in: " + we.getName(), tag);
-        newAppearence = true;
+        newAppearance = true;
 //        anyChange = true;//Just appeared this weacon
         weaconsToNotify.add(we);
     }
@@ -188,21 +190,28 @@ public class LogInManagement {
 
 
     private static void Notify() {
-        if (!now.anyFetchable()) {
-            Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, false, now.anyInteresting);
-            lastTimeWeFetched = false;
-        } else {
-            if (!now.anyInteresting) {
+        boolean sound = anyInterestingAppearing && !now.anyHome;
+        boolean automaticFetching = anyInterestingAppearing && !now.anyHome;
+        boolean silenceButton = now.anyInteresting;
+
+
+        if (now.anyFetchable()) {
+            if (automaticFetching) {
+                NotifyMultipleFetching(sound, now.anyInteresting);
+            } else { //simply notify
                 Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, true, now.anyInteresting);
                 lastTimeWeFetched = false;
-                return;
             }
 
-            NotifyMultipleFetching(anyInterestingAppearing, now.anyInteresting);
+        } else {
+            Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, false, now.anyInteresting);
+            lastTimeWeFetched = false;
+
         }
+
     }
 
-    public static void NotifyMultipleFetching(final boolean anyInterestinAppearing, final boolean anyInteresting) {
+    public static void NotifyMultipleFetching(final boolean sound, final boolean anyInteresting) {
         MultiTaskCompleted listener = new MultiTaskCompleted() {
             int i = 0;
 
@@ -215,7 +224,7 @@ public class LogInManagement {
                     myLog.add("a lazanr la notificaicno congunta", tag);
                     lastTimeWeFetched = true;
                     Notifications.obsolete = false;
-                    Notifications.showNotification(weaconsToNotify, anyInterestinAppearing, true, anyInteresting);
+                    Notifications.showNotification(weaconsToNotify, sound, true, anyInteresting);
                 }
             }
 
@@ -290,6 +299,7 @@ public class LogInManagement {
      * Created by Milenko on 04/03/2016.
      */
     public static class CurrentSituation {
+        public boolean anyHome;
         public int nFetchings;
         public boolean shouldFetch;
         public boolean anyInteresting;
@@ -301,12 +311,27 @@ public class LogInManagement {
 
             try {
                 for (WeaconParse we : weaconsDetected) {
+                    int repetitions = occurrences.get(we);
+
                     //Count
                     if (we.notificationRequiresFetching()) i++;
 
+                    //Check if at home
+                    if (repetitions == 1) {
+                        we.setTimeFirstApperaringInThisRow(new Date());
+                    } else if (repetitions > 15 && !we.inHome()) {
+                        long timeDiff = new Date().getTime() - we.getTimeFirstApperaringInThisRow().getTime();
+                        if (timeDiff > 30 * 60 * 1000) { //Half an hour
+                            we.setInHome(true); //TODO Cómo se deja de ser Home?
+                            anyHome = true;
+                        }
+                    }
+
+
                     // Should fetch
-                    if ((we.notificationRequiresFetching() && occurrences.get(we) < parameters.repetitionsTurnOffFetching) ||
-                            we.forceFetching) {/*avoid keep fetching if you live near a bus stop*/
+                    if ((we.notificationRequiresFetching() &&
+                            repetitions < parameters.repetitionsTurnOffFetching) && //
+                            !we.inHome()) {/*avoid keep fetching if you live near a bus stop*/
                         shouldFetch = true;
                     }
 
@@ -320,7 +345,7 @@ public class LogInManagement {
 
                 nFetchings = i;
                 if (interestingOnes.size() > 0)
-                    myLog.add("Inters: " + WeaconParse.Listar(interestingOnes), "NOTI");
+                    myLog.add("These are interesting: " + WeaconParse.Listar(interestingOnes), "NOTI");
             } catch (Exception e) {
                 myLog.error(e);
             }

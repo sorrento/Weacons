@@ -10,6 +10,7 @@ public class parameters {
     final public static int defaultThreshold = -100; //For weacon detection
 
     public static final String pinWeacons = "Weacons";
+    public static final String pinFavorites = "Favoritos";
     public static final String pinSapo = "SAPO2";
 
     public static final String COMPANY = "Company";
@@ -33,6 +34,7 @@ public class parameters {
 
     //SAPO
     final static int LogFileSize = 100; //in kilobytes, after that, new is started
+
     public static Integer hitRepetitions = 20; //number of HitSapo in SAPO for considering a SSID important
     public static int minTimeForUpdates = 60 * 1; //in mins
 

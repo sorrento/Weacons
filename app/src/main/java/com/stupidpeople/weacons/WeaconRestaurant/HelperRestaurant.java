@@ -142,10 +142,10 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean isInteresting) {
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
         String title = NotiSingleCompactTitle();
         String summary = LogInManagement.bottomMessage(mContext);
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, isInteresting);
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
         //Bigtext style
         SpannableString msg = NotiSingleExpandedContent();
@@ -160,7 +160,7 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
             Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
 
         myLog.logNotification(title, String.valueOf(msg), summary,
-                String.valueOf(false), isInteresting, true);
+                String.valueOf(false), refreshButton, true);
 
         notif.setContentIntent(resultPendingIntent);
 

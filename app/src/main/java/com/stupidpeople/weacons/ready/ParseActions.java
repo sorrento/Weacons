@@ -225,7 +225,7 @@ public abstract class ParseActions {
         for (final WeaconParse we : notifiedWeacons) {
             ParseObject fav = new ParseObject("Favorites");
             fav.put("WeaconId", we.getObjectId());
-            fav.pinInBackground("Favoritos", new SaveCallback() {
+            fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
                 @Override
                 public void done(ParseException e) {
                     if (e == null) {
@@ -250,7 +250,7 @@ public abstract class ParseActions {
 //            myLog.add("Checkado si " + objectId + "es interesante", "aut");
             ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
             query.whereEqualTo("WeaconId", objectId);
-            query.fromPin("Favoritos");
+            query.fromPin(parameters.pinFavorites);
             i = query.count();
 //            myLog.add("     La cuenta ha dado " + i, "aut");
         } catch (ParseException e) {
@@ -273,13 +273,13 @@ public abstract class ParseActions {
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
         query.whereContainedIn("WeaconId", arr)
-                .fromPin("Favoritos")
+                .fromPin(parameters.pinFavorites)
                 .findInBackground(new FindCallback<ParseObject>() {
                     @Override
                     public void done(List<ParseObject> list, ParseException e) {
                         if (e == null) {
                             myLog.add("Recibidos favoritos para borrar:" + list.size(), "aut");
-                            ParseObject.unpinAllInBackground("Favoritos", list, new DeleteCallback() {
+                            ParseObject.unpinAllInBackground(parameters.pinFavorites, list, new DeleteCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null) {
@@ -329,7 +329,7 @@ public abstract class ParseActions {
                 final ArrayList<WifiSpot> newOnes = new ArrayList<>();
 
                 if (e == null) {
-                    myLog.add("Detected: " + sr.size() + " alread created: " + list.size(), tag);
+                    myLog.add("Detected: " + sr.size() + " alread created:y " + list.size(), tag);
                     for (WifiSpot ws : list) {
                         spotsAlreadyCreated.add(ws.getBSSID());
                     }
@@ -534,4 +534,32 @@ public abstract class ParseActions {
         }
     }
 
+    public static void setHome(final WeaconParse we) {
+        ParseObject home = new ParseObject("Home");
+        home.put("WeaconId", we.getObjectId());
+        home.pinInBackground(parameters.pinFavorites, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("se ha pinneado el home" + we.getName(), tag);
+                } else {
+                    myLog.add("No se ha pinneaso el home " + we.getName() + e.getLocalizedMessage(), tag);
+                }
+            }
+        });
+    }
+
+    public static boolean IsHome(WeaconParse we) {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Home");
+        try {
+            List<ParseObject> found = query.whereEqualTo("WeaconId", we.getObjectId())
+                    .fromPin(parameters.pinFavorites)
+                    .find();
+            if (found != null && found.size() > 0) return true;
+        } catch (ParseException e) {
+            myLog.error(e);
+            return false;
+        }
+        return false;
+    }
 }

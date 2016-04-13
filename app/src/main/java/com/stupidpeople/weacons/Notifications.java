@@ -60,7 +60,7 @@ public class Notifications {
         mNotificationManager = (NotificationManager) act.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
-    public static void showNotification(ArrayList<WeaconParse> notificables, boolean anyInterestingAppearing,
+    public static void showNotification(ArrayList<WeaconParse> notificables, boolean sound,
                                         boolean anyFetchable, boolean anyInteresting) {
         try {
             t.cancel();
@@ -80,9 +80,9 @@ public class Notifications {
 
                 isShowingNotification = true;
                 if (notificables.size() == 1) {
-                    sendOneWeacon(notificables.get(0), anyInterestingAppearing);
+                    sendOneWeacon(notificables.get(0), sound);
                 } else {
-                    sendSeveralWeacons(notificables, anyInterestingAppearing, anyFetchable, anyInteresting);
+                    sendSeveralWeacons(notificables, sound, anyFetchable, anyInteresting);
                 }
             } else {
                 isShowingNotification = false;
@@ -121,13 +121,13 @@ public class Notifications {
     }
 
     private static void sendSeveralWeacons(ArrayList<WeaconParse> notificables,
-                                           boolean anyInterestingAppearing, boolean anyFetchable, boolean anyIntesting) {
+                                           boolean anyInterestingAppearing, boolean refreshButton, boolean silenceButton) {
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notif;
 
-        if (LogInManagement.newAppearence) Collections.reverse(notificables);
+        if (LogInManagement.newAppearance) Collections.reverse(notificables);
 
         String msg = Integer.toString(notificables.size()) + mContext.getString(R.string.weacons_around);
 
@@ -141,8 +141,8 @@ public class Notifications {
                 .setTicker(msg);
 
         if (anyInterestingAppearing) addSound(notif);
-        if (anyIntesting) addSilenceButton(notif);
-        if (anyFetchable) addRefreshButton(notif);
+        if (silenceButton) addSilenceButton(notif);
+        if (refreshButton) addRefreshButton(notif);
         String summary = LogInManagement.bottomMessage(mContext);
 
 
@@ -165,7 +165,7 @@ public class Notifications {
         notif.setContentIntent(pendingIntent);
 
         myLog.logNotification(msg, sb.toString(), summary,
-                String.valueOf(anyInterestingAppearing), anyIntesting, anyFetchable);
+                String.valueOf(anyInterestingAppearing), silenceButton, refreshButton);
 
         mNotificationManager.notify(mIdNoti, notif.build());
     }

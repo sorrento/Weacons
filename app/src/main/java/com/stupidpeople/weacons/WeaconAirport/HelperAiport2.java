@@ -31,11 +31,11 @@ public class HelperAiport2 extends HelperBase {
     }
 
     @Override
-    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean anyInteresting) {
+    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
 
         //TODO agregar que vata a cards acivitys al pinchar en la notif, que diferencie arrivals, y agregarle el extra que necesita
 
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, anyInteresting);
+        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
         NotificationCompat.Action DepartureAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Departures", resultPendingIntent);//TODO replace by planes and intents
         NotificationCompat.Action ArrivalAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Arrivals", resultPendingIntent);

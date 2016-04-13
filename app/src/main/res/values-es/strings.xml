@@ -21,4 +21,5 @@
     <string name="location_precision">"Precisión de la ubicación (mts): "</string>
     <string name="unable_gps_precision">No se puede obtener la precisión del GPS</string>
     <string name="busstop_uploaded">"Se ha subido la parada: "</string>
+    <string name="turn_on_gps">Por favor habilite el GPS</string>
 </resources>
