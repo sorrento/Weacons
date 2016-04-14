@@ -48,7 +48,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
                     .setBigContentTitle(title)
                     .bigText(msg);
             if (LogInManagement.othersActive())
-                textStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
+                textStyle.setSummaryText(Notifications.bottomMessage(mContext));
             notif.setStyle(textStyle);
 
             body = String.valueOf(msg);
@@ -59,7 +59,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         }
         notif.setContentIntent(resultPendingIntent);
 
-        myLog.logNotification(title, body, LogInManagement.bottomMessage(mContext), String.valueOf(sound), refreshButton, true);
+        myLog.logNotification(title, body, Notifications.bottomMessage(mContext), sound, refreshButton, true);
 
         return notif;
 

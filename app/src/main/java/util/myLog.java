@@ -20,6 +20,7 @@ public class myLog {
     private static String folder = "/WEACLOG/";
 
     public static void initialize() {
+        if (initialized) return;
         initialized = true;
         WriteUnhandledErrors();
         currentDateandTime = currentDate();
@@ -69,7 +70,7 @@ public class myLog {
         myLog.add(Log.getStackTraceString(e), "err");
     }
 
-    public static void logNotification(String title, String body, String summary, String sound, boolean silencBtn, boolean refreshBtn) {
+    public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {
         String btnSilence, btnRefresh;
         btnSilence = silencBtn ? "SILENCE" : "-";
         btnRefresh = refreshBtn ? "REFRESH" : "-";

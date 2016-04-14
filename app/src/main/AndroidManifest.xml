@@ -33,7 +33,7 @@
 
         </receiver>
 
-        <activity android:name=".Temporary.DebugActivity">
+        <activity android:name=".ListActivity.WeaconListActivityButton">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

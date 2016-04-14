@@ -17,7 +17,7 @@ import com.parse.SaveCallback;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
-import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
@@ -189,7 +189,7 @@ public abstract class ParseActions {
         queryWe.whereNear("GPS", pos)
                 .setLimit(300)
                 .whereEqualTo("Type", "bus_stop");
-
+        myLog.add("---For bringing spots, around" + pos, "OJO");
         //Query WifiSpots
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
         query.whereMatchesQuery("associated_place", queryWe)
@@ -202,6 +202,7 @@ public abstract class ParseActions {
                             myLog.add("****el numero de wifispots recogideos es: " + list.size(), "aut");
                             try {
 //                                ParseObject.unpinAll(parameters.pinWeacons); TODO is it necesary to unpin?
+                                myLog.add("---Estamos pinneando:\n" + Listar(list), "OJO");
                                 ParseObject.pinAll(parameters.pinWeacons, list);
                             } catch (ParseException e1) {
                                 myLog.error(e);
@@ -212,6 +213,14 @@ public abstract class ParseActions {
                         }
                     }
                 });
+    }
+
+    private static String Listar(List<WifiSpot> list) {
+        StringBuilder sb = new StringBuilder();
+        for (WifiSpot ws : list) {
+            sb.append("(" + ws.getSSID() + ", " + ws.getObjectId() + ") |");
+        }
+        return sb.toString();
     }
 
     /**
@@ -265,7 +274,8 @@ public abstract class ParseActions {
         ArrayList arr = new ArrayList();
 
         //To remove the Silence button:
-        LogInManagement.NotifyMultipleFetching(false, false);//interesting=true for starting the timer 30segs
+//        LogInManagement.NotifyFetching(false, false);//interesting=true for starting the timer 30segs
+        Notifications.RemoveSilenceButton2();
 
         for (WeaconParse we : notifiedWeacons) {
             arr.add(we.getObjectId());
@@ -504,7 +514,7 @@ public abstract class ParseActions {
             queryWe.whereNear("GPS", point)
                     .setLimit(300)
                     .whereEqualTo("Type", "bus_stop");
-
+            myLog.add("----For comparation, quering aaround         " + point, "OJO");
             ParseQuery<WifiSpot> queryW = ParseQuery.getQuery(WifiSpot.class);
             queryW.whereWithinKilometers("GPS", point, 1)
                     .whereMatchesQuery("associated_place", queryWe)

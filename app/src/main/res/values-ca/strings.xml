@@ -22,4 +22,5 @@
  <string name="unable_gps_precision">No es pot obtenir la precisió del GPS</string>
  <string name="busstop_uploaded">"S\'ha pujat la parada: "</string>
  <string name="turn_on_gps">Si us plau habiliti el GPS</string>
+ <string name="in_busstop">en parada d\'autobus</string>
 </resources>

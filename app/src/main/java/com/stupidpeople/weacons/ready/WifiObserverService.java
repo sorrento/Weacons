@@ -237,11 +237,13 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 myLog.add("+++Pressed:" + action, "aut");
 
                 if (action.equals(parameters.refreshIntentName)) {
-                    ParseActions.AddToInteresting(LogInManagement.getNotifiedWeacons());
-                    LogInManagement.refresh(context);
+                    if (!LogInManagement.now.anyInteresting)
+                        ParseActions.AddToInteresting(Notifications.getNotifiedWeacons());
+                    Notifications.mSilenceButton = true;
+                    Notifications.RefreshNotification2();
 
                 } else if (action.equals(parameters.silenceIntentName)) {
-                    ParseActions.removeInteresting(LogInManagement.getNotifiedWeacons());
+                    ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
 
                     //Delete notification
                 } else if (action.equals(parameters.deleteIntentName)) {
@@ -296,8 +298,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     myLog.add("Ha encendido la pantalla", "aut");
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
-                            LogInManagement.now.anyFetchable() && Notifications.areObsolete()) {
-                        Notifications.refreshNotifications();
+                            LogInManagement.now.anyFetchable()) {
+                        Notifications.RefreshNotification2();
                     }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);

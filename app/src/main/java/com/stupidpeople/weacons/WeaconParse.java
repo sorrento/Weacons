@@ -504,6 +504,7 @@ public class WeaconParse extends ParseObject {
      */
     protected void setObsolete(boolean b) {
         obsolete = b;
+        fetchedElements = new ArrayList();
     }
 
     // OTHER

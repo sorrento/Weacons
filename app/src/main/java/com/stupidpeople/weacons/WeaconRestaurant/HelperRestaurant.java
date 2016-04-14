@@ -144,7 +144,7 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
         String title = NotiSingleCompactTitle();
-        String summary = LogInManagement.bottomMessage(mContext);
+        String summary = Notifications.bottomMessage(mContext);
         NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
         //Bigtext style
@@ -159,8 +159,7 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
         if (we.getFetchingPartialUrl() != null)
             Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
 
-        myLog.logNotification(title, String.valueOf(msg), summary,
-                String.valueOf(false), refreshButton, true);
+        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, true);
 
         notif.setContentIntent(resultPendingIntent);
 

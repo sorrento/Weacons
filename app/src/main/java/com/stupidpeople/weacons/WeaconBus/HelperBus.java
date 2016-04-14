@@ -7,6 +7,7 @@ import android.text.TextUtils;
 
 import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconBus.Barcelona.BusBarcelona;
@@ -157,7 +158,7 @@ public class HelperBus extends HelperBaseFecthNotif {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
         if (LogInManagement.othersActive())
-            inboxStyle.setSummaryText(LogInManagement.bottomMessage(mContext));
+            inboxStyle.setSummaryText(Notifications.bottomMessage(mContext));
 
         StringBuilder sb = new StringBuilder();
         for (SpannableString s : summarizeByOneLine()) {

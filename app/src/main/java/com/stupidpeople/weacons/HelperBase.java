@@ -51,7 +51,7 @@ public abstract class HelperBase {
     protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound,
                                                                  Context mContext, boolean refreshButton) {
         String title = NotiSingleCompactTitle();
-        String summary = LogInManagement.bottomMessage(mContext);
+        String summary = Notifications.bottomMessage(mContext);
         NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
 
@@ -65,7 +65,7 @@ public abstract class HelperBase {
         notif.setStyle(textStyle);
 
 
-        myLog.logNotification(title, String.valueOf(msg), summary, String.valueOf(false), refreshButton, false);
+        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, false);
 
         notif.setContentIntent(resultPendingIntent);
 
