@@ -9,6 +9,11 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 /**
  * Created by Milenko on 14/03/2016.
  */
@@ -33,4 +38,54 @@ public class StringUtils {
     }
 
 
+    //STRINGS
+    public static String Listar(HashSet<WeaconParse> weacons) {
+        StringBuilder sb = new StringBuilder();
+        for (WeaconParse we : weacons) {
+            sb.append(we.getName() + " | ");
+        }
+        return sb.toString();
+    }
+
+    public static String Listar(HashMap<WeaconParse, Integer> hash) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<WeaconParse, Integer> entry : hash.entrySet()) {
+            sb.append(entry.getKey().getName() + ":" + entry.getValue() + " | ");
+        }
+        return sb.toString();
+    }
+
+    public static String Listar(ArrayList<WeaconParse> weacons) {
+        StringBuilder sb = new StringBuilder();
+        for (WeaconParse we : weacons) {
+            sb.append(we.getName() + " | ");
+        }
+        return sb.toString();
+    }
+
+    public static String Listar(HashMap<WeaconParse, Integer> hash, int i) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<WeaconParse, Integer> entry : hash.entrySet()) {
+            sb.append(shorten(entry.getKey().getName(), i) + ":" + entry.getValue() + " | ");
+        }
+        return sb.toString();
+    }
+
+    public static String shorten(String s, int m) {
+        return s.substring(0, Math.min(m, s.length()) - 1);
+    }
+
+    @NonNull
+    static String Notif2String(String cqTitle, String cqContent, String title, String body, String bottom) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("  " + "CQ" + "-------------------------------\n");
+        sb.append("  " + "  " + cqTitle + "\n");
+        sb.append("  " + "  " + cqContent + "\n");
+        sb.append("  " + "EX" + "-------------------------------\n");
+        sb.append("  " + "  " + title + "\n");
+        sb.append(body + "\n");
+        sb.append("  " + "  " + bottom + "\n");
+        return sb.toString();
+    }
 }

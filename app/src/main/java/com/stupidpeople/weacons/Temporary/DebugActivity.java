@@ -17,6 +17,7 @@ import com.parse.ParseUser;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
+import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
@@ -153,7 +154,10 @@ public class DebugActivity extends AppCompatActivity {
                         HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
                         we.setInteresting(true);
                         myHash.add(we);
-                        LogInManagement.setNewWeacons(myHash);
+
+                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
+                        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+                        LogInManagement.setNewWeacons(myHash, logBump);
 
                         msg2 = getString(R.string.updating_data);
                         Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();

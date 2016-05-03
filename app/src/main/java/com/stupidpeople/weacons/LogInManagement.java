@@ -1,6 +1,5 @@
 package com.stupidpeople.weacons;
 
-import android.os.Build;
 import android.util.Log;
 
 import com.stupidpeople.weacons.Advanced.Chat;
@@ -39,7 +38,7 @@ public class LogInManagement {
      * Informs the weacons detected, in order to send/update/remove  notification
      * and log in /out in the chat
      */
-    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected) {
+    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected, LogBump logBump) {
 
         lastWeaconsDetected = weaconsDetected;
         someoneQuitting = false;
@@ -47,31 +46,39 @@ public class LogInManagement {
 
         try {
             //Check differences with last scanning and keep accumulation history
-            checkDisappearing();
+            checkDisappearing(logBump);
             checkAppearing();
 
             now = new CurrentSituation(weaconsDetected, occurrences);
-            myLog.add(now.toString(), tag);
+
+            logBump.setOccurrences(occurrences);
+            logBump.setSituation(now);
 
             //Notify or change notification
-            if (someOneAppearing || someoneQuitting) Notify();
+            if (someOneAppearing || someoneQuitting) {
+                if (someOneAppearing) logBump.setReasonToNotify(LogBump.ReasonToNotify.APPEARING);
+                if (someoneQuitting)
+                    logBump.setReasonToNotify(LogBump.ReasonToNotify.DISSAPIRARING);
 
-            if (isMilenkosPhone()) Notifications.notifyOccurrences(occurrences);
+                Notify(logBump);
+            } else {
+                logBump.setReasonToNotify(LogBump.ReasonToNotify.NONE);
+                logBump.build();
+            }
+
+            if (parameters.isMilenkosPhone()) Notifications.notifyOccurrences(occurrences);
 
         } catch (Exception e) {
             myLog.add(Log.getStackTraceString(e), "err");
         }
     }
 
-    private static boolean isMilenkosPhone() {
-        String model = Build.MODEL;
-        return model.equals("GT-I9505");//Samsung S4
-    }
-
     /**
      * List of DISAPPEARING (NOT IN NEW). Modifies field occurrences
+     *
+     * @param logBump
      */
-    private static void checkDisappearing() {
+    private static void checkDisappearing(LogBump logBump) {
         Iterator<Map.Entry<WeaconParse, Integer>> itOld = occurrences.entrySet().iterator();
 
         while (itOld.hasNext()) {
@@ -84,7 +91,8 @@ public class LogInManagement {
                 // +++ -
                 if (n > 0) {
                     entry.setValue(-1);
-                    myLog.add("just leaving " + we.getName(), tag);
+                    logBump.addQuitting(entry.getKey().getName());
+//                    myLog.add("just leaving " + we.getName(), tag);
 
                     // --- -
                 } else {
@@ -92,7 +100,7 @@ public class LogInManagement {
 
                     if (n < -parameters.repeatedOffToDisappear) {
                         itOld.remove();
-                        Notify(); //to remove from the message bar ("currently around...")
+                        Notify(logBump); //to remove from the message bar ("currently around...")
                     } else if (n == -we.getRepeatedOffRemoveFromNotification() && IsInNotification(we)) {
                         movingOutForNotification(we); //remove from notification
                     } else if (n == -parameters.repeatedOffToChatOff && Chat.IsInChat(we)) {
@@ -178,15 +186,26 @@ public class LogInManagement {
     }
 
 
-    private static void Notify() {
+    private static void Notify(LogBump logBump) {
         boolean sound = anyInterestingAppearing && !now.anyHome;
         boolean automaticFetching = anyInterestingAppearing && !now.anyHome;
         boolean silenceButton = now.anyInteresting;
         boolean refreshButton = now.anyFetchable();
 
+        String r = anyInterestingAppearing ? "Alguno nuevo interesante." : "Ninguno nuevo interesante";
+        String s = now.anyHome ? "Alguno de estos es HOME" : "Ninguno es home";
+        String t = now.anyInteresting ? "Hay alguno interesante" : "No hay ninguno interesante";
+        String u = now.anyFetchable() ? "Hay alguno fetchable" : "No hay ninguno fetchable";
+
+
+        logBump.setSound(sound, r + " Y " + s);
+        logBump.setSilenceButton(silenceButton, t);
+        logBump.setRefreshButton(refreshButton, u);
+        logBump.setAutomaticFetching(automaticFetching, r + " Y " + s);
+
 
         Notifications.Notify2(weaconsToNotify, numberOfActiveNonNotified(), sound, automaticFetching,
-                refreshButton, silenceButton);
+                refreshButton, silenceButton, logBump);
 
 //
 //        if (now.anyFetchable()) {
@@ -365,7 +384,7 @@ public class LogInManagement {
 
                 nFetchings = i;
                 if (interestingOnes.size() > 0)
-                    myLog.add("These are interesting: " + WeaconParse.Listar(interestingOnes), "NOTI");
+                    myLog.add("These are interesting: " + StringUtils.Listar(interestingOnes), "NOTI");
             } catch (Exception e) {
                 myLog.error(e);
             }

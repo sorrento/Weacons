@@ -1,5 +1,7 @@
 package util;
 
+import android.os.Build;
+
 import com.parse.ParseGeoPoint;
 
 /**
@@ -11,6 +13,7 @@ public class parameters {
 
     public static final String pinWeacons = "Weacons";
     public static final String pinFavorites = "Favoritos";
+    public static final String pinParseLog = "Logs";
     public static final String pinSapo = "SAPO2";
 
     public static final String COMPANY = "Company";
@@ -61,6 +64,11 @@ public class parameters {
     public static String refreshIntentName = "REFRESH";
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
+
+    public static boolean isMilenkosPhone() {
+        String model = Build.MODEL;
+        return model.equals("GT-I9505");//Samsung S4
+    }
 
     public enum CardType {COMPANY, SCHEDULE, LINKEDIN, NEWS, FLIGHTS}
 

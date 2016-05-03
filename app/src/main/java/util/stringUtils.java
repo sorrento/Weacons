@@ -1,10 +1,11 @@
 package util;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+
+import com.stupidpeople.weacons.LogBump;
+import com.stupidpeople.weacons.StringUtils;
+
+import java.util.ArrayList;
 
 /**
  * Created by Milenko on 29/10/2015.
@@ -36,18 +37,29 @@ public class stringUtils {
         return sa;
     }
 
-    //TODO mover a utils images o similar
-    public static Bitmap drawableToBitmap(Drawable drawable) {
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable) drawable).getBitmap();
+    public static String ConcatenateComma(ArrayList<String> arr, int m) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < arr.size() - 1; i++) {
+            sb.append(StringUtils.shorten(arr.get(i), m) + ", ");
         }
 
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
+        sb.append(StringUtils.shorten(arr.get(arr.size() - 1), m));
 
-        return bitmap;
+        return sb.toString();
+    }
+
+    public static String ConcatenateComma(ArrayList<LogBump.ReasonToNotify> arr) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < arr.size() - 1; i++) {
+            sb.append(arr.get(i) + ", ");
+        }
+
+        sb.append(arr.get(arr.size() - 1));
+
+        return sb.toString();
+
     }
 }
 

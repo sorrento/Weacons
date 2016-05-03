@@ -24,14 +24,12 @@ import org.jsoup.Connection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import util.RoundImage;
+import util.imageUtils;
 import util.myLog;
 import util.parameters;
-import util.stringUtils;
 
 /**
  * Created by Milenko on 30/07/2015.
@@ -49,31 +47,6 @@ public class WeaconParse extends ParseObject {
     public WeaconParse() {
     }
 
-    //STRINGS
-    public static String Listar(HashSet<WeaconParse> weacons) {
-        StringBuilder sb = new StringBuilder();
-        for (WeaconParse we : weacons) {
-            sb.append(we.getName() + " | ");
-        }
-        return sb.toString();
-    }
-
-    public static String Listar(HashMap<WeaconParse, Integer> hash) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<WeaconParse, Integer> entry : hash.entrySet()) {
-            sb.append(entry.getKey().getName() + ":" + entry.getValue() + " | ");
-        }
-        return sb.toString();
-    }
-
-    public static String Listar(ArrayList<WeaconParse> weacons) {
-        StringBuilder sb = new StringBuilder();
-        for (WeaconParse we : weacons) {
-            sb.append(we.getName() + " | ");
-        }
-        return sb.toString();
-    }
-
     public static String Listar(List<WeaconParse> list) {
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we :
@@ -83,12 +56,9 @@ public class WeaconParse extends ParseObject {
         return sb.toString();
     }
 
-    public static void build(HashSet<WeaconParse> weaconHashSet, Context ctx) {
-        HashSet<WeaconParse> weaconHashSet2 = new HashSet<>();
+    public static void build(HashMap<WeaconParse, ArrayList<String>> weaconHash, Context ctx) {
         try {
-            for (WeaconParse we : weaconHashSet) {
-                we.build(ctx);
-            }
+            for (WeaconParse we : weaconHash.keySet()) we.build(ctx);
         } catch (Exception e) {
             myLog.error(e);
         }
@@ -184,7 +154,7 @@ public class WeaconParse extends ParseObject {
 
     public Bitmap getLogoRounded() {
         Bitmap bm = getLogo();
-        Bitmap logoRounded = stringUtils.drawableToBitmap(new RoundImage(bm));
+        Bitmap logoRounded = imageUtils.drawableToBitmap(new RoundImage(bm));
 
         return logoRounded;
     }
@@ -465,8 +435,8 @@ public class WeaconParse extends ParseObject {
         return mHelper.getActivityClass();
     }
 
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
-        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, refreshButton);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
+        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, refreshButton, logBump);
     }
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {

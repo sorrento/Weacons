@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
- <string name='app_name'>Weacons</string>
  <string name='press_refresh'>Premeu el botó ACTUALITZAR</string>
  <string name='bus_stop'>PARADA D\'AUTOBÚS.</string>
  <string name='weacons_around'>" weacons al teu voltant"</string>

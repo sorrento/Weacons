@@ -4,8 +4,6 @@ package com.stupidpeople.weacons.ready;
  * Created by Milenko on 03/03/2016.
  */
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -20,26 +18,30 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.GeofencingRequest;
+import com.parse.FindCallback;
 import com.parse.LogInCallback;
 import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
+import com.parse.SaveCallback;
+import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import util.myLog;
 import util.parameters;
 
-import static com.stupidpeople.weacons.WeaconParse.Listar;
 import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
 import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeded;
 
@@ -51,17 +53,11 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
     public static boolean serviceIsActive;
     String tag = "wos";
     int iScan = 0;
-    List mGeofenceList = new ArrayList();
-    long lat, lon, radInMts, milSecs;
-    String id;
     private Context mContext;
     private WifiManager wifiManager;
     private WifiReceiver receiverWifi;
-    private NotificationManager mNotificationManager;
     private RefreshReceiver refreshReceiver;
     private SharedPreferences prefs = null;
-    private PendingIntent mGeofencePendingIntent;
-    private GoogleApiClient mGoogleApiClient;
 
     @Nullable
     @Override
@@ -173,58 +169,27 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         }
     }
 
-    private GeofencingRequest getGeofencingRequest() {
-        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
-        builder.addGeofences(mGeofenceList);
-        return builder.build();
-    }
-
-    @Override
-    public void onTrimMemory(int level) {
-        super.onTrimMemory(level);
-        myLog.add("****On trim level" + level, "OJO");
-//        ActivityManager.getMyMemoryState( ActivityManager.RunningAppProcessInfo ll);
-    }
-
-    @Override
-    public void onRebind(Intent intent) {
-        super.onRebind(intent);
-        myLog.add("***ON rebind", "OJO");
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-        super.onTaskRemoved(rootIntent);
-        myLog.add("***on task removed", "OJO");
-    }
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        myLog.add("***on unbind", "OJO");
-        return super.onUnbind(intent);
-    }
-
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        myLog.add("**********On Low Memory", "OJO");
-    }
-
-    private PendingIntent getGeofencePendingIntent() {
-        // Reuse the PendingIntent if we already have it.
-        if (mGeofencePendingIntent != null) return mGeofencePendingIntent;
-
-        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
-        // calling addGeofences() and removeGeofences().
-        return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-    }
 
     @Override
     public void onResult(Status status) {
 
+    }
+
+    private String AggregateMessages(List<ParseObject> list) {
+        StringBuilder sb = new StringBuilder();
+
+        for (ParseObject po : list) {
+            sb.append(po.getString("msg"));
+        }
+        return sb.toString();
+    }
+
+    private HashSet<WeaconParse> createHashSet(Set<WeaconParse> weaconParses) {
+        HashSet<WeaconParse> res = new HashSet<>();
+
+        for (WeaconParse we : weaconParses) res.add(we);
+
+        return res;
     }
 
     private class RefreshReceiver extends BroadcastReceiver {
@@ -234,13 +199,15 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             try {
                 action = intent.getAction();
 
-                myLog.add("+++Pressed:" + action, "aut");
-
                 if (action.equals(parameters.refreshIntentName)) {
+
                     if (!LogInManagement.now.anyInteresting)
                         ParseActions.AddToInteresting(Notifications.getNotifiedWeacons());
                     Notifications.mSilenceButton = true;
-                    Notifications.RefreshNotification2();
+
+                    LogBump logBump = new LogBump(LogBump.LogType.BTN_REFRESH);
+                    logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+                    Notifications.RefreshNotification2(logBump);
 
                 } else if (action.equals(parameters.silenceIntentName)) {
                     ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
@@ -269,25 +236,56 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
                     if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
                         myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
+
+                        ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
+                        int res = query.fromPin(parameters.pinParseLog)
+                                .count();
+                        if (res > 30) {
+                            ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
+                            q.fromPin(parameters.pinParseLog)
+                                    .setLimit(300)
+                                    .findInBackground(new FindCallback<ParseObject>() {
+                                        @Override
+                                        public void done(final List<ParseObject> list, ParseException e) {
+                                            String aggregate = AggregateMessages(list);
+
+                                            ParseObject po = new ParseObject("log");
+                                            po.put("msg", aggregate);
+                                            po.put("type", "Notif");
+                                            po.saveInBackground(new SaveCallback() {
+                                                @Override
+                                                public void done(ParseException e) {
+                                                    try {
+                                                        ParseObject.unpinAll(parameters.pinParseLog, list);
+                                                    } catch (ParseException e1) {
+                                                        e1.printStackTrace();
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    });
+
+                        }
                     }
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
                     List<ScanResult> sr = wifiManager.getScanResults();
+
+                    final LogBump logBump = new LogBump(LogBump.LogType.READ);
+                    logBump.setSpots(sr);
 
                     iScan++;
                     if (iScan % 30 == 0) {
                         ParseActions.DownloadWeaconsIfNeded(mContext);
                     }
 
-
-                    myLog.add(Integer.toString(iScan) + "--------------------------------------------------------------", "MHP");
-                    myLog.add("\tSSIDS:" + sr.size() + "\n" + WeaconParse.ListarSR(sr), tag);
-
-                    CheckSpotMatches(sr, new CallBackWeacons() {
+                    CheckSpotMatches(sr, logBump, new CallBackWeacons() {
                         @Override
-                        public void OnReceive(HashSet<WeaconParse> weaconHashSet) {
-                            myLog.add(" " + Listar(weaconHashSet), "MHP");
-                            LogInManagement.setNewWeacons(weaconHashSet);
+                        public void OnReceive(HashMap<WeaconParse, ArrayList<String>> weaconHash) {
+                            logBump.setWeaconsHash(weaconHash);
+
+                            HashSet<WeaconParse> weaconHashSet = createHashSet(weaconHash.keySet());
+                            LogInManagement.setNewWeacons(weaconHashSet, logBump);
                         }
                     }, mContext);
 
@@ -299,7 +297,9 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
                             LogInManagement.now.anyFetchable()) {
-                        Notifications.RefreshNotification2();
+                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
+                        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+                        Notifications.RefreshNotification2(logBump);
                     }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);

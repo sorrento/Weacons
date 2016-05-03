@@ -9,13 +9,12 @@ import org.jsoup.Connection;
 
 import java.util.ArrayList;
 
-import util.myLog;
-
 /**
  * Created by Milenko on 18/03/2016.
  */
 public abstract class HelperBaseFecthNotif extends HelperBase {
     protected String sInbox;
+
 
     protected HelperBaseFecthNotif(WeaconParse we, Context ctx) {
         super(we, ctx);
@@ -34,33 +33,32 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
         NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
         Notifications.addRefreshButton(notif);
 
-        String title = NotiSingleCompactTitle();
-        String body;
+        mNotifTitle = NotiSingleCompactTitle();
 
         if (we.obsolete) {
             //Bigtext style
             SpannableString msg = NotiSingleExpandedContent();
             NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
-                    .setBigContentTitle(title)
+                    .setBigContentTitle(mNotifTitle)
                     .bigText(msg);
             if (LogInManagement.othersActive())
                 textStyle.setSummaryText(Notifications.bottomMessage(mContext));
             notif.setStyle(textStyle);
 
-            body = String.valueOf(msg);
+            mBody = String.valueOf(msg);
         } else {
             //InboxStyle
             notif.setStyle(getInboxStyle());
-            body = sInbox;
+            mBody = sInbox;
         }
         notif.setContentIntent(resultPendingIntent);
 
-        myLog.logNotification(title, body, Notifications.bottomMessage(mContext), sound, refreshButton, true);
-
+//        myLog.logNotification(title, body, Notifications.bottomMessage(mContext), sound, refreshButton, true);
+        logNotification(logBump);
         return notif;
 
     }

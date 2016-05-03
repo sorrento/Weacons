@@ -8,7 +8,6 @@ import android.text.SpannableString;
 
 import com.stupidpeople.weacons.ListActivity.WeaconListActivity;
 
-import util.myLog;
 import util.parameters;
 
 /**
@@ -17,6 +16,13 @@ import util.parameters;
 public abstract class HelperBase {
     protected final Context mContext;
     protected WeaconParse we;
+
+    protected String mNotifTitle;
+    protected String mNotifBottom;
+    protected SpannableString mNotifContent;
+    protected String mBody;
+    private String mNotifCQContent;
+    private String mNotifCQTitle;
 
     protected HelperBase(WeaconParse we, Context ctx) {
         mContext = ctx;
@@ -49,38 +55,52 @@ public abstract class HelperBase {
     }
 
     protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound,
-                                                                 Context mContext, boolean refreshButton) {
-        String title = NotiSingleCompactTitle();
-        String summary = Notifications.bottomMessage(mContext);
+                                                                 Context mContext, boolean refreshButton, LogBump logBump) {
+        mNotifTitle = NotiSingleCompactTitle();
+        mNotifBottom = Notifications.bottomMessage(mContext);
+
         NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
 
         //Bigtext style
-        SpannableString msg = NotiSingleExpandedContent();
+        mNotifContent = NotiSingleExpandedContent();
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
-                .setBigContentTitle(title)
-                .bigText(msg);
-        if (LogInManagement.othersActive()) textStyle.setSummaryText(summary);
+                .setBigContentTitle(mNotifTitle)
+                .bigText(mNotifContent);
+        if (LogInManagement.othersActive()) {
+            textStyle.setSummaryText(mNotifBottom);
+        }
 
         notif.setStyle(textStyle);
 
 
-        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, false);
+//        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, false);
 
         notif.setContentIntent(resultPendingIntent);
+        mBody = mNotifContent.toString();
+
+        logNotification(logBump);
 
         return notif;
     }
+
+    protected void logNotification(LogBump logBump) {
+        logBump.setNotificationText(StringUtils.Notif2String(mNotifCQTitle, mNotifCQContent, mNotifTitle, mBody, mNotifBottom));
+        logBump.build();
+    }
+
 
     protected NotificationCompat.Builder baseNotif(Context mContext, boolean sound, boolean silenceButton) {
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        mNotifCQContent = NotiSingleCompactContent();
+        mNotifCQTitle = NotiSingleCompactTitle();
         NotificationCompat.Builder notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_notif_we)
                 .setLargeIcon(we.getLogoRounded())
-                .setContentTitle(NotiSingleCompactTitle())
-                .setContentText(NotiSingleCompactContent())
+                .setContentTitle(mNotifCQTitle)
+                .setContentText(mNotifCQContent)
                 .setAutoCancel(true)
                 .setDeleteIntent(pIntentDelete)
                 .setTicker("Weacon detected\n" + we.getName());

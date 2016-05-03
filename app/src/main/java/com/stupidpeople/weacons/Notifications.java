@@ -57,7 +57,7 @@ public class Notifications {
         //Bigtext style
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
         textStyle.setBigContentTitle("Weacon contabilidad");
-        textStyle.bigText(WeaconParse.Listar(occurrences));
+        textStyle.bigText(StringUtils.Listar(occurrences));
         notif.setStyle(textStyle);
 
         mNotificationManager.notify(idNotiOcurrnces, notif.build());
@@ -69,7 +69,7 @@ public class Notifications {
     }
 
     public static void Notify2(ArrayList<WeaconParse> weacons, int nActive, boolean sound, boolean autofetching,
-                               boolean buttonRefresh, boolean buttonSilence) {
+                               boolean buttonRefresh, boolean buttonSilence, LogBump logBump) {
         mWeacons = weacons;
         Collections.reverse(mWeacons); //so the newest appears first
         mNOtherActive = nActive;
@@ -80,13 +80,14 @@ public class Notifications {
         mSummary = bottomMessage(mContext);
 
         if (buttonRefresh && mAutoFetching) {//if there is the refresh button means at least one is fetchable
-            RefreshNotification2();
+            logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+            RefreshNotification2(logBump);
         } else {
-            Notify2();
+            Notify2(logBump);
         }
     }
 
-    private static void Notify2() {
+    private static void Notify2(LogBump logBump) {
         int nWe = mWeacons.size();
         t.cancel();
 
@@ -98,13 +99,13 @@ public class Notifications {
         if (nWe == 0) {
             if (isShowingNotification) RemoveNotification2();
         } else if (nWe == 1) {
-            NotifySingle2();
+            NotifySingle2(logBump);
         } else {
-            NotifyMultiple2();
+            NotifyMultiple2(logBump);
         }
     }
 
-    public static void RefreshNotification2() {
+    public static void RefreshNotification2(final LogBump logBump) {
         final int nTotal = mWeacons.size();
 
 
@@ -114,13 +115,13 @@ public class Notifications {
             @Override
             public void OneTaskCompleted() {
                 iTaksCompleted++;
-                if (iTaksCompleted == nTotal) allFetched2();
+                if (iTaksCompleted == nTotal) allFetched2(logBump);
             }
 
             @Override
             public void OnError(Exception e) {
                 iTaksCompleted++;
-                if (iTaksCompleted == nTotal) allFetched2();
+                if (iTaksCompleted == nTotal) allFetched2(logBump);
             }
         };
 
@@ -133,44 +134,46 @@ public class Notifications {
         }
     }
 
-    private static void allFetched2() {
+    private static void allFetched2(final LogBump logBump) {
 
-        Notify2();
+        Notify2(logBump);
         t = new Timer();
         t.schedule(new TimerTask() {
             @Override
             public void run() {
                 myLog.add("han pasado los 30seg", tag);
-                NotifyRemovingObsoleteInfo2();
+                NotifyRemovingObsoleteInfo2(logBump);
             }
         }, 30000, 550000);
     }
 
-    private static void NotifyRemovingObsoleteInfo2() {
+    private static void NotifyRemovingObsoleteInfo2(LogBump logBump) {
         //Removing last info
         myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
         for (WeaconParse we : mWeacons) {
             we.setObsolete(true);
         }
-        Notify2();
+        logBump.setReasonToNotify(LogBump.ReasonToNotify.REMOVING_OBSOLETE_DATA);
+        Notify2(logBump);
     }
 
-    private static void NotifyMultiple2() {
+    private static void NotifyMultiple2(LogBump logBump) {
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notif;
 
-        String title = Integer.toString(mWeacons.size()) + mContext.getString(R.string.weacons_around);
+        String cqTitle = Integer.toString(mWeacons.size()) + mContext.getString(R.string.weacons_around);
+        String cqContent = mWeacons.get(0).getName() + mContext.getString(R.string.and_others);
 
         notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_noti_we_double)
                 .setLargeIcon(mWeacons.get(0).getLogoRounded())
-                .setContentTitle(title)
-                .setContentText(mWeacons.get(0).getName() + mContext.getString(R.string.and_others))
+                .setContentTitle(cqTitle)
+                .setContentText(cqContent)
                 .setAutoCancel(true)
                 .setDeleteIntent(pIntentDelete)
-                .setTicker(title);
+                .setTicker(cqTitle);
 
         if (mSound) addSound(notif);
         if (mSilenceButton) addSilenceButton(notif);
@@ -178,13 +181,13 @@ public class Notifications {
 
         //Inbox
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(title);
+        inboxStyle.setBigContentTitle(cqTitle);
         if (mNOtherActive > 0) inboxStyle.setSummaryText(mSummary);
 
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we : mWeacons) {
             inboxStyle.addLine(we.NotiOneLineSummary());
-            sb.append("  " + we.NotiOneLineSummary() + "\n");
+            sb.append("     " + we.NotiOneLineSummary() + "\n");
         }
 
         notif.setStyle(inboxStyle);
@@ -195,8 +198,9 @@ public class Notifications {
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         notif.setContentIntent(pendingIntent);
 
-        myLog.logNotification(title, sb.toString(), mSummary, mSound, mSilenceButton, mRefreshButton);
-
+//        myLog.logNotification(cqTitle, sb.toString(), mSummary, mSound, mSilenceButton, mRefreshButton);
+        logBump.setNotificationText(StringUtils.Notif2String(cqTitle, cqContent, cqTitle, sb.toString(), mSummary));
+        logBump.build();
         mNotificationManager.notify(mIdNoti, notif.build());
 
     }
@@ -206,13 +210,14 @@ public class Notifications {
         return String.format(summary, mNOtherActive);
     }
 
-    private static void NotifySingle2() {
+    private static void NotifySingle2(LogBump logBump) {
         WeaconParse we = mWeacons.get(0);
         try {
             PendingIntent pendingIntent = getPendingIntent(we.getActivityClass());
             NotificationCompat.Builder notification =
-                    we.buildSingleNotification(pendingIntent, mSound, mContext, mRefreshButton);
+                    we.buildSingleNotification(pendingIntent, mSound, mContext, mRefreshButton, logBump);
             mNotificationManager.notify(mIdNoti, notification.build());
+
         } catch (Exception e) {
             myLog.error(e);
         }
@@ -372,7 +377,9 @@ public class Notifications {
 
     public static void RemoveSilenceButton2() {
         mSilenceButton = false;
-        Notify2();
+        LogBump logBump = new LogBump(LogBump.LogType.BTN_SILENCE);
+        logBump.setReasonToNotify(LogBump.ReasonToNotify.REMOVE_SILENCE_BUTTON);
+        Notify2(logBump);
 //        Notify2(mWeacons, mNOtherActive, false, false, true, false);
     }
 

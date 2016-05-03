@@ -7,6 +7,7 @@ import android.text.SpannableString;
 import android.text.TextUtils;
 
 import com.stupidpeople.weacons.HelperBaseFecthNotif;
+import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.StringUtils;
@@ -142,27 +143,30 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton) {
-        String title = NotiSingleCompactTitle();
-        String summary = Notifications.bottomMessage(mContext);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
+        mNotifTitle = NotiSingleCompactTitle();
+        mNotifBottom = Notifications.bottomMessage(mContext);
         NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
 
         //Bigtext style
-        SpannableString msg = NotiSingleExpandedContent();
+        mNotifContent = NotiSingleExpandedContent();
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
-                .setBigContentTitle(title)
-                .bigText(msg);
-        if (LogInManagement.othersActive()) textStyle.setSummaryText(summary);
+                .setBigContentTitle(mNotifTitle)
+                .bigText(mNotifContent);
+        if (LogInManagement.othersActive()) textStyle.setSummaryText(mNotifBottom);
 
         notif.setStyle(textStyle);
 
         if (we.getFetchingPartialUrl() != null)
             Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
 
-        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, true);
+//        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, true);
 
         notif.setContentIntent(resultPendingIntent);
 
+        mBody = mNotifContent.toString();
+
+        logNotification(logBump);
         return notif;
     }
 

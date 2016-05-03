@@ -17,6 +17,7 @@ import com.parse.SaveCallback;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
+import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
@@ -25,7 +26,7 @@ import com.stupidpeople.weacons.booleanCallback;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 
 import util.myLog;
@@ -41,10 +42,11 @@ public abstract class ParseActions {
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
      *
+     * @param logBump
      * @param callBackWeacons for returning the set of weacons in the zone in this scanning
      * @param ctx
      */
-    public static void CheckSpotMatches(List<ScanResult> sr, final CallBackWeacons callBackWeacons, final Context ctx) {
+    public static void CheckSpotMatches(List<ScanResult> sr, final LogBump logBump, final CallBackWeacons callBackWeacons, final Context ctx) {
 
         ArrayList<String> bssids = new ArrayList<>();
 
@@ -63,28 +65,33 @@ public abstract class ParseActions {
             @Override
             public void done(List<WifiSpot> spots, ParseException e) {
                 if (e == null) {
-                    int n = spots.size();
-                    HashSet<WeaconParse> weaconHashSet = new HashSet<>();
+//                    HashSet<WeaconParse> weaconHash = new HashSet<>();
+                    HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<WeaconParse, ArrayList<String>>();
 
-                    if (n == 0) {
-                        myLog.add("MegaQuery no match", tag);
+                    if (spots.size() == 0) {
+                        logBump.build();
+
                     } else { //There are matches
-                        StringBuilder sb = new StringBuilder("***********\n");
 
                         for (WifiSpot spot : spots) {
-                            sb.append("\t" + spot.summarizeWithWeacon() + "\n");
-                            weaconHashSet.add(spot.getWeacon());
+                            WeaconParse we = spot.getWeacon();
+                            ArrayList<String> arr = new ArrayList<>();
+                            if (weaconHash.containsKey(we)) arr = weaconHash.get(we);
+                            arr.add(spot.getSSID());
+                            weaconHash.put(we, arr);
+
 //                            registerHitSSID(spot); todo
                         }
+                        logBump.setWifiSpots(spots);
 
                         // It's important always deliver built weacons (in this way, they are of subclasses, as bus
-                        WeaconParse.build(weaconHashSet, ctx);
+                        WeaconParse.build(weaconHash, ctx);
 
-                        myLog.add(sb.toString(), tag);
-                        myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHashSet.size(), tag);
+//                        myLog.add(sb.toString(), tag);
+//                        myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHash.size(), tag);
                     }
 
-                    callBackWeacons.OnReceive(weaconHashSet);
+                    callBackWeacons.OnReceive(weaconHash);
 
                 } else {
                     myLog.add("EEE en Chechkspotmarches:" + e.getLocalizedMessage(), tag);
@@ -571,5 +578,12 @@ public abstract class ParseActions {
             return false;
         }
         return false;
+    }
+
+    public static void SaveBumpLog(String text) {
+        ParseObject po = new ParseObject("log");
+        po.put("msg", text);
+        po.put("type", "Bump");
+        po.pinInBackground(parameters.pinParseLog);
     }
 }
