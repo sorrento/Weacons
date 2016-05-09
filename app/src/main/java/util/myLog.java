@@ -20,6 +20,8 @@ public class myLog {
     private static String folder = "/WEACLOG/";
 
     public static void initialize() {
+        if (!parameters.isMilenkosPhone()) return;
+
         if (initialized) return;
         initialized = true;
         WriteUnhandledErrors();
@@ -37,6 +39,7 @@ public class myLog {
      * @param TAG
      */
     public static void add(String text, String TAG) {
+        if (!parameters.isMilenkosPhone()) return;
         try {
             Log.d(TAG, text);
 

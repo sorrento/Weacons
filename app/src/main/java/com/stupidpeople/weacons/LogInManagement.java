@@ -45,6 +45,7 @@ public class LogInManagement {
         someOneAppearing = false;
 
         try {
+
             //Check differences with last scanning and keep accumulation history
             checkDisappearing(logBump);
             checkAppearing();
@@ -204,7 +205,7 @@ public class LogInManagement {
         logBump.setAutomaticFetching(automaticFetching, r + " Y " + s);
 
 
-        Notifications.Notify2(weaconsToNotify, numberOfActiveNonNotified(), sound, automaticFetching,
+        Notifications.Notify(weaconsToNotify, numberOfActiveNonNotified(), sound, automaticFetching,
                 refreshButton, silenceButton, logBump);
 
 //
@@ -299,7 +300,11 @@ public class LogInManagement {
     }
 
     private static int numberOfActiveNonNotified() {
-        return getActiveWeacons().size() - weaconsToNotify.size();
+        int nactive = getActiveWeacons().size();
+        int nnotified = weaconsToNotify.size();
+        myLog.add("ACTVICE NON NOTIFIED: " + nactive + "-" + nnotified, "aut");
+
+        return nactive - nnotified;
     }
 
     public static void FetchAllActive(final MultiTaskCompleted multiTaskCompleted) {
@@ -337,9 +342,10 @@ public class LogInManagement {
      * Created by Milenko on 04/03/2016.
      */
     public static class CurrentSituation {
+        private static final int MILI_TO_BE_HOME = 40 * 60 * 1000;//30 * 60 * 1000;
         public boolean anyHome;
         public int nFetchings;
-        public boolean shouldFetch;
+        //        public boolean shouldFetch;
         public boolean anyInteresting;
         private ArrayList<WeaconParse> interestingOnes = new ArrayList();
 
@@ -359,20 +365,19 @@ public class LogInManagement {
                         we.setTimeFirstApperaringInThisRow(new Date());
                     } else if (repetitions > 15 && !we.inHome()) {
                         long timeDiff = new Date().getTime() - we.getTimeFirstApperaringInThisRow().getTime();
-                        myLog.add("TimeDifference=" + timeDiff, "OJO");
-                        if (timeDiff > 30 * 60 * 1000) { //Half an hour
+                        if (timeDiff > MILI_TO_BE_HOME) {
                             we.setInHome(true); //TODO Cómo se deja de ser Home?
                             anyHome = true;
                         }
                     }
 
 
-                    // Should fetch
-                    if ((we.notificationRequiresFetching() &&
-                            repetitions < parameters.repetitionsTurnOffFetching) && //
-                            !we.inHome()) {/*avoid keep fetching if you live near a bus stop*/
-                        shouldFetch = true;
-                    }
+//                    // Should fetch
+//                    if ((we.notificationRequiresFetching() &&
+//                            repetitions < parameters.repetitionsTurnOffFetching) && //
+//                            !we.inHome()) {/*avoid keep fetching if you live near a bus stop*/
+//                        shouldFetch = true;
+//                    }
 
                     //Interesting
                     if (we.isInteresting()) {
@@ -380,11 +385,12 @@ public class LogInManagement {
                         anyInteresting = true;
                     }
 
+                    //home
+                    if (we.inHome()) anyHome = true;//TODO remove home if has pass 3 months
+
                 }
 
                 nFetchings = i;
-                if (interestingOnes.size() > 0)
-                    myLog.add("These are interesting: " + StringUtils.Listar(interestingOnes), "NOTI");
             } catch (Exception e) {
                 myLog.error(e);
             }
@@ -395,7 +401,7 @@ public class LogInManagement {
             return "CurrentSituation{" +
                     "anyHome=" + anyHome +
                     ", nFetchings=" + nFetchings +
-                    ", shouldFetch=" + shouldFetch +
+//                    ", shouldFetch=" + shouldFetch +
                     ", anyInteresting=" + anyInteresting +
                     ", interestingOnes=" + interestingOnes +
                     '}';

@@ -16,6 +16,8 @@ import java.util.ArrayList;
 @ParseClassName("SSIDS")
 public class WifiSpot extends ParseObject {
 
+    private double distanceToWeacon;
+
     public WifiSpot(String selectedSSID, String selectedBSSID, WeaconParse we, double latitude, double longitude) {
         setSSID(selectedSSID);
         setBSSID(selectedBSSID);
@@ -28,8 +30,9 @@ public class WifiSpot extends ParseObject {
     public WifiSpot() {
     }
 
-    public WifiSpot(ScanResult r, WeaconParse weBusStop, GPSCoordinates gps) {
+    public WifiSpot(ScanResult r, WeaconParse weBusStop, GPSCoordinates gps, double distanceToWeaconMts) {
         this(r.SSID, r.BSSID, weBusStop, gps.getLatitude(), gps.getLongitude());
+        setDistanceToWeacon(distanceToWeaconMts);
     }
 
     public static String Listar(ArrayList<WifiSpot> newOnes) {
@@ -94,5 +97,9 @@ public class WifiSpot extends ParseObject {
 
     public void setAutomatic(boolean automatic) {
         put("Automatic", automatic);
+    }
+
+    public void setDistanceToWeacon(double distanceToWeacon) {
+        put("distanceWe", distanceToWeacon);
     }
 }

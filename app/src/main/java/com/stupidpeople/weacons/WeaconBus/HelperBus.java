@@ -145,7 +145,9 @@ public class HelperBus extends HelperBaseFecthNotif {
             name = we.getName();
         }
 
-        if (we.obsolete) {
+        if (we.refreshing) {
+            greyPart = mContext.getString(R.string.refreshing);
+        } else if (we.obsolete) {
             greyPart = we.getTypeString() + ". " + mContext.getString(R.string.press_refresh);
         } else {
             greyPart = summarizeAllLines();

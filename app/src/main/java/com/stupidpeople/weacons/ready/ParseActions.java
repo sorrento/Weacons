@@ -37,7 +37,7 @@ import util.parameters;
  */
 public abstract class ParseActions {
 
-    private static String tag = "PAR";
+    private static String tag = "PIN";
 
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
@@ -86,7 +86,6 @@ public abstract class ParseActions {
 
                         // It's important always deliver built weacons (in this way, they are of subclasses, as bus
                         WeaconParse.build(weaconHash, ctx);
-
 //                        myLog.add(sb.toString(), tag);
 //                        myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHash.size(), tag);
                     }
@@ -100,7 +99,6 @@ public abstract class ParseActions {
         });
     }
 
-
     /***
      * get wifispots from parse in a area and pin them the object includes the weacon
      *
@@ -109,7 +107,6 @@ public abstract class ParseActions {
      * @param center  center of queried area
      * @param context
      */
-
     public static void getSpots(final boolean bLocal, final double radio, final GPSCoordinates center, final Context context) {
         try {
             //1.Remove spots and weacons in local
@@ -184,6 +181,9 @@ public abstract class ParseActions {
         new LocationAsker(ctx, listener);
     }
 
+
+    //Bus stops
+
     /**
      * The 300 nearest weacons bus and their spots. Ten pin them in local
      *
@@ -200,16 +200,16 @@ public abstract class ParseActions {
         //Query WifiSpots
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
         query.whereMatchesQuery("associated_place", queryWe)
+                .whereWithinKilometers("GPS", pos, 1)
                 .setLimit(1000)
                 .include("associated_place")
                 .findInBackground(new FindCallback<WifiSpot>() {
                     @Override
                     public void done(List<WifiSpot> list, ParseException e) {
                         if (e == null) {
-                            myLog.add("****el numero de wifispots recogideos es: " + list.size(), "aut");
                             try {
 //                                ParseObject.unpinAll(parameters.pinWeacons); TODO is it necesary to unpin?
-                                myLog.add("---Estamos pinneando:\n" + Listar(list), "OJO");
+//                                myLog.add("---Estamos pinneando:\n" + StringUtils.Listar(list), "OJO");
                                 ParseObject.pinAll(parameters.pinWeacons, list);
                             } catch (ParseException e1) {
                                 myLog.error(e);
@@ -222,59 +222,50 @@ public abstract class ParseActions {
                 });
     }
 
-    private static String Listar(List<WifiSpot> list) {
-        StringBuilder sb = new StringBuilder();
-        for (WifiSpot ws : list) {
-            sb.append("(" + ws.getSSID() + ", " + ws.getObjectId() + ") |");
-        }
-        return sb.toString();
+    public static void getBusStopsInRadius(GPSCoordinates mGps, double kms, FindCallback<WeaconParse> listener) {
+        ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
+        query.whereEqualTo("Type", "bus_stop")
+                .whereWithinKilometers("GPS", mGps.getGeoPoint(), kms)
+                .findInBackground(listener);
     }
+
+    //Interesting
 
     /**
      * Mark in local parse that these weacons are interesting, so they will sound and will be fetched
      * automatically (first time)
      *
-     * @param notifiedWeacons
+     * @param weacons
      */
-    public static void AddToInteresting(ArrayList<WeaconParse> notifiedWeacons) {
-
-        for (final WeaconParse we : notifiedWeacons) {
-            ParseObject fav = new ParseObject("Favorites");
-            fav.put("WeaconId", we.getObjectId());
-            fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-                        myLog.add("se ha pinneado el favorito  " + we.getName(), tag);
-                    } else {
-                        myLog.add("No se ha pinneaso el favorito " + we.getName() + e.getLocalizedMessage(), tag);
-                    }
-                }
-            });
-        }
+    public static void AddToInteresting(final ArrayList<WeaconParse> weacons) {
+        for (final WeaconParse we : weacons) AddToInteresting(we);
     }
 
-    public static void AddToInteresting(WeaconParse we) {
-        ArrayList<WeaconParse> arr = new ArrayList<WeaconParse>();
-        arr.add(we);
-        AddToInteresting(arr);
+    public static void AddToInteresting(final WeaconParse we) {
+        ParseObject fav = new ParseObject("Favorites");
+        fav.put("WeaconId", we.getObjectId());
+        fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("se ha pinneado el favorito  " + we.getName(), tag);
+                } else {
+                    myLog.add("No se ha pinneaso el favorito " + we.getName() + e.getLocalizedMessage(), tag);
+                }
+            }
+        });
     }
 
     public static boolean isInteresting(String objectId) {
         int i = 0;
         try {
-//            myLog.add("Checkado si " + objectId + "es interesante", "aut");
             ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
-            query.whereEqualTo("WeaconId", objectId);
-            query.fromPin(parameters.pinFavorites);
-            i = query.count();
-//            myLog.add("     La cuenta ha dado " + i, "aut");
+            i = query.whereEqualTo("WeaconId", objectId)
+                    .fromPin(parameters.pinFavorites).count();
         } catch (ParseException e) {
             myLog.error(e);
         }
-        boolean b = i > 0;
-        myLog.add("is interesting?" + b, tag);
-        return b;
+        return i > 0;
     }
 
     public static void removeInteresting(ArrayList<WeaconParse> notifiedWeacons) {
@@ -282,11 +273,9 @@ public abstract class ParseActions {
 
         //To remove the Silence button:
 //        LogInManagement.NotifyFetching(false, false);//interesting=true for starting the timer 30segs
-        Notifications.RemoveSilenceButton2();
+        Notifications.RemoveSilenceButton();//TODO quitar de aqui
 
-        for (WeaconParse we : notifiedWeacons) {
-            arr.add(we.getObjectId());
-        }
+        for (WeaconParse we : notifiedWeacons) arr.add(we.getObjectId());
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
         query.whereContainedIn("WeaconId", arr)
@@ -295,14 +284,14 @@ public abstract class ParseActions {
                     @Override
                     public void done(List<ParseObject> list, ParseException e) {
                         if (e == null) {
-                            myLog.add("Recibidos favoritos para borrar:" + list.size(), "aut");
+                            myLog.add("Recibidos favoritos para borrar:" + list.size(), tag);
                             ParseObject.unpinAllInBackground(parameters.pinFavorites, list, new DeleteCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null) {
-                                        myLog.add("Borrads los elementso de favoritos", "aut");
+                                        myLog.add("Borrads los elementso de favoritos", tag);
                                     } else {
-                                        myLog.add("No se han borrado los elementos de favo", "aut");
+                                        myLog.add("No se han borrado los elementos de favo", tag);
                                     }
                                 }
                             });
@@ -311,8 +300,53 @@ public abstract class ParseActions {
                         }
                     }
                 });
-
     }
+
+    //HOME
+
+    public static void setHome(final WeaconParse we) {
+        ParseObject home = new ParseObject("Home");
+        home.put("WeaconId", we.getObjectId());
+        home.pinInBackground(parameters.pinFavorites, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("se ha pinneado el home" + we.getName(), tag);
+                } else {
+                    myLog.add("No se ha pinneaso el home " + we.getName() + e.getLocalizedMessage(), tag);
+                }
+            }
+        });
+    }
+
+    public static boolean IsHome(String obId) {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("Home");
+        try {
+            List<ParseObject> found = query.whereEqualTo("WeaconId", obId)
+                    .fromPin(parameters.pinFavorites)
+                    .find();
+            if (found != null && found.size() > 0) return true;
+        } catch (ParseException e) {
+            myLog.error(e);
+        }
+        return false;
+    }
+
+    public static void ClearHomes() {
+        ParseQuery<ParseObject> q = ParseQuery.getQuery("Home");
+        q.fromPin(parameters.pinFavorites)
+                .findInBackground(new FindCallback<ParseObject>() {
+                    @Override
+                    public void done(List<ParseObject> list, ParseException e) {
+                        try {
+                            ParseObject.unpinAll(parameters.pinFavorites, list);
+                        } catch (ParseException e1) {
+                            e1.printStackTrace();
+                        }
+                    }
+                });
+    }
+
 
     public static void getClosestBusStop(GPSCoordinates gps, GetCallback<WeaconParse> oneParadaCallback) {
         ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
@@ -332,9 +366,8 @@ public abstract class ParseActions {
     public static void assignSpotsToWeacon(final WeaconParse weBusStop, final List<ScanResult> sr,
                                            final GPSCoordinates gps, final Context ctx, final MultiTaskCompleted taskCompleted) {
         final ArrayList<String> macs = new ArrayList<>();
-        for (ScanResult r : sr) {
-            macs.add(r.BSSID);
-        }
+
+        for (ScanResult r : sr) macs.add(r.BSSID);
 
         // Create only the new ones
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
@@ -353,7 +386,8 @@ public abstract class ParseActions {
 
                     for (ScanResult r : sr) {
                         if (!spotsAlreadyCreated.contains(r.BSSID)) {
-                            newOnes.add(new WifiSpot(r, weBusStop, gps));
+                            double dist = weBusStop.getGPS().distanceInKilometersTo(gps.getGeoPoint());
+                            newOnes.add(new WifiSpot(r, weBusStop, gps, dist * 1000));
                         }
                     }
 
@@ -365,7 +399,7 @@ public abstract class ParseActions {
 
                                 myLog.add("subidos varios wifispots: " + WifiSpot.Listar(newOnes), tag);
                                 String text = ctx.getString(R.string.busstop_uploaded) + weBusStop.getName();
-                                myLog.add(text, "DBG");
+                                myLog.add(text, tag);
                                 Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 
                                 SaveIntensities(sr, weBusStop);
@@ -422,7 +456,7 @@ public abstract class ParseActions {
      * Check if there is some newer weacons in the area (respect to the last pinning in local) and if the nearest weacon
      * is the same as the one on local (to check if we are in new area)
      */
-    public static void DownloadWeaconsIfNeded(Context ctx) {
+    public static void DownloadWeaconsIfNeeded(Context ctx) {
         myLog.add("VEamos si se necesita bajar weacons:", "OJO");
         //AskLocation
         new LocationAsker(ctx, new LocationCallback() {
@@ -515,8 +549,7 @@ public abstract class ParseActions {
                     .orderByDescending("updatedAt");
             final WifiSpot wiLocal = query.getFirst();
 
-            // Web
-            //Query Weacons first
+            // Web. Query Weacons first
             ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
             queryWe.whereNear("GPS", point)
                     .setLimit(300)
@@ -551,34 +584,6 @@ public abstract class ParseActions {
         }
     }
 
-    public static void setHome(final WeaconParse we) {
-        ParseObject home = new ParseObject("Home");
-        home.put("WeaconId", we.getObjectId());
-        home.pinInBackground(parameters.pinFavorites, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    myLog.add("se ha pinneado el home" + we.getName(), tag);
-                } else {
-                    myLog.add("No se ha pinneaso el home " + we.getName() + e.getLocalizedMessage(), tag);
-                }
-            }
-        });
-    }
-
-    public static boolean IsHome(WeaconParse we) {
-        ParseQuery<ParseObject> query = ParseQuery.getQuery("Home");
-        try {
-            List<ParseObject> found = query.whereEqualTo("WeaconId", we.getObjectId())
-                    .fromPin(parameters.pinFavorites)
-                    .find();
-            if (found != null && found.size() > 0) return true;
-        } catch (ParseException e) {
-            myLog.error(e);
-            return false;
-        }
-        return false;
-    }
 
     public static void SaveBumpLog(String text) {
         ParseObject po = new ParseObject("log");
@@ -586,4 +591,6 @@ public abstract class ParseActions {
         po.put("type", "Bump");
         po.pinInBackground(parameters.pinParseLog);
     }
+
+
 }

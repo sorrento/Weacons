@@ -22,4 +22,7 @@
  <string name="busstop_uploaded">"S\'ha pujat la parada: "</string>
  <string name="turn_on_gps">Si us plau habiliti el GPS</string>
  <string name="in_busstop">en parada d\'autobus</string>
+ <string name="refreshing">Actualitzant</string>
+ <string name="non_of_these">Cap d\'aquestes</string>
+ <string name="no_bus_stop_100">No hi ha parades en un radi de 100 mts.</string>
 </resources>

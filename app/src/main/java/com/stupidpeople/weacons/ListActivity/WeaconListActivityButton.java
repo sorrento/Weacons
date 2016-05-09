@@ -1,10 +1,14 @@
 package com.stupidpeople.weacons.ListActivity;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.wifi.ScanResult;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,6 +17,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.stupidpeople.weacons.GPSCoordinates;
@@ -36,19 +42,15 @@ import java.util.List;
 
 import util.myLog;
 
-//import android.support.v7.widget.LinearLayoutManager;
-//import android.support.v7.widget.RecyclerView;
-//import util.DividerItemDecoration;
-//import util.WeaconAdapter;
-
-
-public class WeaconListActivityButton extends ActionBarActivity {
+public class WeaconListActivityButton extends ActionBarActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
+    private static final int REQUEST_READ_AND_CAMERA_PERMISSION = 101;
     private RecyclerView mRecyclerView;
     private WeaconAdapter adapter;
     private Context mContext;
-    private String tag = "WLB";
+    private String tag = "ADD_STOP";
     private GPSCoordinates mGps;
     private ArrayList<WeaconParse> activeWeacons;
+    private SwipeRefreshLayout mRefresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +91,20 @@ public class WeaconListActivityButton extends ActionBarActivity {
 //                    overridePendingTransition(R.transition.trans_left_in, R.transition.trans_left_out);
                 }
             });
+
+            mRefresh = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+            mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+                @Override
+                public void onRefresh() {
+                    refreshList();
+                }
+            });
+
             mRecyclerView.setAdapter(adapter);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_READ_AND_CAMERA_PERMISSION);//for Androis 6
+            }
 
             refreshList();
         } catch (Resources.NotFoundException e) {
@@ -98,7 +113,7 @@ public class WeaconListActivityButton extends ActionBarActivity {
     }
 
     void refreshList() {
-        Toast.makeText(this, "Actualidzamons", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.refreshing, Toast.LENGTH_SHORT).show();
 
         LogInManagement.FetchAllActive(new MultiTaskCompleted() {
             @Override
@@ -133,14 +148,14 @@ public class WeaconListActivityButton extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.action_add_stop) {
+            OnClickImIn(null);
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
-    public void OnClickImIn2(View view) {
+    public void OnClickImIn(View view) {
         Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
 
         final GetCallback<WeaconParse> oneParadaCallback = new GetCallback<WeaconParse>() {
@@ -154,19 +169,32 @@ public class WeaconListActivityButton extends ActionBarActivity {
                     //2. Check if the nearest weacon is inside 15 mts
                     String msg2;
                     if (distanceMts < 15) {
-                        //The notification is forced to show the recently acquired
-                        HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
-                        we.setInteresting(true);
-                        myHash.add(we);
-
-                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
-                        LogInManagement.setNewWeacons(myHash, logBump);
 
                         msg2 = getString(R.string.updating_data);
                         Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
-                        SendWifis(we);
+
+                        uploadBusStop(we);
 
                     } else {
+
+                        //bring all bustops in 100mts
+                        myLog.add("Vamos a buscar en los 100 mts", "ADD_STOP");
+                        FindCallback<WeaconParse> listener = new FindCallback<WeaconParse>() {
+                            @Override
+                            public void done(List<WeaconParse> list, ParseException e) {
+                                if (e == null) {
+                                    if (list == null || list.size() == 0) {
+                                        myLog.add("enlos 100 mts hay NO HAY paradsas ", "ADD_STOP");
+                                        Toast.makeText(mContext, R.string.no_bus_stop_100, Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        myLog.add("enlos 100 mts hay paradsas " + list.size(), "ADD_STOP");
+                                        showDialogDecision(list);
+                                    }
+                                } else myLog.add("eerror:" + e.getLocalizedMessage(), "ADD_STOP");
+                            }
+                        };
+                        ParseActions.getBusStopsInRadius(mGps, 0.1, listener);
+
                         msg2 = getString(R.string.go_closer);
                         Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
                     }
@@ -175,7 +203,6 @@ public class WeaconListActivityButton extends ActionBarActivity {
                 } else {
                     myLog.error(e);
                 }
-
             }
         };
 
@@ -204,11 +231,59 @@ public class WeaconListActivityButton extends ActionBarActivity {
 
     }
 
+    private void showDialogDecision(final List<WeaconParse> list) {
+        //create the list of strings
+        final ArrayList<String> arr = new ArrayList<>();
+        myLog.add("Vamos amostrar el dialog", "ADD_STOP");
+
+        for (int i = 0; i < list.size() - 1; i++) {
+            WeaconParse we = list.get(i);
+            String s = we.getParadaId() + " " + we.getName();
+            arr.add(s);
+            myLog.add("Opcion:" + s, "ADD_STOP");
+        }
+        arr.add(getString(R.string.non_of_these));
+
+        new MaterialDialog.Builder(this)
+                .title("Which one?")
+                .items(arr)
+                .itemsCallback(new MaterialDialog.ListCallback() {
+                    @Override
+                    public void onSelection(MaterialDialog materialDialog, View view, int i, CharSequence charSequence) {
+                        if (i < arr.size() - 1) uploadBusStop(list.get(i));
+                        materialDialog.dismiss();
+                    }
+                })
+                .show();
+
+    }
+
+    private void uploadBusStop(WeaconParse we) {
+        //The notification is forced to show the recently acquired
+        HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
+        we.setInteresting(true);
+
+        if (myHash == null) myHash = new HashSet<>();
+        myHash.add(we);
+
+        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
+        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+
+        LogInManagement.setNewWeacons(myHash, logBump);
+
+        SendWifis(we);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         refreshList();
     }
+
+    public void OnCLickClear(View view) {
+        ParseActions.ClearHomes();
+    }
+
 
     /**
      * Capture wifis, Keep the five with highest power, Write in web and in local

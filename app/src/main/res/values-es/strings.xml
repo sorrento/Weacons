@@ -22,4 +22,7 @@
     <string name="busstop_uploaded">"Se ha subido la parada: "</string>
     <string name="turn_on_gps">Por favor habilite el GPS</string>
     <string name="in_busstop">En Parada de autobus</string>
+    <string name="non_of_these">Ninguna</string>
+    <string name="refreshing">Actualizando...</string>
+    <string name="no_bus_stop_100">No hay paradas en un radio de 100 mts.</string>
 </resources>

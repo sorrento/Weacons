@@ -4,7 +4,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.wifi.ScanResult;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
 import android.util.Log;
@@ -24,7 +23,6 @@ import org.jsoup.Connection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 import util.RoundImage;
 import util.imageUtils;
@@ -38,6 +36,7 @@ import util.parameters;
 public class WeaconParse extends ParseObject {
     public ArrayList fetchedElements;
     public boolean obsolete = false;
+    public boolean refreshing = false;
     private HelperBase mHelper;
     private String[] cards;
     private boolean isInteresting;
@@ -47,29 +46,12 @@ public class WeaconParse extends ParseObject {
     public WeaconParse() {
     }
 
-    public static String Listar(List<WeaconParse> list) {
-        StringBuilder sb = new StringBuilder();
-        for (WeaconParse we :
-                list) {
-            sb.append(we.getName() + " | ");
-        }
-        return sb.toString();
-    }
-
     public static void build(HashMap<WeaconParse, ArrayList<String>> weaconHash, Context ctx) {
         try {
             for (WeaconParse we : weaconHash.keySet()) we.build(ctx);
         } catch (Exception e) {
             myLog.error(e);
         }
-    }
-
-    public static String ListarSR(List<ScanResult> sr) {
-        StringBuilder sb = new StringBuilder();
-        for (ScanResult s : sr) {
-            sb.append(s.SSID + " | " + s.BSSID + " | " + s.level + "\n");
-        }
-        return sb.toString();
     }
 
     //GETTERS
@@ -197,7 +179,7 @@ public class WeaconParse extends ParseObject {
                     break;
                 case bus_station:
                     mHelper = new HelperBus(this, ctx);
-                    inHome = ParseActions.IsHome(this);
+                    inHome = ParseActions.IsHome(getObjectId());
                     break;
                 //            case cafe:
                 //                break;
@@ -527,5 +509,7 @@ public class WeaconParse extends ParseObject {
         ParseActions.setHome(this);
         this.inHome = inHome;
     }
+
+
 }
 

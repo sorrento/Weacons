@@ -34,6 +34,7 @@ import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +44,7 @@ import util.myLog;
 import util.parameters;
 
 import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
-import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeded;
+import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeeded;
 
 /**
  * Created by Milenko on 04/10/2015.
@@ -51,13 +52,29 @@ import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeded
 public class WifiObserverService extends Service implements ResultCallback<Status> {
 
     public static boolean serviceIsActive;
-    String tag = "wos";
+    String tag = "wifi";
     int iScan = 0;
     private Context mContext;
     private WifiManager wifiManager;
     private WifiReceiver receiverWifi;
     private RefreshReceiver refreshReceiver;
     private SharedPreferences prefs = null;
+
+    private void addTestWeacons(HashSet<WeaconParse> weaconsDetected) {
+        ParseQuery<WeaconParse> q = ParseQuery.getQuery(WeaconParse.class);
+        List<String> arr = Arrays.asList(parameters.weaconsTest);
+        List<WeaconParse> res = null;
+        try {
+            res = q.whereContainedIn("objectId", arr).find();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        for (WeaconParse we : res) {
+            we.build(mContext);
+            weaconsDetected.add(we);
+        }
+    }
 
     @Nullable
     @Override
@@ -103,7 +120,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 ParseActions.getSpotsForBusStops(this);
                 prefs.edit().putBoolean("firstrunService", false).commit();
             } else {
-                DownloadWeaconsIfNeded(this);
+                DownloadWeaconsIfNeeded(this);
             }
 
             //Add geofences
@@ -192,6 +209,38 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         return res;
     }
 
+    private void transferLogsToParse() throws ParseException {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
+        int res = query.fromPin(parameters.pinParseLog)
+                .count();
+        if (res > 30) {
+            ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
+            q.fromPin(parameters.pinParseLog)
+                    .setLimit(300)
+                    .findInBackground(new FindCallback<ParseObject>() {
+                        @Override
+                        public void done(final List<ParseObject> list, ParseException e) {
+                            String aggregate = AggregateMessages(list);
+
+                            ParseObject po = new ParseObject("log");
+                            po.put("msg", aggregate);
+                            po.put("type", "Notif");
+                            po.saveInBackground(new SaveCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    try {
+                                        ParseObject.unpinAll(parameters.pinParseLog, list);
+                                    } catch (ParseException e1) {
+                                        e1.printStackTrace();
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+        }
+    }
+
     private class RefreshReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -207,7 +256,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     LogBump logBump = new LogBump(LogBump.LogType.BTN_REFRESH);
                     logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-                    Notifications.RefreshNotification2(logBump);
+                    Notifications.RefreshNotification(logBump);
 
                 } else if (action.equals(parameters.silenceIntentName)) {
                     ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
@@ -237,35 +286,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
                         myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
 
-                        ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
-                        int res = query.fromPin(parameters.pinParseLog)
-                                .count();
-                        if (res > 30) {
-                            ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
-                            q.fromPin(parameters.pinParseLog)
-                                    .setLimit(300)
-                                    .findInBackground(new FindCallback<ParseObject>() {
-                                        @Override
-                                        public void done(final List<ParseObject> list, ParseException e) {
-                                            String aggregate = AggregateMessages(list);
-
-                                            ParseObject po = new ParseObject("log");
-                                            po.put("msg", aggregate);
-                                            po.put("type", "Notif");
-                                            po.saveInBackground(new SaveCallback() {
-                                                @Override
-                                                public void done(ParseException e) {
-                                                    try {
-                                                        ParseObject.unpinAll(parameters.pinParseLog, list);
-                                                    } catch (ParseException e1) {
-                                                        e1.printStackTrace();
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    });
-
-                        }
+                        transferLogsToParse();
                     }
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
@@ -276,7 +297,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     iScan++;
                     if (iScan % 30 == 0) {
-                        ParseActions.DownloadWeaconsIfNeded(mContext);
+                        ParseActions.DownloadWeaconsIfNeeded(mContext);
                     }
 
                     CheckSpotMatches(sr, logBump, new CallBackWeacons() {
@@ -285,6 +306,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                             logBump.setWeaconsHash(weaconHash);
 
                             HashSet<WeaconParse> weaconHashSet = createHashSet(weaconHash.keySet());
+
+                            //TEST insertion of weacons
+                            if (parameters.testWeacons) addTestWeacons(weaconHashSet);
+
                             LogInManagement.setNewWeacons(weaconHashSet, logBump);
                         }
                     }, mContext);
@@ -299,7 +324,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                             LogInManagement.now.anyFetchable()) {
                         LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
                         logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-                        Notifications.RefreshNotification2(logBump);
+                        Notifications.RefreshNotification(logBump);
                     }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);

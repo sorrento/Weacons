@@ -1,6 +1,7 @@
 package com.stupidpeople.weacons;
 
 import android.graphics.Color;
+import android.net.wifi.ScanResult;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.SpannableString;
@@ -12,6 +13,7 @@ import android.text.style.StyleSpan;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,7 +40,9 @@ public class StringUtils {
     }
 
 
-    //STRINGS
+    //to list
+
+
     public static String Listar(HashSet<WeaconParse> weacons) {
         StringBuilder sb = new StringBuilder();
         for (WeaconParse we : weacons) {
@@ -64,6 +68,8 @@ public class StringUtils {
     }
 
     public static String Listar(HashMap<WeaconParse, Integer> hash, int i) {
+        if (hash == null || hash.size() == 0) return "[EMPTY]";
+
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<WeaconParse, Integer> entry : hash.entrySet()) {
             sb.append(shorten(entry.getKey().getName(), i) + ":" + entry.getValue() + " | ");
@@ -71,9 +77,26 @@ public class StringUtils {
         return sb.toString();
     }
 
-    public static String shorten(String s, int m) {
-        return s.substring(0, Math.min(m, s.length()) - 1);
+    public static String Listar(List<WifiSpot> list) {
+        StringBuilder sb = new StringBuilder();
+        for (WifiSpot ws : list) {
+            sb.append("(" + ws.getSSID() + ", " + ws.getObjectId() + ") |");
+        }
+        return sb.toString();
     }
+
+    public static String ListarSR(List<ScanResult> sr) {
+        StringBuilder sb = new StringBuilder();
+        for (ScanResult s : sr) {
+            sb.append(s.SSID + " | " + s.BSSID + " | " + s.level + "\n");
+        }
+        return sb.toString();
+    }
+
+    public static String shorten(String s, int m) {
+        return s.substring(0, Math.min(m, s.length()));
+    }
+
 
     @NonNull
     static String Notif2String(String cqTitle, String cqContent, String title, String body, String bottom) {

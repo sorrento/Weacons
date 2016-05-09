@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.herenow.fase1.Activities.WeaconListActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/action_add_stop"
+        android:icon="@android:drawable/ic_menu_add"
         android:orderInCategory="100"
-        android:title="Menu Weacons"
-        app:showAsAction="never" />
+        android:title="AddStop"
+        app:showAsAction="always" />
 </menu>

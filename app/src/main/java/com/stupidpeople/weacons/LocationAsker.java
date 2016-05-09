@@ -173,4 +173,5 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
             LocationReceivedOk(location);
         }
     }
+
 }

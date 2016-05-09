@@ -80,4 +80,7 @@
     <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
     <string name="turn_on_gps">Please turn on the GPS</string>
     <string name="in_busstop">At Bus Stop</string>
+    <string name="no_bus_stop_100">There is no bus stop in 100mts from here</string>
+    <string name="non_of_these">None of these.</string>
+    <string name="refreshing">Refreshing...</string>
 </resources>

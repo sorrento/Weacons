@@ -38,15 +38,11 @@ public class stringUtils {
     }
 
     public static String ConcatenateComma(ArrayList<String> arr, int m) {
-        StringBuilder sb = new StringBuilder();
+        return concatenate(arr, m, ", ");
+    }
 
-        for (int i = 0; i < arr.size() - 1; i++) {
-            sb.append(StringUtils.shorten(arr.get(i), m) + ", ");
-        }
-
-        sb.append(StringUtils.shorten(arr.get(arr.size() - 1), m));
-
-        return sb.toString();
+    public static String concatenate(ArrayList<String> arr, String s) {
+        return concatenate(arr, 100, s);
     }
 
     public static String ConcatenateComma(ArrayList<LogBump.ReasonToNotify> arr) {
@@ -60,6 +56,18 @@ public class stringUtils {
 
         return sb.toString();
 
+    }
+
+    @NonNull
+    public static String concatenate(ArrayList<String> arr, int nShorten, String sep) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < arr.size() - 1; i++) {
+            sb.append(StringUtils.shorten(arr.get(i), nShorten) + sep);
+        }
+        sb.append(StringUtils.shorten(arr.get(arr.size() - 1), nShorten));
+
+        return sb.toString();
     }
 }
 

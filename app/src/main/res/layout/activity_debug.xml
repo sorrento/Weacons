@@ -39,11 +39,17 @@
                 android:textSize="9dp"
                 android:visibility="invisible" />
 
+            <!--<Button-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:onClick="OnClickImIn"-->
+            <!--android:text="In BusStop" />-->
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:onClick="OnClickImIn"
-                android:text="In BusStop" />
+                android:onClick="OnCLickClear"
+                android:text="clear home" />
 
         </LinearLayout>
 

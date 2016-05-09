@@ -21,11 +21,11 @@ import util.stringUtils;
 
 public class LogBump {
     private static final String DIVIDER = "********************************************\n";
+    public static String tag = "NOTIF";
     private final LogType mLogType;
     private final String mTime;
     private List<ScanResult> spots;
     private List<WifiSpot> wifiSpots;
-    private String tag = "NEW";
     private HashMap<WeaconParse, ArrayList<String>> weaconsHash;
     private HashMap<WeaconParse, Integer> occurrences;
     private LogInManagement.CurrentSituation situation;
@@ -105,9 +105,16 @@ public class LogBump {
         mAutomaticFetchingReason = reason;
     }
 
+    //final
+
     public void build() {
         int nRead = spots == null ? 0 : spots.size();
         StringBuilder sb = new StringBuilder();
+
+        if (reasonsToNotify == null) {
+            reasonsToNotify = new ArrayList<>();
+            reasonsToNotify.add(ReasonToNotify.NONE);
+        }
 
         if (mLogType == LogType.READ && wifiSpots == null) {
             sb.append("\n" + mTime + " " + nRead + " ssids read. No Matches.\n");
@@ -138,17 +145,16 @@ public class LogBump {
         else ParseActions.SaveBumpLog(text);//TODO que se manden todas juntas
     }
 
+
+    //fragments
+
     private String Sound() {
         return "  " + "- Sound:" + mSound + "(" + mSoundReason + ")\n";
     }
 
-    //final
-
     private String BtnRefresh() {
         return "  " + "- RefreshBTN:" + mRefreshButton + "(" + mRefreshButtonReason + ")\n";
     }
-
-    //fragments
 
     private String BtnSilence() {
         return "  " + "- SilenceBTN:" + mSilenceButton + "(" + mSilenceButtonReason + ")\n";
@@ -180,19 +186,15 @@ public class LogBump {
         for (Map.Entry<WeaconParse, ArrayList<String>> entry : weaconsHash.entrySet()) {
             WeaconParse we = entry.getKey();
             boolean c1 = we.isInteresting();
-            boolean c2 = occurrences.get(we) == 1;
+            boolean c2 = occurrences == null ? false : occurrences.get(we) == 1;
+            boolean c3 = we.inHome();
+            ArrayList<String> arr = new ArrayList<>();
             String extra = "";
-            if (c1 || c2) {
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("[");
-                if (c1) sb2.append("<3");
-                if (c2) {
-                    if (c1) sb2.append(" ");
-                    sb2.append("N");
-                }
-                sb2.append("] ");
-                extra = sb2.toString();
-            }
+
+            if (c1) arr.add("<3");
+            if (c2) arr.add("N");
+            if (c3) arr.add("H");
+            if (c1 || c2 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
 
             sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
         }//todo Agregar el "(NEW)"
@@ -213,5 +215,5 @@ public class LogBump {
         READ, DETECTION, BTN_REFRESH, BTN_SILENCE, REMOVING_SILENCE_BUTTON, FORCED_REFRESH
     }
 
-    public enum ReasonToNotify {NONE, APPEARING, DISSAPIRARING, FETCHING, REMOVING_OBSOLETE_DATA, REMOVE_SILENCE_BUTTON}
+    public enum ReasonToNotify {NONE, APPEARING, DISSAPIRARING, FETCHING, REMOVING_OBSOLETE_DATA, PUT_REFRESHING, REMOVE_SILENCE_BUTTON}
 }
