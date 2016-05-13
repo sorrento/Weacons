@@ -6,10 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.stupidpeople.weacons.R;
 
 /**
  * Created by Milenko on 24/09/2015.
@@ -24,12 +27,12 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         a.recycle();
     }
 
-    public DividerItemDecoration(Drawable divider) {
+    public DividerItemDecoration(Context context, Drawable divider) {
 //        mDivider = divider;
 
 //        mDivider = divider.setColorFilter( 0xffff0000, PorterDuff.Mode.MULTIPLY );
 //        mDivider = divider.setColorFilter(Color.parseColor("#AE6118"));
-        divider.setColorFilter(0xFF5068F2, PorterDuff.Mode.MULTIPLY);
+        divider.setColorFilter(ContextCompat.getColor(context, R.color.colorDivider), PorterDuff.Mode.MULTIPLY);
         mDivider = divider;
     }
 
@@ -62,7 +65,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
                 final int size = mDivider.getIntrinsicHeight();
                 final int top = child.getTop() - params.topMargin;
                 final int bottom = top + size;
-                mDivider.setBounds(left, top, right, bottom);
+                mDivider.setBounds(left + 80, top, right, bottom);
                 mDivider.draw(c);
             }
         } else { //horizontal

@@ -1,5 +1,7 @@
 package com.stupidpeople.weacons;
 
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 
 import com.stupidpeople.weacons.Advanced.Chat;
@@ -12,6 +14,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import util.myLog;
 import util.parameters;
@@ -38,7 +42,8 @@ public class LogInManagement {
      * Informs the weacons detected, in order to send/update/remove  notification
      * and log in /out in the chat
      */
-    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected, LogBump logBump) {
+    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected, Context ctx, LogBump logBump) {
+
 
         lastWeaconsDetected = weaconsDetected;
         someoneQuitting = false;
@@ -47,10 +52,11 @@ public class LogInManagement {
         try {
 
             //Check differences with last scanning and keep accumulation history
-            checkDisappearing(logBump);
+            checkDisappearing(ctx, logBump);
             checkAppearing();
 
             now = new CurrentSituation(weaconsDetected, occurrences);
+            boolean shouldFetch = now.anyFetchable() && now.anyInteresting;
 
             logBump.setOccurrences(occurrences);
             logBump.setSituation(now);
@@ -61,7 +67,9 @@ public class LogInManagement {
                 if (someoneQuitting)
                     logBump.setReasonToNotify(LogBump.ReasonToNotify.DISSAPIRARING);
 
-                Notify(logBump);
+                if (shouldFetch) fetchAllActiveAndInform(ctx, logBump);
+                else Inform(ctx, logBump);
+
             } else {
                 logBump.setReasonToNotify(LogBump.ReasonToNotify.NONE);
                 logBump.build();
@@ -74,12 +82,88 @@ public class LogInManagement {
         }
     }
 
+    public static void fetchAllActiveAndInform(final Context context, final LogBump logBump) {
+        markAsRefreshing(true);
+        Inform(context, logBump);
+        markAsRefreshing(false);
+
+        final MultiTaskCompleted multiTaskCompleted = new MultiTaskCompleted() {
+            @Override
+            public void OneTaskCompleted() {
+                Inform(context, logBump);
+            }
+
+            @Override
+            public void OnError(Exception e) {
+                myLog.error(e);
+            }
+        };
+        final int nTotal = getActiveWeacons().size();
+
+        MultiTaskCompleted singleFetch = new MultiTaskCompleted() {
+            int iTasksCompleted = 0;
+
+            @Override
+            public void OneTaskCompleted() {
+                iTasksCompleted++;
+                if (iTasksCompleted == nTotal) {
+                    allHaveBeenFetched(context, null);
+                    multiTaskCompleted.OneTaskCompleted();
+                }
+            }
+
+            @Override
+            public void OnError(Exception e) {
+                iTasksCompleted++;
+                if (iTasksCompleted == nTotal) multiTaskCompleted.OneTaskCompleted();
+            }
+        };
+
+        for (final WeaconParse we : activeWeacons) {
+            if (we.notificationRequiresFetching()) {
+                we.fetchForNotification(singleFetch);
+            } else {
+                singleFetch.OneTaskCompleted();
+            }
+        }
+    }
+
+    private static void Inform(Context context, LogBump logBump) {
+        // Notification
+        Notify(logBump);
+
+        //WeaconsList
+        context.sendBroadcast(new Intent(parameters.NEW_WEACONS_DATA));
+    }
+
+    public static ArrayList<WeaconParse> getActiveWeacons() {
+        activeWeacons = new ArrayList();
+        if (occurrences != null) {
+//            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
+            activeWeacons = new ArrayList(occurrences.keySet());
+        } else {
+//            myLog.add("No tenemos weacons en occurrences", "aut");
+        }
+        return activeWeacons;
+    }
+
+    /**
+     * indicates if there are wecons active that are not present in the notification
+     *
+     * @return
+     */
+    public static boolean othersActive() {
+        return numberOfActiveNonNotified() > 0;
+    }
+
+    //private
+
     /**
      * List of DISAPPEARING (NOT IN NEW). Modifies field occurrences
      *
      * @param logBump
      */
-    private static void checkDisappearing(LogBump logBump) {
+    private static void checkDisappearing(Context ctx, LogBump logBump) {
         Iterator<Map.Entry<WeaconParse, Integer>> itOld = occurrences.entrySet().iterator();
 
         while (itOld.hasNext()) {
@@ -101,7 +185,7 @@ public class LogInManagement {
 
                     if (n < -parameters.repeatedOffToDisappear) {
                         itOld.remove();
-                        Notify(logBump); //to remove from the message bar ("currently around...")
+                        Inform(ctx, logBump); //to remove from the message bar ("currently around...")
                     } else if (n == -we.getRepeatedOffRemoveFromNotification() && IsInNotification(we)) {
                         movingOutForNotification(we); //remove from notification
                     } else if (n == -parameters.repeatedOffToChatOff && Chat.IsInChat(we)) {
@@ -147,36 +231,13 @@ public class LogInManagement {
         }
     }
 
-    public static ArrayList<WeaconParse> getActiveWeacons() {
-        activeWeacons = new ArrayList();
-        if (occurrences != null) {
-//            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
-            activeWeacons = new ArrayList(occurrences.keySet());
-        } else {
-//            myLog.add("No tenemos weacons en occurrences", "aut");
-        }
-        return activeWeacons;
-    }
-
-    //Notifications
-
-//    static void NotifyRemovingObsoleteInfo() {
-//        //removing last info
-//        myLog.add("Removing info of paradas (last feching) from everyweacon", tag);
-//        for (WeaconParse we : weaconsToNotify) {
-//            Notifications.obsolete = true;
-//            we.setObsolete(true);
-//        }
-//        Notifications.showNotification(weaconsToNotify, false, true, now.anyInteresting);
-////        lastTimeWeFetched = false;
-//    }
-
     private static void movingInForNotification(WeaconParse we) {
         occurrences.put(we, 1);
         myLog.add("Just entering in: " + we.getName(), tag);
         someOneAppearing = true;
 //        anyChange = true;//Just appeared this weacon
-        weaconsToNotify.add(we);
+//        weaconsToNotify.add(we);
+        weaconsToNotify.add(0, we);
     }
 
     private static void movingOutForNotification(WeaconParse we) {
@@ -186,6 +247,8 @@ public class LogInManagement {
 //        anyChange = true;
     }
 
+
+    //NOTIFICATIONS
 
     private static void Notify(LogBump logBump) {
         boolean sound = anyInterestingAppearing && !now.anyHome;
@@ -225,78 +288,8 @@ public class LogInManagement {
 
     }
 
-//    public static void NotifyFetching(final boolean sound, final boolean anyInteresting) {
-//        MultiTaskCompleted listener = new MultiTaskCompleted() {
-//            int i = 0;
-//
-//            @Override
-//            public void OneTaskCompleted() {
-//                i += 1;
-//                myLog.add("terminada ina task=" + i + "/" + now.nFetchings, "MHP");
-//
-//                if (i == now.nFetchings) {
-//                    myLog.add("a lanzar la notificaicno conjunta", tag);
-////                    lastTimeWeFetched = true;
-//                    Notifications.obsolete = false;
-//                    Notifications.showNotification(weaconsToNotify, sound, true, anyInteresting);
-//                }
-//            }
-//
-//            @Override
-//            public void OnError(Exception e) {
-//                i++;
-//                myLog.add("Teminada una tarea, pero con error " + i + "/" + now.nFetchings, "MHP");
-//                myLog.add(Log.getStackTraceString(e), "err");
-//            }
-//        };
-//
-//        for (final WeaconParse we : weaconsToNotify) {
-//            if (we.notificationRequiresFetching()) {
-//                we.fetchForNotification(listener);
-//            }
-//        }
-//    }
-
-/////////////////
-
-
-    //NOTIFICATIONS
     private static boolean IsInNotification(WeaconParse we) {
         return weaconsToNotify.contains(we);
-    }
-
-//    public static void refresh(Context ctx) {
-//        myLog.add("Refreshing the notification", tag);
-//        Toast.makeText(ctx, R.string.refreshing_notif, Toast.LENGTH_SHORT).show();
-//        NotifyForcingFetching();
-//    }
-//
-//    private static void NotifyForcingFetching() {
-//
-//        // Put zero en occurrences
-//        try {
-//            for (WeaconParse we : occurrences.keySet()) {
-//                occurrences.put(we, 0);
-//            }
-//        } catch (Exception e) {
-//            myLog.error(e);
-//        }
-//        NotifyFetching(false, true);
-//    }
-//
-//    public static ArrayList<WeaconParse> getNotifiedWeacons() {
-//        return weaconsToNotify;
-//    }
-
-
-    /**
-     * indicates if there are wecons active that are not present in the notification
-     *
-     * @return
-     */
-    public static boolean othersActive() {
-        return numberOfActiveNonNotified() > 0;
-
     }
 
     private static int numberOfActiveNonNotified() {
@@ -307,36 +300,37 @@ public class LogInManagement {
         return nactive - nnotified;
     }
 
-    public static void FetchAllActive(final MultiTaskCompleted multiTaskCompleted) {
-        final int nTotal = getActiveWeacons().size();
+    private static void allHaveBeenFetched(final Context ctx, final LogBump logBump) {
+//        if (t != null) {
+//            t.cancel();
+//            t.purge();
+//        }
 
+        final Timer t = new Timer();
 
-        MultiTaskCompleted listener = new MultiTaskCompleted() {
-            int iTaksCompleted = 0;
-
+        TimerTask task = new TimerTask() {
             @Override
-            public void OneTaskCompleted() {
-                iTaksCompleted++;
-                if (iTaksCompleted == nTotal) multiTaskCompleted.OneTaskCompleted();
-            }
-
-            @Override
-            public void OnError(Exception e) {
-                iTaksCompleted++;
-                if (iTaksCompleted == nTotal) multiTaskCompleted.OneTaskCompleted();
+            public void run() {
+                myLog.add("------han pasado los 30seg", LogBump.tag);
+                informWeaconsObsolete(ctx, new LogBump(LogBump.LogType.OBSOLETE_REMOVAL));
+                t.cancel();
             }
         };
 
-        for (final WeaconParse we : activeWeacons) {
-            if (we.notificationRequiresFetching()) {
-                we.fetchForNotification(listener);
-            } else {
-                listener.OneTaskCompleted();
-            }
-        }
+        t.schedule(task, 30000);
 
     }
 
+    private static void informWeaconsObsolete(Context ctx, LogBump logBump) {
+        for (WeaconParse we : activeWeacons) we.setObsolete(true);
+        Inform(ctx, logBump);
+    }
+
+    private static void markAsRefreshing(boolean b) {
+        for (WeaconParse we : activeWeacons) {
+            if (we.notificationRequiresFetching()) we.refreshing = b;
+        }
+    }
 
     /**
      * Created by Milenko on 04/03/2016.

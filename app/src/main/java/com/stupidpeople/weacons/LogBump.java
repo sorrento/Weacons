@@ -111,8 +111,8 @@ public class LogBump {
         int nRead = spots == null ? 0 : spots.size();
         StringBuilder sb = new StringBuilder();
 
-        if (reasonsToNotify == null) {
-            reasonsToNotify = new ArrayList<>();
+        if (reasonsToNotify.size() == 0) {
+//            reasonsToNotify = new ArrayList<>();
             reasonsToNotify.add(ReasonToNotify.NONE);
         }
 
@@ -212,7 +212,7 @@ public class LogBump {
     }
 
     public enum LogType {
-        READ, DETECTION, BTN_REFRESH, BTN_SILENCE, REMOVING_SILENCE_BUTTON, FORCED_REFRESH
+        READ, DETECTION, BTN_REFRESH, BTN_SILENCE, REMOVING_SILENCE_BUTTON, REFRESHING, OBSOLETE_REMOVAL, FORCED_REFRESH_ACTIVE_SCREEN, FORCED_REFRESH
     }
 
     public enum ReasonToNotify {NONE, APPEARING, DISSAPIRARING, FETCHING, REMOVING_OBSOLETE_DATA, PUT_REFRESHING, REMOVE_SILENCE_BUTTON}

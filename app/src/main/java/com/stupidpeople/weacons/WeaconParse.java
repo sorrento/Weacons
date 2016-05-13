@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
-import android.util.Log;
 
 import com.parse.ParseClassName;
 import com.parse.ParseException;
@@ -359,7 +358,7 @@ public class WeaconParse extends ParseObject {
             isInteresting = ParseActions.isInteresting(getObjectId());
 
         } catch (Exception e) {
-            myLog.add(Log.getStackTraceString(e), "err");
+            myLog.error(e);
         }
         return this;
     }

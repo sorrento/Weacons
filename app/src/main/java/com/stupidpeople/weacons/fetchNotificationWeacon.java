@@ -37,6 +37,9 @@ public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Re
         }
 
         return response;
+
+        //TO support SOAP see this
+//        http://stackoverflow.com/questions/297586/how-to-call-a-soap-web-service-on-android
     }
 
     @Override

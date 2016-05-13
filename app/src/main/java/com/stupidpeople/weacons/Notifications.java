@@ -7,14 +7,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
-import com.stupidpeople.weacons.ListActivity.WeaconListActivityButton;
-import com.stupidpeople.weacons.ready.MultiTaskCompleted;
+import com.stupidpeople.weacons.ListActivity.WeaconListActivity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import util.myLog;
 import util.parameters;
@@ -26,9 +22,9 @@ public class Notifications {
 
     public static boolean isShowingNotification = false;
     public static boolean mSilenceButton;
+
     static String tag = "NOTIF";
-    static Timer t = new Timer();
-    static boolean obsolete = false;
+    //    static Timer t = new Timer();
     private static NotificationManager mNotificationManager;
     private static Context mContext;
     private static int idNotiOcurrences = 102;
@@ -74,7 +70,7 @@ public class Notifications {
     public static void Notify(ArrayList<WeaconParse> weacons, int nOtherActive, boolean sound, boolean autofetching,
                               boolean buttonRefresh, boolean buttonSilence, LogBump logBump) {
         mWeacons = weacons;
-        Collections.reverse(mWeacons); //so the newest appears first
+//        Collections.reverse(mWeacons); //so the newest appears first
         mNOtherActive = nOtherActive;
         mSound = sound;
         mAutoFetching = autofetching;
@@ -84,24 +80,20 @@ public class Notifications {
 
         //para ver por qué no se borra la notificacion solita
         myLog.add(".....Weacons a notificar:" + mWeacons.size() + "|butnRefresh=" + buttonRefresh + "|autofet=" + mAutoFetching, tag);
+        Notify(logBump);
 
-        if (buttonRefresh && mAutoFetching) {//if there is the refresh button means at least one is fetchable
-            logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-            RefreshNotification(logBump);
-        } else {
-            Notify(logBump);
-        }
+//        if (buttonRefresh && mAutoFetching) {//if there is the refresh button means at least one is fetchable
+////            logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+////            RefreshNotification(logBump);
+//            LogInManagement.fetchActiveWeacons(mContext);
+//        } else {
+//            Notify(logBump);
+//        }
     }
 
-    private static void markAsRefreshing(boolean b) {
-        for (WeaconParse we : mWeacons) {
-            if (we.notificationRequiresFetching()) we.refreshing = b;
-        }
-    }
-
-    private static void Notify(LogBump logBump) {
+    public static void Notify(LogBump logBump) {
         int nWe = mWeacons.size();
-        t.cancel();
+//        t.cancel();
 
         if (mWeacons == null) {
             myLog.add("Se ha mandado a notificar una lista null de weacons", "OJO");
@@ -117,64 +109,64 @@ public class Notifications {
         }
     }
 
-    public static void RefreshNotification(final LogBump logBump) {
-        final int nTotal = mWeacons.size();
+//    public static void RefreshNotification(final LogBump logBump) {//ELIMINAR
+//        final int nTotal = mWeacons.size();
+//
+//        //just show "refreshing"
+//        markAsRefreshing(true);
+//        logBump.setReasonToNotify(LogBump.ReasonToNotify.PUT_REFRESHING);
+//        Notify(logBump);
+//        mSound = false;
+//
+//        MultiTaskCompleted listener = new MultiTaskCompleted() {
+//            int iTaksCompleted = 0;
+//
+//            @Override
+//            public void OneTaskCompleted() {
+//                iTaksCompleted++;
+//                if (iTaksCompleted == nTotal) allHaveBeenFetched(logBump);
+//            }
+//
+//            @Override
+//            public void OnError(Exception e) {
+//                iTaksCompleted++;
+//                if (iTaksCompleted == nTotal) allHaveBeenFetched(logBump);
+//            }
+//        };
+//
+//        for (final WeaconParse we : mWeacons) {
+//            if (we.notificationRequiresFetching()) {
+//                we.fetchForNotification(listener);
+//            } else {
+//                listener.OneTaskCompleted();
+//            }
+//        }
+//    }
 
-        //just show "refreshing"
-        markAsRefreshing(true);
-        logBump.setReasonToNotify(LogBump.ReasonToNotify.PUT_REFRESHING);
-        Notify(logBump);
-        mSound = false;
+//    private static void allHaveBeenFetched(final LogBump logBump) {
+//
+//        markAsRefreshing(false);
+//        Notify(logBump);
+//
+//        t = new Timer();
+//        t.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                myLog.add("------han pasado los 30seg", LogBump.tag);
+//                NotifyRemovingObsoleteInfo(logBump);
+//            }
+//        }, 30000, 550000);
+//    }
 
-        MultiTaskCompleted listener = new MultiTaskCompleted() {
-            int iTaksCompleted = 0;
-
-            @Override
-            public void OneTaskCompleted() {
-                iTaksCompleted++;
-                if (iTaksCompleted == nTotal) allHaveBeenFetched(logBump);
-            }
-
-            @Override
-            public void OnError(Exception e) {
-                iTaksCompleted++;
-                if (iTaksCompleted == nTotal) allHaveBeenFetched(logBump);
-            }
-        };
-
-        for (final WeaconParse we : mWeacons) {
-            if (we.notificationRequiresFetching()) {
-                we.fetchForNotification(listener);
-            } else {
-                listener.OneTaskCompleted();
-            }
-        }
-    }
-
-    private static void allHaveBeenFetched(final LogBump logBump) {
-
-        markAsRefreshing(false);
-        Notify(logBump);
-
-        t = new Timer();
-        t.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                myLog.add("------han pasado los 30seg", LogBump.tag);
-                NotifyRemovingObsoleteInfo(logBump);
-            }
-        }, 30000, 550000);
-    }
-
-    private static void NotifyRemovingObsoleteInfo(LogBump logBump) {
-        //Removing last info
-        myLog.add("Removing info of paradas (last feching) from everyweacon", LogBump.tag);
-        for (WeaconParse we : mWeacons) {
-            we.setObsolete(true);
-        }
-        logBump.setReasonToNotify(LogBump.ReasonToNotify.REMOVING_OBSOLETE_DATA);
-        Notify(logBump);
-    }
+//    private static void NotifyRemovingObsoleteInfo(LogBump logBump) {
+//        //Removing last info
+//        myLog.add("Removing info of paradas (last feching) from everyweacon", LogBump.tag);
+//        for (WeaconParse we : mWeacons) {
+//            we.setObsolete(true);
+//        }
+//        logBump.setReasonToNotify(LogBump.ReasonToNotify.REMOVING_OBSOLETE_DATA);
+//        Notify(logBump);
+//    }
 
     private static void NotifyMultiple(LogBump logBump) {
         Intent delete = new Intent(parameters.deleteIntentName);
@@ -213,7 +205,7 @@ public class Notifications {
 
         // On Click TODO refresh when clicked and compact
 //        Intent resultIntent = new Intent(mContext, WeaconListActivity.class);
-        Intent resultIntent = new Intent(mContext, WeaconListActivityButton.class);
+        Intent resultIntent = new Intent(mContext, WeaconListActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         notif.setContentIntent(pendingIntent);
 

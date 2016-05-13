@@ -80,7 +80,7 @@ public class StringUtils {
     public static String Listar(List<WifiSpot> list) {
         StringBuilder sb = new StringBuilder();
         for (WifiSpot ws : list) {
-            sb.append("(" + ws.getSSID() + ", " + ws.getObjectId() + ") |");
+            sb.append(ws.getSSID() + " | " + ws.getObjectId() + " | udpd:" + ws.getUpdatedAt() + "\n");
         }
         return sb.toString();
     }

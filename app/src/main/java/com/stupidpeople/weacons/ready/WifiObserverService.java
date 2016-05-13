@@ -15,7 +15,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.ResultCallback;
@@ -52,13 +51,13 @@ import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeede
 public class WifiObserverService extends Service implements ResultCallback<Status> {
 
     public static boolean serviceIsActive;
+    public static SharedPreferences prefs = null;
     String tag = "wifi";
     int iScan = 0;
     private Context mContext;
     private WifiManager wifiManager;
     private WifiReceiver receiverWifi;
     private RefreshReceiver refreshReceiver;
-    private SharedPreferences prefs = null;
 
     private void addTestWeacons(HashSet<WeaconParse> weaconsDetected) {
         ParseQuery<WeaconParse> q = ParseQuery.getQuery(WeaconParse.class);
@@ -117,7 +116,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
             myLog.add("Is first time rumning" + prefs.getBoolean("firstrunService", true), "aut");
             if (prefs.getBoolean("firstrunService", true)) {
-                ParseActions.getSpotsForBusStops(this);
+                ParseActions.getNearWeacons(this);
                 prefs.edit().putBoolean("firstrunService", false).commit();
             } else {
                 DownloadWeaconsIfNeeded(this);
@@ -249,14 +248,16 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 action = intent.getAction();
 
                 if (action.equals(parameters.refreshIntentName)) {
-
+                    if (LogInManagement.getActiveWeacons().size() == 0) return;
                     if (!LogInManagement.now.anyInteresting)
                         ParseActions.AddToInteresting(Notifications.getNotifiedWeacons());
                     Notifications.mSilenceButton = true;
 
-                    LogBump logBump = new LogBump(LogBump.LogType.BTN_REFRESH);
-                    logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-                    Notifications.RefreshNotification(logBump);
+//                    LogBump logBump = new LogBump(LogBump.LogType.BTN_REFRESH);
+//                    logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+//                    Notifications.RefreshNotification(logBump);
+
+                    LogInManagement.fetchAllActiveAndInform(mContext, new LogBump(LogBump.LogType.FORCED_REFRESH));
 
                 } else if (action.equals(parameters.silenceIntentName)) {
                     ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
@@ -310,7 +311,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                             //TEST insertion of weacons
                             if (parameters.testWeacons) addTestWeacons(weaconHashSet);
 
-                            LogInManagement.setNewWeacons(weaconHashSet, logBump);
+                            LogInManagement.setNewWeacons(weaconHashSet, mContext, logBump);
                         }
                     }, mContext);
 
@@ -322,9 +323,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
                             LogInManagement.now.anyFetchable()) {
-                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
-                        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-                        Notifications.RefreshNotification(logBump);
+//                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
+//                        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
+//                        Notifications.RefreshNotification(logBump);
+                        LogInManagement.fetchAllActiveAndInform(mContext, new LogBump(LogBump.LogType.FORCED_REFRESH_ACTIVE_SCREEN));
                     }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
@@ -336,7 +338,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 //                adb in ADT by default you can find in:
                 //                    adt-installation-dir/sdk/platform-tools
             } catch (Exception e) {
-                myLog.add(Log.getStackTraceString(e), "err");
+                myLog.error(e);
             }
         }
     }

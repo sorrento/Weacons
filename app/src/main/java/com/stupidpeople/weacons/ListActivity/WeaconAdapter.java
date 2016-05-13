@@ -27,6 +27,10 @@ public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements
         this.mContext = context;
     }
 
+    public void setWeaconItemList(List<WeaconParse> weaconItemList) {
+        this.weaconItemList = weaconItemList;
+    }
+
     @Override
     public WeaconHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.list_row, null);

@@ -120,6 +120,8 @@ public class HelperBus extends HelperBaseFecthNotif {
     public SpannableString NotiSingleExpandedContent() {
         SpannableString msg = new SpannableString("");
         try {
+            if (we.refreshing)
+                return SpannableString.valueOf(mContext.getString(R.string.refreshing));
 
             if (we.obsolete) {
                 msg = SpannableString.valueOf(mContext.getString(R.string.press_refresh_bus_long));

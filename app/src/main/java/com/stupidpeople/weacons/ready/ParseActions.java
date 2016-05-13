@@ -37,6 +37,7 @@ import util.parameters;
  */
 public abstract class ParseActions {
 
+    private static final int WEEK_IN_MILI = 7 * 24 * 60 * 60 * 1000;
     private static String tag = "PIN";
 
     /**
@@ -158,14 +159,14 @@ public abstract class ParseActions {
     }
 
     /**
-     * get the bus stops around and pin them
+     * get the weacons around and pin them
      */
-    public static void getSpotsForBusStops(Context ctx) {
+    public static void getNearWeacons(Context ctx) {
         LocationCallback listener = new LocationCallback() {
             @Override
             public void LocationReceived(GPSCoordinates gps) {
                 ParseGeoPoint pos = gps.getGeoPoint();
-                getSpotsForBusStops(pos, null);
+                getNearWeacons(pos, null);
             }
 
             @Override
@@ -182,44 +183,56 @@ public abstract class ParseActions {
     }
 
 
-    //Bus stops
+    public static void getNearWeacons(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
 
-    /**
-     * The 300 nearest weacons bus and their spots. Ten pin them in local
-     *
-     * @param pos
-     */
-    public static void getSpotsForBusStops(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
-
-        //Query Weacons
-        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
-        queryWe.whereNear("GPS", pos)
-                .setLimit(300)
-                .whereEqualTo("Type", "bus_stop");
-        myLog.add("---For bringing spots, around" + pos, "OJO");
+//        //Query Weacons
+//        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
+//        queryWe.whereNear("GPS", pos)
+//                .setLimit(300)
+//                .whereEqualTo("Type", "bus_stop");
+//        myLog.add("---For bringing spots, around" + pos, "OJO");
         //Query WifiSpots
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
-        query.whereMatchesQuery("associated_place", queryWe)
+        query
+//                .whereMatchesQuery("associated_place", queryWe)
                 .whereWithinKilometers("GPS", pos, 1)
                 .setLimit(1000)
                 .include("associated_place")
                 .findInBackground(new FindCallback<WifiSpot>() {
                     @Override
-                    public void done(List<WifiSpot> list, ParseException e) {
+                    public void done(final List<WifiSpot> list, ParseException e) {
                         if (e == null) {
-                            try {
-//                                ParseObject.unpinAll(parameters.pinWeacons); TODO is it necesary to unpin?
-//                                myLog.add("---Estamos pinneando:\n" + StringUtils.Listar(list), "OJO");
-                                ParseObject.pinAll(parameters.pinWeacons, list);
-                            } catch (ParseException e1) {
-                                myLog.error(e);
-                            }
+                            if (hasPassedAWeek())
+                                ParseObject.unpinAllInBackground(parameters.pinWeacons, new DeleteCallback() {
+                                    @Override
+                                    public void done(ParseException e) {
+                                        try {
+                                            WifiObserverService.prefs.edit()
+                                                    .putLong("deletedLocalDb", new Date()
+                                                            .getTime()).commit();
+
+                                            ParseObject.pinAll(parameters.pinWeacons, list);
+                                        } catch (ParseException e1) {
+                                            myLog.error(e1);
+                                        }
+                                    }
+                                });
+
                             if (mtc != null) mtc.OneTaskCompleted();
                         } else {
                             myLog.error(e);
                         }
                     }
                 });
+    }
+
+    private static boolean hasPassedAWeek() {
+
+        long last = WifiObserverService.prefs.getLong("deletedLocalDb", 0);
+        long now = new Date().getTime();
+        long timeDiff = now - last;
+
+        return timeDiff > WEEK_IN_MILI;
     }
 
     public static void getBusStopsInRadius(GPSCoordinates mGps, double kms, FindCallback<WeaconParse> listener) {
@@ -421,7 +434,8 @@ public abstract class ParseActions {
     private static void SaveIntensities(List<ScanResult> sr, final WeaconParse weBusStop) {
         final ArrayList<ParseObject> intensities = new ArrayList<ParseObject>();
         for (ScanResult r : sr) {
-            ParseObject intensity = ParseObject.create("Intensities");
+//            ParseObject intensity = ParseObject.create("Intensities");
+            ParseObject intensity = new ParseObject("Intensities");
             intensity.put("level", r.level);
             intensity.put("weMeasured", weBusStop);
             intensity.put("ssid", r.SSID);
@@ -452,6 +466,9 @@ public abstract class ParseActions {
         });
     }
 
+
+    // Load weacons management
+
     /**
      * Check if there is some newer weacons in the area (respect to the last pinning in local) and if the nearest weacon
      * is the same as the one on local (to check if we are in new area)
@@ -469,7 +486,7 @@ public abstract class ParseActions {
                         if (b) {
                             //actualizamos
                             myLog.add("***There are new SPOTS in the zone , gonna update", "OJO");
-                            getSpotsForBusStops(point, null);
+                            getNearWeacons(point, null);
                         } else {
                             myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "OJO");
                         }
@@ -481,15 +498,15 @@ public abstract class ParseActions {
                         if (b) {
                             //actualizamos
                             myLog.add("***There are newer in the zone (updatedAt), gonna update", "OJO");
-                            getSpotsForBusStops(point, null);
+                            getNearWeacons(point, null);
                         } else {
                             //Check if we moved
-                            anyNewInArea(point, newInAreaCB);
+                            didWeMoved(point, newInAreaCB);
                         }
                     }
                 };
 
-                anyUpdated(point, anyUpdatedCallback);
+                anyNewer(point, anyUpdatedCallback);
             }
 
             @Override
@@ -510,8 +527,17 @@ public abstract class ParseActions {
      *
      * @param point
      */
-    private static void anyNewInArea(ParseGeoPoint point, final booleanCallback bcb) {
+    private static void didWeMoved(ParseGeoPoint point, final booleanCallback bcb) {
         try {
+            // if the nearest is <500m then no
+            ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
+            WifiSpot first = q.whereNear("GPS", point).fromPin(parameters.pinWeacons).getFirst();
+            if (point.distanceInKilometersTo(first.getGPS()) < 0.5) {
+                bcb.OnResult(false);
+                myLog.add("no nos hemos movido, el mas cercano está a menos de 500mts", "OJO");
+                return;
+            }
+
             // Local
             ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
             query.whereWithinKilometers("GPS", point, 1)
@@ -529,7 +555,7 @@ public abstract class ParseActions {
                         }
                     });
         } catch (ParseException e) {
-            e.printStackTrace();
+            myLog.error(e);
         }
 
     }
@@ -540,48 +566,60 @@ public abstract class ParseActions {
      * @param point
      * @param bcb
      */
-    private static void anyUpdated(ParseGeoPoint point, final booleanCallback bcb) {
-        try {
-            // Local
-            ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
-            query.whereWithinKilometers("GPS", point, 1)
-                    .fromPin(parameters.pinWeacons)
-                    .orderByDescending("updatedAt");
-            final WifiSpot wiLocal = query.getFirst();
+    private static void anyNewer(final ParseGeoPoint point, final booleanCallback bcb) {
+        // Web. Query Weacons first
+        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
+        queryWe.whereNear("GPS", point)
+                .setLimit(300)
+                .whereEqualTo("Type", "bus_stop");
+        myLog.add("----For comparation, quering aaround         " + point, "OJO");
 
-            // Web. Query Weacons first
-            ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
-            queryWe.whereNear("GPS", point)
-                    .setLimit(300)
-                    .whereEqualTo("Type", "bus_stop");
-            myLog.add("----For comparation, quering aaround         " + point, "OJO");
-            ParseQuery<WifiSpot> queryW = ParseQuery.getQuery(WifiSpot.class);
-            queryW.whereWithinKilometers("GPS", point, 1)
-                    .whereMatchesQuery("associated_place", queryWe)
-                    .orderByDescending("updatedAt")
-                    .getFirstInBackground(new GetCallback<WifiSpot>() {
-                        @Override
-                        public void done(WifiSpot wifiSpot, ParseException e) {
-                            if (e != null) {
-                                myLog.add("tenemos un error al recibir los de la web en la zona:" + e, "OJO");
+        ParseQuery<WifiSpot> queryWi = ParseQuery.getQuery(WifiSpot.class);
+        queryWi.whereWithinKilometers("GPS", point, 1)
+                .whereMatchesQuery("associated_place", queryWe)
+                .orderByDescending("updatedAt")
+                .getFirstInBackground(new GetCallback<WifiSpot>() {
+                    @Override
+                    public void done(WifiSpot wifiSpot, ParseException e) {
+                        if (e != null) {
+                            myLog.add("tenemos un error al recibir los de la web en la zona:" + e, "OJO");
+                        } else {
+                            if (wifiSpot != null) {
+
+                                boolean b = getWifisSameDateInLocalDB(wifiSpot.getCreatedAt(), point) == 0;
+
+                                if (b) myLog.add("[newer ]Need to update localBBD", "OJO");
+                                else myLog.add("[newer ]Need to update localBBD", "OJO");
+
+                                bcb.OnResult(b);
+
+//                                    Date dateWeb = wifiSpot.getUpdatedAt();
+//                                    myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "OJO");
+//                                    myLog.add("obWeb=" + wifiSpot.getObjectId() + " OBLocal=" + wiLocal.getObjectId(), "OJO");
+//                                    myLog.add("obWeb=" + wifiSpot + " OBLocal=" + wiLocal, "OJO");
                             } else {
-                                if (wifiSpot == null) {
-                                    myLog.add("wifispoit de la web es null", "OJO");
-
-                                } else {
-                                    Date dateWeb = wifiSpot.getUpdatedAt();
-                                    myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "OJO");
-                                    myLog.add("obWeb=" + wifiSpot.getObjectId() + " OBLocal=" + wiLocal.getObjectId(), "OJO");
-                                    myLog.add("obWeb=" + wifiSpot + " OBLocal=" + wiLocal, "OJO");
-                                    bcb.OnResult(dateWeb.after(wiLocal.getUpdatedAt()));
-                                }
+                                myLog.add("wifispoit de la web es null", "OJO");
                             }
-
                         }
-                    });
+
+                    }
+                });
+
+    }
+
+    private static int getWifisSameDateInLocalDB(Date date, ParseGeoPoint point) {
+        ParseQuery<WifiSpot> queryWi = ParseQuery.getQuery(WifiSpot.class);
+        int count = 0;
+        try {
+            count = queryWi.whereWithinKilometers("GPS", point, 1)
+                    .whereEqualTo("createdAt", date)
+                    .fromPin(parameters.pinWeacons)
+                    .count();
         } catch (ParseException e) {
             myLog.error(e);
         }
+        myLog.add("# locales dcon misma fecha de creación (" + date + ")=" + count, "OJO");
+        return count;
     }
 
 

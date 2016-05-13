@@ -34,10 +34,9 @@ public class parameters {
     public static final String CHAT = "Chat";
 
     public static final int repetitionsTurnOffFetching = 3;
-
+    public static final String NEW_WEACONS_DATA = "newWeaconData";
     //SAPO
     final static int LogFileSize = 100; //in kilobytes, after that, new is started
-
     public static Integer hitRepetitions = 20; //number of HitSapo in SAPO for considering a SSID important
     public static int minTimeForUpdates = 60 * 1; //in mins
 

@@ -45,14 +45,21 @@ public class WifiSpot extends ParseObject {
 
     //GETTERS
     public String getBSSID() {
-        String BSSID = getString("bssid");
-        return BSSID;
+        return getString("bssid");
+    }
+
+    public void setBSSID(String BSSID) {
+        put("bssid", BSSID);
     }
 
     //SETTERS
 
-    public void setBSSID(String BSSID) {
-        put("bssid", BSSID);
+    public ParseGeoPoint getGPS() {
+        return getParseGeoPoint("GPS");
+    }
+
+    public void setGPS(ParseGeoPoint GPS) {
+        put("GPS", GPS);
     }
 
     public String getSSID() {
@@ -85,10 +92,6 @@ public class WifiSpot extends ParseObject {
 
     public String summarizeWithWeacon() {
         return getSSID() + "(" + getBSSID() + ") -> \"" + getWeacon().getName() + "\"";
-    }
-
-    public void setGPS(ParseGeoPoint GPS) {
-        put("GPS", GPS);
     }
 
     public void setOwner(ParseUser owner) {
