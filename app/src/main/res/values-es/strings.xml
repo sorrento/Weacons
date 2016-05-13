@@ -25,4 +25,5 @@
     <string name="non_of_these">Ninguna</string>
     <string name="refreshing">Actualizando...</string>
     <string name="no_bus_stop_100">No hay paradas en un radio de 100 mts.</string>
+    <string name="no_data_available">No hay weacons activos</string>
 </resources>

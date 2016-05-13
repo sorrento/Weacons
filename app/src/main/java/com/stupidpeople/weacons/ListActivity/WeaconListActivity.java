@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
@@ -17,6 +18,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -55,6 +57,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     private ArrayList<WeaconParse> activeWeacons;
     private SwipeRefreshLayout mRefresh;
     private newDataReceiver refreshReceiver;
+    private TextView emptyView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
             mRecyclerView.addItemDecoration(new DividerItemDecoration(this, getResources().getDrawable(R.drawable.abc_list_divider_mtrl_alpha)));
 
+            emptyView = (TextView) findViewById(R.id.empty_view);
+
             //Fill the list with launched
             //TODO if there is no data, refresh
             activeWeacons = LogInManagement.getActiveWeacons();
@@ -82,6 +87,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             adapter.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
 
                     //TODO make work click over item
 //                    WeaconParse we = (WeaconParse) v.getTag();
@@ -126,7 +132,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     }
 
     void refreshList() {
-        if (LogInManagement.getActiveWeacons().size() == 0) return;
+        if (LogInManagement.getActiveWeacons().size() == 0) {
+            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            wifiManager.startScan();
+            return;
+        }
         Toast.makeText(this, R.string.refreshing, Toast.LENGTH_SHORT).show();
 
         sendBroadcast(new Intent(parameters.refreshIntentName));
@@ -148,7 +158,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     private void startServiceIfNeeded() {
         boolean isActive = WifiObserverService.serviceIsActive;
-        myLog.add("Is service active: " + isActive, tag);
+        myLog.add("Is service active: " + isActive, "wifi");
         if (!isActive) mContext.startService(new Intent(mContext, WifiObserverService.class));
     }
 
@@ -294,6 +304,16 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     @Override
     protected void onResume() {
         super.onResume();
+
+        //Show NO WEACON message
+        if (LogInManagement.getActiveWeacons().size() == 0) {
+            mRecyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.VISIBLE);
+        } else {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
+        }
+
         refreshList();
     }
 

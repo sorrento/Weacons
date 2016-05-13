@@ -309,11 +309,15 @@ public class LogInManagement {
         final Timer t = new Timer();
 
         TimerTask task = new TimerTask() {
+            int im = 0;
+
             @Override
             public void run() {
-                myLog.add("------han pasado los 30seg", LogBump.tag);
+                im++;
+                myLog.add("------han pasado los 30seg: " + im, LogBump.tag);
                 informWeaconsObsolete(ctx, new LogBump(LogBump.LogType.OBSOLETE_REMOVAL));
                 t.cancel();
+                t.purge();
             }
         };
 

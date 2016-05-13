@@ -25,4 +25,5 @@
  <string name="refreshing">Actualitzant</string>
  <string name="non_of_these">Cap d\'aquestes</string>
  <string name="no_bus_stop_100">No hi ha parades en un radi de 100 mts.</string>
+ <string name="no_data_available">No hi ha weacons actius</string>
 </resources>
