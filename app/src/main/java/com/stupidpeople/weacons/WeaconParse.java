@@ -27,6 +27,7 @@ import util.RoundImage;
 import util.imageUtils;
 import util.myLog;
 import util.parameters;
+import util.stringUtils;
 
 /**
  * Created by Milenko on 30/07/2015.
@@ -87,7 +88,24 @@ public class WeaconParse extends ParseObject {
     }
 
     public String getName() {
-        return getString("Name");
+        boolean prefix = true;
+
+        String extra = "";
+        if (prefix) {
+            boolean c1 = isInteresting();
+            boolean c3 = inHome();
+            ArrayList<String> arr = new ArrayList<>();
+
+            if (c1) arr.add("<3");
+            //        if (c2) arr.add("N");
+            if (c3) arr.add("H");
+            if (c1 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
+        }
+
+
+        String name = getString("Name");
+
+        return extra + name;
     }
 
     //SETTERS

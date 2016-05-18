@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 
+import java.util.Collections;
 import java.util.List;
 
 public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements View.OnClickListener {
@@ -23,12 +24,13 @@ public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements
     private View.OnClickListener listener;
 
     public WeaconAdapter(Context context, List<WeaconParse> weaconItemList) {
-        this.weaconItemList = weaconItemList;
         this.mContext = context;
+        setWeaconItemList(weaconItemList);
     }
 
     public void setWeaconItemList(List<WeaconParse> weaconItemList) {
         this.weaconItemList = weaconItemList;
+        Collections.reverse(this.weaconItemList);
     }
 
     @Override

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         buildGoogleApiClient();
     }
 
-    public LocationAsker(final Context ctx, final LocationCallback locationCallback, final double accuracyNeeded) {
+    public LocationAsker(final Context ctx, final double accuracyNeeded, final LocationCallback locationCallback) {
         this(ctx, locationCallback);
         iFail = 0;
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
@@ -113,21 +114,40 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
     public void onConnected(Bundle bundle) {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-        if (mLastLocation == null) {
-            myLog.add("Last location is null: gonna ask an update", tag);
-            // Create the LocationRequest object
-            mLocationRequest = LocationRequest.create()
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                    .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                    .setFastestInterval(1 * 1000); // 1 second, in milliseconds
-
-
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
-        } else {
+        if (mLastLocation == null)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                askCoarseLocation();
+            } else {
+                askFineLocation();
+            }
+        else {
             myLog.add("Localizacion recibida a la primera", tag);
             LocationReceivedOk(mLastLocation);
         }
+    }
+
+    private void askCoarseLocation() {
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_LOW_POWER)
+                .setNumUpdates(1)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+
+    }
+
+    private void askFineLocation() {
+        // Create the LocationRequest object
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
     private void LocationReceivedOk(Location mLastLocation) {
@@ -173,5 +193,6 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
             LocationReceivedOk(location);
         }
     }
+
 
 }

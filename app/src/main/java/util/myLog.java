@@ -44,10 +44,11 @@ public class myLog {
             Log.d(TAG, text);
 
             if (!initialized) {
-                initialize();
-                //Just to observe when we lost continuiti
-                File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_REC" + TAG + ".txt");
-                logFile.createNewFile();
+                //DOn't want this file of zero-size
+//                initialize();
+//                //Just to observe when we lost continuiti
+//                File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_REC" + TAG + ".txt");
+//                logFile.createNewFile();
 
             }
 
@@ -70,7 +71,7 @@ public class myLog {
     }
 
     public static void error(Exception e) {
-        myLog.error(e);
+        myLog.add(Log.getStackTraceString(e), "err");
     }
 
     public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {

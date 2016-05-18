@@ -10,6 +10,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -23,7 +24,6 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.parse.FindCallback;
-import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
@@ -47,8 +47,10 @@ import java.util.List;
 import util.myLog;
 import util.parameters;
 
+import static com.stupidpeople.weacons.StringUtils.Listar;
+
 public class WeaconListActivity extends ActionBarActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
-    private static final int REQUEST_READ_AND_CAMERA_PERMISSION = 101;
+    private static final int REQUEST_FINE_LOCATION_PERMISSION = 101;
     private RecyclerView mRecyclerView;
     private WeaconAdapter adapter;
     private Context mContext;
@@ -58,6 +60,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     private SwipeRefreshLayout mRefresh;
     private newDataReceiver refreshReceiver;
     private TextView emptyView;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +78,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             startServiceIfNeeded();
 
-            myLog.add("opening la lista activity", "aut");
+            myLog.add("opening la lista activity", "wifi");
             mRecyclerView = new RecyclerView(this);
             mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
             mRecyclerView.hasFixedSize();
@@ -116,7 +123,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             mRecyclerView.setAdapter(adapter);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_READ_AND_CAMERA_PERMISSION);//for Androis 6
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION_PERMISSION);//for Androis 6
             }
 
             refreshList();
@@ -176,60 +183,82 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_add_stop) {
-            OnClickImIn(null);
+            actionAddBusStop();
         }
 
         return true;
     }
 
-    public void OnClickImIn(View view) {
+    public void actionAddBusStop() {
         Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
 
-        final GetCallback<WeaconParse> oneParadaCallback = new GetCallback<WeaconParse>() {
+//        final GetCallback<WeaconParse> oneParadaCallback = new GetCallback<WeaconParse>() {
+//            @Override
+//            public void done(WeaconParse we, ParseException e) {
+//                if (e == null) {
+//                    int distanceMts = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
+//                    we.build(mContext);
+//                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distanceMts);
+//
+//                    //2. Check if the nearest weacon is inside 15 mts
+//                    String msg2;
+//                    if (distanceMts < 15) {
+//
+//                        msg2 = getString(R.string.updating_data);
+//                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
+//
+//                        uploadBusStop(we);
+//
+//                    } else {
+//
+//                        //bring all bustops in 100mts
+//                        myLog.add("Vamos a buscar en los 100 mts", "ADD_STOP");
+//                        FindCallback<WeaconParse> listener = new FindCallback<WeaconParse>() {
+//                            @Override
+//                            public void done(List<WeaconParse> list, ParseException e) {
+//                                if (e == null) {
+//                                    if (list == null || list.size() == 0) {
+//                                        myLog.add("enlos 100 mts hay NO HAY paradsas ", "ADD_STOP");
+//                                        Toast.makeText(mContext, R.string.no_bus_stop_100, Toast.LENGTH_SHORT).show();
+//                                    } else {
+//                                        myLog.add("enlos 100 mts hay paradsas " + list.size(), "ADD_STOP");
+//                                        showDialogDecision(list);
+//                                    }
+//                                } else myLog.add("eerror:" + e.getLocalizedMessage(), "ADD_STOP");
+//                            }
+//                        };
+//                        ParseActions.getBusStopsInRadius(mGps, 0.1, listener);
+//
+//                        msg2 = getString(R.string.go_closer);
+//                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
+//                    }
+//                    myLog.add(msg + msg2, tag);
+//
+//                } else {
+//                    myLog.error(e);
+//                }
+//            }
+//        };
+
+        final FindCallback<WeaconParse> nearestBusStopsCallback = new FindCallback<WeaconParse>() {
             @Override
-            public void done(WeaconParse we, ParseException e) {
+            public void done(List<WeaconParse> busStops, ParseException e) {
                 if (e == null) {
-                    int distanceMts = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
-                    we.build(mContext);
-                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distanceMts);
+                    myLog.add("... estos son las paradas cercanas en 100 mts y sin ssids:" +
+                            Listar((ArrayList<WeaconParse>) busStops), tag);
 
-                    //2. Check if the nearest weacon is inside 15 mts
-                    String msg2;
-                    if (distanceMts < 15) {
-
-                        msg2 = getString(R.string.updating_data);
-                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
-
-                        uploadBusStop(we);
-
+                    if (busStops.size() > 0) {
+                        showDialogDecision(busStops);
                     } else {
-
-                        //bring all bustops in 100mts
-                        myLog.add("Vamos a buscar en los 100 mts", "ADD_STOP");
-                        FindCallback<WeaconParse> listener = new FindCallback<WeaconParse>() {
-                            @Override
-                            public void done(List<WeaconParse> list, ParseException e) {
-                                if (e == null) {
-                                    if (list == null || list.size() == 0) {
-                                        myLog.add("enlos 100 mts hay NO HAY paradsas ", "ADD_STOP");
-                                        Toast.makeText(mContext, R.string.no_bus_stop_100, Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        myLog.add("enlos 100 mts hay paradsas " + list.size(), "ADD_STOP");
-                                        showDialogDecision(list);
-                                    }
-                                } else myLog.add("eerror:" + e.getLocalizedMessage(), "ADD_STOP");
-                            }
-                        };
-                        ParseActions.getBusStopsInRadius(mGps, 0.1, listener);
-
-                        msg2 = getString(R.string.go_closer);
-                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
+                        // Just inform there is no busstop around
+                        String msg = getString(R.string.no_bustop_around);
+                        myLog.add(msg, "ADD_STOP");
+                        Toast.makeText(mContext, msg, Toast.LENGTH_LONG).show();
                     }
-                    myLog.add(msg + msg2, tag);
-
                 } else {
                     myLog.error(e);
                 }
+
             }
         };
 
@@ -241,31 +270,54 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             @Override
             public void NotPossibleToReachAccuracy() {
+                //try with less accuracy
+                new LocationAsker(mContext, 18, new LocationCallback() {
+                    @Override
+                    public void LocationReceived(GPSCoordinates gps) {
 
+                    }
+
+                    @Override
+                    public void NotPossibleToReachAccuracy() {
+                        Toast.makeText(mContext, getString(R.string.gps_no_accuracy), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void LocationReceived(GPSCoordinates gps, double accuracy) {
+                        gotAccuracy(gps, accuracy);
+                    }
+                });
             }
 
             @Override
             public void LocationReceived(GPSCoordinates gps, double accuracy) {
-                Toast.makeText(mContext, "Got Position, Accuracy =" + accuracy, Toast.LENGTH_SHORT).show();
-                myLog.add("Ya tenemos la loclizacion con precicion:" + accuracy + gps, tag);
+                gotAccuracy(gps, accuracy);
+            }
+
+            private void gotAccuracy(GPSCoordinates gps, double accuracy) {
+                Toast.makeText(mContext, getString(R.string.gps_accuracy) + accuracy, Toast.LENGTH_SHORT).show();
+                myLog.add("Ya tenemos la loclizacion con precision:" + accuracy + gps, "ADD_STOP");
                 mGps = gps;
-                ParseActions.getClosestBusStop(gps, oneParadaCallback);
+//                ParseActions.getClosestBusStop(gps, oneParadaCallback);
+
+                ParseActions.getFreeBusStopsInRadius(gps, 100, nearestBusStopsCallback);
             }
         };
 
         //1. Get accurate position <10m
-        new LocationAsker(mContext, locationCallback, 10);
+        new LocationAsker(mContext, 10, locationCallback);
 
     }
 
-    private void showDialogDecision(final List<WeaconParse> list) {
+    private void showDialogDecision(final List<WeaconParse> busStops) {
         //create the list of strings
         final ArrayList<String> arr = new ArrayList<>();
         myLog.add("Vamos amostrar el dialog", "ADD_STOP");
 
-        for (int i = 0; i < list.size() - 1; i++) {
-            WeaconParse we = list.get(i);
-            String s = we.getParadaId() + " " + we.getName();
+        for (int i = 0; i < busStops.size() - 1; i++) {
+            WeaconParse we = busStops.get(i);
+            int dist = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
+            String s = we.getParadaId() + " " + we.getName() + " " + dist + "m";
             arr.add(s);
             myLog.add("Opcion:" + s, "ADD_STOP");
         }
@@ -277,7 +329,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 .itemsCallback(new MaterialDialog.ListCallback() {
                     @Override
                     public void onSelection(MaterialDialog materialDialog, View view, int i, CharSequence charSequence) {
-                        if (i < arr.size() - 1) uploadBusStop(list.get(i));
+                        if (i < arr.size() - 1) {
+                            WeaconParse we = busStops.get(i);
+                            we.build(mContext);
+                            uploadBusStopAndNotify(we);
+                        }
                         materialDialog.dismiss();
                     }
                 })
@@ -285,7 +341,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     }
 
-    private void uploadBusStop(WeaconParse we) {
+    private void uploadBusStopAndNotify(WeaconParse we) {
         //The notification is forced to show the recently acquired
         HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
         we.setInteresting(true);
@@ -293,7 +349,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         if (myHash == null) myHash = new HashSet<>();
         myHash.add(we);
 
-        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
+        LogBump logBump = new LogBump(LogBump.LogType.UPLOADED_BUSSTOP);
         logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
 
         LogInManagement.setNewWeacons(myHash, mContext, logBump);
@@ -332,6 +388,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         new WifiAsker(mContext, new askScanResults() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
+                ParseActions.SaveIntensities2(sr, mGps);
+
                 Collections.sort(sr, new srComparator());
 
                 try {
@@ -339,6 +397,10 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                         @Override
                         public void OneTaskCompleted() {
                             //Reload weacons in the area after upload everything
+                            Toast.makeText(mContext, "The busstop has been uploaded: " + we.getName(), Toast.LENGTH_SHORT).show();
+
+                            ParseActions.increaseNScannings(we);
+
                             ParseActions.getNearWeacons(mGps.getGeoPoint(), new MultiTaskCompleted() {
                                 @Override
                                 public void OneTaskCompleted() {
@@ -369,7 +431,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             @Override
             public void noWifiDetected() {
-                myLog.add("error recibiendo los sopotsde manera forzasa", "WARN");
+                String text = "error recibiendo los sopotsde manera forzasa";
+                Toast.makeText(mContext, R.string.no_wifis, Toast.LENGTH_SHORT).show();
+                myLog.add(text, "WARN");
             }
         });
     }

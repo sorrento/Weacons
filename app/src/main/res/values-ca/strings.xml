@@ -26,4 +26,7 @@
  <string name="non_of_these">Cap d\'aquestes</string>
  <string name="no_bus_stop_100">No hi ha parades en un radi de 100 mts.</string>
  <string name="no_data_available">No hi ha weacons actius</string>
+ <string name="gps_accuracy">"Obtinguda la posició, amb precisió de "</string>
+ <string name="gps_no_accuracy">No és possible obtenir la posició amb la precisió requerida.</string>
+ <string name="no_bustop_around">No hi ha parades per aquí a prop que necessiten ser donades d\'alta.</string>
 </resources>

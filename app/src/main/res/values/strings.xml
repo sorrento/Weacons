@@ -84,4 +84,8 @@
     <string name="non_of_these">None of these.</string>
     <string name="refreshing">Refreshing...</string>
     <string name="no_data_available">No weacons active</string>
+    <string name="gps_accuracy">Got Position, Accuracy =</string>
+    <string name="gps_no_accuracy">Not possible to get position with required precision.</string>
+    <string name="no_bustop_around">There is no busstop around here that needs to be uploaded</string>
+    <string name="no_wifis">No wifis around here</string>
 </resources>

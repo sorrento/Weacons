@@ -8,6 +8,8 @@ import com.parse.CountCallback;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.GetCallback;
+import com.parse.LogInCallback;
+import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
@@ -202,7 +204,13 @@ public abstract class ParseActions {
                     @Override
                     public void done(final List<WifiSpot> list, ParseException e) {
                         if (e == null) {
-                            if (hasPassedAWeek())
+                            if (!hasPassedAWeek()) {
+                                try {
+                                    ParseObject.pinAll(parameters.pinWeacons, list);
+                                } catch (ParseException e1) {
+                                    myLog.error(e1);
+                                }
+                            } else { //delete local database once a week
                                 ParseObject.unpinAllInBackground(parameters.pinWeacons, new DeleteCallback() {
                                     @Override
                                     public void done(ParseException e) {
@@ -217,6 +225,7 @@ public abstract class ParseActions {
                                         }
                                     }
                                 });
+                            }
 
                             if (mtc != null) mtc.OneTaskCompleted();
                         } else {
@@ -255,6 +264,8 @@ public abstract class ParseActions {
     }
 
     public static void AddToInteresting(final WeaconParse we) {
+        if (we.isInteresting()) return;
+
         ParseObject fav = new ParseObject("Favorites");
         fav.put("WeaconId", we.getObjectId());
         fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
@@ -392,7 +403,7 @@ public abstract class ParseActions {
                 final ArrayList<WifiSpot> newOnes = new ArrayList<>();
 
                 if (e == null) {
-                    myLog.add("Detected: " + sr.size() + " alread created:y " + list.size(), tag);
+                    myLog.add("Detected: " + sr.size() + " alread created:y " + list.size(), "ADD_STOP");
                     for (WifiSpot ws : list) {
                         spotsAlreadyCreated.add(ws.getBSSID());
                     }
@@ -410,12 +421,11 @@ public abstract class ParseActions {
                         public void done(ParseException e) {
                             if (e == null) {
 
-                                myLog.add("subidos varios wifispots: " + WifiSpot.Listar(newOnes), tag);
+                                myLog.add("subidos varios wifispots: " + WifiSpot.Listar(newOnes), "ADD_STOP");
                                 String text = ctx.getString(R.string.busstop_uploaded) + weBusStop.getName();
-                                myLog.add(text, tag);
+                                myLog.add(text, "ADD_STOP");
                                 Toast.makeText(ctx, text, Toast.LENGTH_SHORT).show();
 
-                                SaveIntensities(sr, weBusStop);
                                 taskCompleted.OneTaskCompleted();
                             } else {
                                 myLog.error(e);
@@ -431,39 +441,19 @@ public abstract class ParseActions {
     }
 
 
-    private static void SaveIntensities(List<ScanResult> sr, final WeaconParse weBusStop) {
-        final ArrayList<ParseObject> intensities = new ArrayList<ParseObject>();
-        for (ScanResult r : sr) {
-//            ParseObject intensity = ParseObject.create("Intensities");
-            ParseObject intensity = new ParseObject("Intensities");
-            intensity.put("level", r.level);
-            intensity.put("weMeasured", weBusStop);
-            intensity.put("ssid", r.SSID);
-            intensity.put("bssid", r.BSSID);
-            intensities.add(intensity);
-        }
-        ParseObject.saveAllInBackground(intensities, new SaveCallback() {
+    public static void increaseNScannings(WeaconParse weBusStop) {
+        // aumentar el n_scannings del weacon  en uno
+        weBusStop.increment("n_scannings");
+        weBusStop.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    myLog.add("saved several intensities " + intensities.size(), tag);
-                    // aumentar el n_scannings del weacon  en uno
-                    weBusStop.increment("n_scannings");
-                    weBusStop.saveInBackground(new SaveCallback() {
-                        @Override
-                        public void done(ParseException e) {
-                            if (e == null) {
-                                myLog.add("incrementado el we de parada en uno", tag);
-                            } else
-                                myLog.error(e);
-                        }
-                    });
-                } else {
+                    myLog.add("incrementado el we de parada en uno", "ADD_STOP");
+                } else
                     myLog.error(e);
-                }
-
             }
         });
+        ;
     }
 
 
@@ -589,7 +579,7 @@ public abstract class ParseActions {
                                 boolean b = getWifisSameDateInLocalDB(wifiSpot.getCreatedAt(), point) == 0;
 
                                 if (b) myLog.add("[newer ]Need to update localBBD", "OJO");
-                                else myLog.add("[newer ]Need to update localBBD", "OJO");
+                                else myLog.add("[newer ]NO Need to update localBBD", "OJO");
 
                                 bcb.OnResult(b);
 
@@ -630,5 +620,72 @@ public abstract class ParseActions {
         po.pinInBackground(parameters.pinParseLog);
     }
 
+    /**
+     * Gets all buststps without ssids associated in the radios, sorted by distance
+     *
+     * @param gps
+     * @param mts
+     * @param listener
+     */
+    public static void getFreeBusStopsInRadius(final GPSCoordinates gps, final int mts, final FindCallback<WeaconParse> listener) {
+        ParseGeoPoint geoPoint = gps.getGeoPoint();
 
+
+        //Filtramos aquellos menor a "mts"
+        FindCallback<WeaconParse> listener2 = new FindCallback<WeaconParse>() {
+            @Override
+            public void done(List<WeaconParse> list, ParseException e) {
+                List<WeaconParse> nearest = new ArrayList<>();
+                for (WeaconParse we :
+                        list) {
+                    if (we.getGPS().distanceInKilometersTo(gps.getGeoPoint()) < (mts / 1000))
+                        nearest.add(we);
+                    else break;
+                }
+                listener.done(nearest, e);
+            }
+        };
+
+        ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
+        query.whereEqualTo("Type", "bus_stop")
+//                .whereWithinKilometers("GPS", geoPoint, mts / 1000)
+                .whereNear("GPS", geoPoint)
+                .setLimit(7)
+                .whereDoesNotExist("n_scannings")
+                .findInBackground(listener2);
+    }
+
+    public static void SaveIntensities2(List<ScanResult> sr, GPSCoordinates mGps) {
+        ArrayList<ParseObject> intensities = new ArrayList<>();
+        for (ScanResult r : sr) {
+//            ParseObject intensity = ParseObject.create("Intensities");
+            ParseObject intensity = new ParseObject("Intensities");
+            intensity.put("level", r.level);
+            intensity.put("GPS", mGps.getGeoPoint());
+            intensity.put("ssid", r.SSID);
+            intensity.put("bssid", r.BSSID);
+
+            intensities.add(intensity);
+        }
+        myLog.add("..savingseveral intensities " + intensities.size(), "ADD_STOP");
+        ParseObject.saveAllInBackground(intensities, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                myLog.add("saved several intensities ", "ADD_STOP");
+            }
+        });
+    }
+
+    static void LogInParse() {
+        ParseAnonymousUtils.logIn(new LogInCallback() {
+            @Override
+            public void done(ParseUser parseUser, ParseException e) {
+                if (e == null) {
+                    myLog.add("Looged as anonimous", "");
+                } else {
+                    myLog.add("NOTLooged as anonimous e= " + e.getLocalizedMessage(), tag);
+                }
+            }
+        });
+    }
 }

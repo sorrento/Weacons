@@ -20,12 +20,9 @@ import android.widget.Toast;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.parse.FindCallback;
-import com.parse.LogInCallback;
-import com.parse.ParseAnonymousUtils;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
@@ -84,6 +81,12 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         myLog.add("Starting service ", tag);
+
+        if (serviceIsActive) {
+            myLog.add("No empezaermos el servicio", tag);
+            stopSelf();
+        }
+
         serviceIsActive = true;
         try {
             myLog.initialize();
@@ -110,7 +113,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             mContext.registerReceiver(refreshReceiver, filter);
 
 
-            LogInParse();
+            ParseActions.LogInParse();
 
             //Load weacons if first time
             prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
@@ -153,19 +156,6 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
 //        return super.onStartCommand(intent, flags, startId);
         return START_STICKY;
-    }
-
-    private void LogInParse() {
-        ParseAnonymousUtils.logIn(new LogInCallback() {
-            @Override
-            public void done(ParseUser parseUser, ParseException e) {
-                if (e == null) {
-                    myLog.add("Looged as anonimous", tag);
-                } else {
-                    myLog.add("NOTLooged as anonimous", tag);
-                }
-            }
-        });
     }
 
     @Override
@@ -319,7 +309,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 //                    myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
 
                 } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                    myLog.add("Ha encendido la pantalla", "aut");
+                    myLog.add("Ha encendido la pantalla", "wifi");
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
                             LogInManagement.now.anyFetchable()) {

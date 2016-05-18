@@ -2,7 +2,6 @@ package com.stupidpeople.weacons;
 
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 import com.stupidpeople.weacons.Advanced.Chat;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
@@ -78,7 +77,7 @@ public class LogInManagement {
             if (parameters.isMilenkosPhone()) Notifications.notifyOccurrences(occurrences);
 
         } catch (Exception e) {
-            myLog.add(Log.getStackTraceString(e), "err");
+            myLog.error(e);
         }
     }
 
@@ -295,7 +294,7 @@ public class LogInManagement {
     private static int numberOfActiveNonNotified() {
         int nactive = getActiveWeacons().size();
         int nnotified = weaconsToNotify.size();
-        myLog.add("ACTVICE NON NOTIFIED: " + nactive + "-" + nnotified, "aut");
+//        myLog.add("ACTVICE NON NOTIFIED: " + nactive + "-" + nnotified, "aut");
 
         return nactive - nnotified;
     }
@@ -331,7 +330,7 @@ public class LogInManagement {
     }
 
     private static void markAsRefreshing(boolean b) {
-        for (WeaconParse we : activeWeacons) {
+        for (WeaconParse we : getActiveWeacons()) {
             if (we.notificationRequiresFetching()) we.refreshing = b;
         }
     }

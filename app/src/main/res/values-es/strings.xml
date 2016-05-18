@@ -26,4 +26,7 @@
     <string name="refreshing">Actualizando...</string>
     <string name="no_bus_stop_100">No hay paradas en un radio de 100 mts.</string>
     <string name="no_data_available">No hay weacons activos</string>
+    <string name="gps_accuracy">"Obtenida la posición, con precision de "</string>
+    <string name="gps_no_accuracy">No es posible obtener la posición con la precisión requerida.</string>
+    <string name="no_bustop_around">No hay paradas por aquí cerca que necesiten ser dadas de alta.</string>
 </resources>
