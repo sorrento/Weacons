@@ -33,8 +33,10 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, Context mContext) {
+        NotifFeatures f = LogInManagement.notifFeatures;
+
+        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.refreshButton);
         Notifications.addRefreshButton(notif);
 
         mNotifTitle = NotiSingleCompactTitle();
@@ -57,10 +59,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         }
         notif.setContentIntent(resultPendingIntent);
 
-//        myLog.logNotification(title, body, Notifications.bottomMessage(mContext), sound, refreshButton, true);
-        logNotification(logBump);
         return notif;
-
     }
 
 }

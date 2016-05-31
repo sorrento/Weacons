@@ -54,12 +54,15 @@ public abstract class HelperBase {
         return WeaconListActivity.class; //TODO poner cards
     }
 
-    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound,
-                                                                 Context mContext, boolean refreshButton, LogBump logBump) {
-        mNotifTitle = NotiSingleCompactTitle();
-        mNotifBottom = Notifications.bottomMessage(mContext);
+    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent,
+                                                                 Context ctx) {
 
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
+        NotifFeatures f = LogInManagement.notifFeatures;
+
+        mNotifTitle = NotiSingleCompactTitle();
+        mNotifBottom = Notifications.bottomMessage(ctx);
+
+        NotificationCompat.Builder notif = baseNotif(ctx, f.sound, f.refreshButton);
 
 
         //Bigtext style
@@ -79,14 +82,7 @@ public abstract class HelperBase {
         notif.setContentIntent(resultPendingIntent);
         mBody = mNotifContent.toString();
 
-        logNotification(logBump);
-
         return notif;
-    }
-
-    protected void logNotification(LogBump logBump) {
-        logBump.setNotificationText(StringUtils.Notif2String(mNotifCQTitle, mNotifCQContent, mNotifTitle, mBody, mNotifBottom));
-        logBump.build();
     }
 
 

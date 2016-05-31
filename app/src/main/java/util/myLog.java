@@ -3,13 +3,20 @@ package util;
 import android.os.Environment;
 import android.util.Log;
 
+import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.WeaconParse;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Milenko on 16/07/2015.
@@ -111,4 +118,38 @@ public class myLog {
         return sdf.format(new Date());
     }
 
+    public static void weaconsDetected(HashMap<WeaconParse, ArrayList<String>> weaconsHash, int nWifisDetected, int nWifis) {
+        HashMap<WeaconParse, Integer> occurrences = LogInManagement.occurrences;
+        StringBuilder sb = new StringBuilder();
+
+        String first = "  " + nWifisDetected + "/" + nWifis + " detected, meaning " +
+                weaconsHash.size() + " weacons.\n";
+
+        for (Map.Entry<WeaconParse, ArrayList<String>> entry : weaconsHash.entrySet()) {
+            WeaconParse we = entry.getKey();
+
+            boolean c1 = we.isInteresting();
+//            boolean c2 = false;
+//            if (occurrences.size() != 0) c2 = occurrences.get(we) == 1;
+            boolean c3 = we.inHome();
+
+            ArrayList<String> arr = new ArrayList<>();
+            String extra = "";
+
+            if (c1) arr.add("<3");
+//            if (c2) arr.add("N");
+            if (c3) arr.add("H");
+            if (c1 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
+
+            sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
+        }
+
+        add(first + sb.toString(), "Detection");
+    }
+
+    private static String ListOfSsids(ArrayList<String> arrayList, int i) {
+        return "(" + util.stringUtils.ConcatenateComma(arrayList, i) + ")";
+    }
+
 }
+

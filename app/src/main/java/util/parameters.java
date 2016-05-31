@@ -12,6 +12,7 @@ public class parameters {
     final public static int defaultThreshold = -100; //For weacon detection
 
     public static final String pinWeacons = "Weacons";
+    public static final String pinWigle= "Wigle";
     public static final String pinFavorites = "Favoritos";
     public static final String pinParseLog = "Logs";
     public static final String pinSapo = "SAPO2";
@@ -34,7 +35,7 @@ public class parameters {
     public static final String CHAT = "Chat";
 
     public static final int repetitionsTurnOffFetching = 3;
-    public static final String NEW_WEACONS_DATA = "newWeaconData";
+    public static final String updateInfo = "newWeaconData";
     //SAPO
     final static int LogFileSize = 100; //in kilobytes, after that, new is started
     public static Integer hitRepetitions = 20; //number of HitSapo in SAPO for considering a SSID important
@@ -60,7 +61,7 @@ public class parameters {
     public static ParseGeoPoint barcelona = new ParseGeoPoint(41.3825, 2.176944);
 
 
-    public static String refreshIntentName = "REFRESH";
+    public static String refreshIntent = "REFRESH";
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
 

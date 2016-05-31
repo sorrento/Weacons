@@ -36,7 +36,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         buildGoogleApiClient();
     }
 
-    public LocationAsker(final Context ctx, final double accuracyNeeded, final LocationCallback locationCallback) {
+    public LocationAsker(final Context ctx, final double accuracyNeededMts, final LocationCallback locationCallback) {
         this(ctx, locationCallback);
         iFail = 0;
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
@@ -54,7 +54,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 //                if (location.hasSpeed()) return;
                 if (location.hasAccuracy()) {
                     double accuracy = location.getAccuracy();
-                    if (accuracy <= accuracyNeeded) {
+                    if (accuracy <= accuracyNeededMts) {
 
                         myLog.add("estamos a con precision mejor de 10 mtes " + accuracy, tag);
                         removerListener(location);

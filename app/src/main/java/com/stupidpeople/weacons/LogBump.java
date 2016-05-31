@@ -178,34 +178,32 @@ public class LogBump {
     }
 
     private String SummaryWeaconsFound() {
-        String first = "  " + wifiSpots.size() + "/" + spots.size() + " detected, meaning " +
-                weaconsHash.size() + " weacons.\n";
-
-        StringBuilder sb = new StringBuilder();
-
-        for (Map.Entry<WeaconParse, ArrayList<String>> entry : weaconsHash.entrySet()) {
-            WeaconParse we = entry.getKey();
-            boolean c1 = we.isInteresting();
-            boolean c2 = occurrences == null ? false : occurrences.get(we) == 1;
-            boolean c3 = we.inHome();
-            ArrayList<String> arr = new ArrayList<>();
-            String extra = "";
-
-            if (c1) arr.add("<3");
-            if (c2) arr.add("N");
-            if (c3) arr.add("H");
-            if (c1 || c2 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
-
-            sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
-        }//todo Agregar el "(NEW)"
-
-        return first + sb.toString();
+//        String first = "  " + wifiSpots.size() + "/" + spots.size() + " detected, meaning " +
+//                weaconsHash.size() + " weacons.\n";
+//
+//        StringBuilder sb = new StringBuilder();
+//
+//        for (Map.Entry<WeaconParse, ArrayList<String>> entry : weaconsHash.entrySet()) {
+//            WeaconParse we = entry.getKey();
+//            boolean c1 = we.isInteresting();
+//            boolean c2 = occurrences == null ? false : occurrences.get(we) == 1;
+//            boolean c3 = we.inHome();
+//            ArrayList<String> arr = new ArrayList<>();
+//            String extra = "";
+//
+//            if (c1) arr.add("<3");
+//            if (c2) arr.add("N");
+//            if (c3) arr.add("H");
+//            if (c1 || c2 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
+//
+//            sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
+//        }//todo Agregar el "(NEW)"
+//
+//        return first + sb.toString();
+        return null;
     }
     //TODO agregar sistema de niveles de indentación
 
-    private String ListOfSsids(ArrayList<String> arrayList, int i) {
-        return "(" + util.stringUtils.ConcatenateComma(arrayList, i) + ")";
-    }
 
     private String Head(LogType type) {
         return mTime + " [" + type.toString() + "]" + DIVIDER;

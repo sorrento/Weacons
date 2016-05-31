@@ -56,7 +56,7 @@ public class HelperBus extends HelperBaseFecthNotif {
             case "tfss-575fd5ef-9e37-4150-8a16-43fc6a1cc69b-logoMadrid2.jpg":
                 res = city.MADRID;
                 break;
-            case "tfss-c074f51b-0696-436a-b8a5-1e0d4c0222b3-Logo%20Transantiago_red.jpg":
+            case "tfss-c074f51b-0696-436a-b8a5-1e0d4c0222b3-Logo Transantiago_red.jpg":
                 res = city.SANTIAGO;
                 break;
             default:
@@ -84,6 +84,7 @@ public class HelperBus extends HelperBaseFecthNotif {
                 break;
             case SANTIAGO:
                 arr = processSantiago(bo);
+                break;
             default:
                 myLog.add("No podemos procesar respuesta porqeu no sé que ciudad es", "WARN");
         }
@@ -92,7 +93,15 @@ public class HelperBus extends HelperBaseFecthNotif {
 
     @Override
     protected String getFetchingFinalUrl() {
-        return we.getFetchingPartialUrl() + getBusStopId();
+        String partialUrl;
+
+        //TODO deberia ir en BBDD pero es ljaleo cambiarlo
+        if (mCity == city.SANTIAGO) {
+            partialUrl = "http://200.29.15.107/predictor/prediccion?codser=&codsimt=";
+        } else {
+            partialUrl = we.getFetchingPartialUrl();
+        }
+        return partialUrl + getBusStopId();
     }
 
     @Override
@@ -141,11 +150,7 @@ public class HelperBus extends HelperBaseFecthNotif {
         String name;
         String greyPart;
 
-        if (we.getName().length() > 10) {
-            name = we.getName().substring(0, 10) + ".";
-        } else {
-            name = we.getName();
-        }
+        name = StringUtils.shorten(we.getName(), 10);
 
         if (we.refreshing) {
             greyPart = mContext.getString(R.string.refreshing);
@@ -223,7 +228,9 @@ public class HelperBus extends HelperBaseFecthNotif {
     public ArrayList<SpannableString> summarizeByOneLine() {
         ArrayList<SpannableString> arr = new ArrayList<>();
 
-        if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
+        if (we.refreshing) {
+            arr.add(new SpannableString(mContext.getString(R.string.refreshing)));
+        } else if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
             arr.add(new SpannableString(mContext.getString(R.string.no_info_stop_nybow)));
         } else {
 
@@ -259,6 +266,11 @@ public class HelperBus extends HelperBaseFecthNotif {
 
         try {
             JSONArray mJsonArray = new JSONArray(response);
+
+            if (mJsonArray.length() == 0) {
+
+            }
+
 
             for (int i = 0; i < mJsonArray.length(); i++) {
                 JSONObject json = mJsonArray.getJSONObject(i);

@@ -24,17 +24,12 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
-import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.WeaconParse;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import util.myLog;
 import util.parameters;
@@ -54,23 +49,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
     private Context mContext;
     private WifiManager wifiManager;
     private WifiReceiver receiverWifi;
-    private RefreshReceiver refreshReceiver;
+    private EventsReceiver eventsReceiver;
 
-    private void addTestWeacons(HashSet<WeaconParse> weaconsDetected) {
-        ParseQuery<WeaconParse> q = ParseQuery.getQuery(WeaconParse.class);
-        List<String> arr = Arrays.asList(parameters.weaconsTest);
-        List<WeaconParse> res = null;
-        try {
-            res = q.whereContainedIn("objectId", arr).find();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
-        for (WeaconParse we : res) {
-            we.build(mContext);
-            weaconsDetected.add(we);
-        }
-    }
 
     @Nullable
     @Override
@@ -101,16 +81,17 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             receiverWifi = new WifiReceiver();
             IntentFilter intentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-            intentFilter.addAction(Intent.ACTION_SCREEN_ON);
             mContext.registerReceiver(receiverWifi, intentFilter);
             Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
 
             //Refresh & silence & delete notif receiver
-            refreshReceiver = new RefreshReceiver();
-            IntentFilter filter = new IntentFilter(parameters.refreshIntentName);
+            eventsReceiver = new EventsReceiver();
+            IntentFilter filter = new IntentFilter(parameters.refreshIntent);
             filter.addAction(parameters.silenceIntentName);
             filter.addAction(parameters.deleteIntentName);
-            mContext.registerReceiver(refreshReceiver, filter);
+            filter.addAction(parameters.updateInfo);
+            filter.addAction(Intent.ACTION_SCREEN_ON);
+            mContext.registerReceiver(eventsReceiver, filter);
 
 
             ParseActions.LogInParse();
@@ -119,7 +100,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
             myLog.add("Is first time rumning" + prefs.getBoolean("firstrunService", true), "aut");
             if (prefs.getBoolean("firstrunService", true)) {
-                ParseActions.getNearWeacons(this);
+                ParseActions.getNearWifiSpots(this);
                 prefs.edit().putBoolean("firstrunService", false).commit();
             } else {
                 DownloadWeaconsIfNeeded(this);
@@ -167,7 +148,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 //            mNotificationManager.cancel(101);
             Toast.makeText(mContext, "Detection Service OFF", Toast.LENGTH_LONG).show();
             mContext.unregisterReceiver(receiverWifi);
-            mContext.unregisterReceiver(refreshReceiver);
+            mContext.unregisterReceiver(eventsReceiver);
             serviceIsActive = false;
         } catch (Exception e) {
             Toast.makeText(mContext, "Not possible to turn off detection", Toast.LENGTH_LONG).show();
@@ -190,13 +171,6 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         return sb.toString();
     }
 
-    private HashSet<WeaconParse> createHashSet(Set<WeaconParse> weaconParses) {
-        HashSet<WeaconParse> res = new HashSet<>();
-
-        for (WeaconParse we : weaconParses) res.add(we);
-
-        return res;
-    }
 
     private void transferLogsToParse() throws ParseException {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
@@ -230,32 +204,52 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         }
     }
 
-    private class RefreshReceiver extends BroadcastReceiver {
+
+    private class EventsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action;
             try {
                 action = intent.getAction();
 
-                if (action.equals(parameters.refreshIntentName)) {
+                //Refresh
+                if (action.equals(parameters.refreshIntent)) {
+
                     if (LogInManagement.getActiveWeacons().size() == 0) return;
-                    if (!LogInManagement.now.anyInteresting)
-                        ParseActions.AddToInteresting(Notifications.getNotifiedWeacons());
-                    Notifications.mSilenceButton = true;
 
-//                    LogBump logBump = new LogBump(LogBump.LogType.BTN_REFRESH);
-//                    logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-//                    Notifications.RefreshNotification(logBump);
+                    if (!LogInManagement.now.anyInteresting) {
+                        ParseActions.AddToInteresting(LogInManagement.weaconsToNotify);
+                    }
+                    LogInManagement.notifFeatures.silenceButton = true; //se pone desde ya
 
-                    LogInManagement.fetchAllActiveAndInform(mContext, new LogBump(LogBump.LogType.FORCED_REFRESH));
+                    boolean forced = intent.getBooleanExtra("forced", true);
+                    myLog.add("RFERESH force=" + forced, "aut");
+                    LogInManagement.fetchAllActiveAndInform(mContext, forced);
 
+                    // Silence
                 } else if (action.equals(parameters.silenceIntentName)) {
-                    ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
+//                    ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
+                    LogInManagement.notifFeatures.silenceButton = false;
+                    ParseActions.removeInteresting(LogInManagement.weaconsToNotify);
+                    Notifications.Notify();
+
+                    // SCREEN on
+                } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
+                    myLog.add("Ha encendido la pantalla", "wifi");
+
+                    if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
+                            LogInManagement.now.anyFetchable()) {
+                        LogInManagement.fetchAllActiveAndInform(mContext, false);
+                    }
+
 
                     //Delete notification
                 } else if (action.equals(parameters.deleteIntentName)) {
                     Notifications.isShowingNotification = false;
 
+                    // Notify
+                } else if (action.equals(parameters.updateInfo)) {
+                    Notifications.Notify();
                 }
             } catch (Exception e) {
                 myLog.error(e);
@@ -281,43 +275,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     }
 
                 } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                    List<ScanResult> sr = wifiManager.getScanResults();
+                    processScanResults(wifiManager.getScanResults());
 
-                    final LogBump logBump = new LogBump(LogBump.LogType.READ);
-                    logBump.setSpots(sr);
-
-                    iScan++;
-                    if (iScan % 30 == 0) {
-                        ParseActions.DownloadWeaconsIfNeeded(mContext);
-                    }
-
-                    CheckSpotMatches(sr, logBump, new CallBackWeacons() {
-                        @Override
-                        public void OnReceive(HashMap<WeaconParse, ArrayList<String>> weaconHash) {
-                            logBump.setWeaconsHash(weaconHash);
-
-                            HashSet<WeaconParse> weaconHashSet = createHashSet(weaconHash.keySet());
-
-                            //TEST insertion of weacons
-                            if (parameters.testWeacons) addTestWeacons(weaconHashSet);
-
-                            LogInManagement.setNewWeacons(weaconHashSet, mContext, logBump);
-                        }
-                    }, mContext);
-
-//                } else if (action.equals("android.intent.action.BOOT_COMPLETED")) {
-//                    myLog.add("HHHHHHHHHHHHHHHHHHHHHHHHH  DETECTADO UN BOOOOT", "aut");
-
-                } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-                    myLog.add("Ha encendido la pantalla", "wifi");
-
-                    if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
-                            LogInManagement.now.anyFetchable()) {
-//                        LogBump logBump = new LogBump(LogBump.LogType.FORCED_REFRESH);
-//                        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-//                        Notifications.RefreshNotification(logBump);
-                        LogInManagement.fetchAllActiveAndInform(mContext, new LogBump(LogBump.LogType.FORCED_REFRESH_ACTIVE_SCREEN));
-                    }
                 } else {
                     myLog.add("Entering in a different state of network: " + action, tag);
                 }
@@ -330,6 +289,19 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             } catch (Exception e) {
                 myLog.error(e);
             }
+        }
+
+        private void processScanResults(List<ScanResult> sr) {
+            iScan++;
+
+            if (iScan % 30 == 0) ParseActions.DownloadWeaconsIfNeeded(mContext);
+
+            CheckSpotMatches(sr, mContext, new CallBackWeacons() {
+                @Override
+                public void OnReceive(HashSet<WeaconParse> weaconHash) {
+                    LogInManagement.setNewWeacons(weaconHash, mContext);
+                }
+            });
         }
     }
 }

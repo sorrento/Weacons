@@ -7,6 +7,8 @@ import android.text.SpannableString;
 
 import com.stupidpeople.weacons.HelperBase;
 import com.stupidpeople.weacons.LogBump;
+import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.NotifFeatures;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 
@@ -32,11 +34,14 @@ public class HelperAiport2 extends HelperBase {
     }
 
     @Override
-    protected NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
+    protected NotificationCompat.Builder buildSingleNotification(
+            PendingIntent resultPendingIntent, Context ctx) {
 
         //TODO agregar que vata a cards acivitys al pinchar en la notif, que diferencie arrivals, y agregarle el extra que necesita
+        NotifFeatures f = LogInManagement.notifFeatures;
 
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
+
+        NotificationCompat.Builder notif = baseNotif(ctx, f.sound, f.refreshButton);
 
         NotificationCompat.Action DepartureAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Departures", resultPendingIntent);//TODO replace by planes and intents
         NotificationCompat.Action ArrivalAction = new NotificationCompat.Action(R.drawable.ic_notif_we, "Arrivals", resultPendingIntent);
@@ -47,7 +52,6 @@ public class HelperAiport2 extends HelperBase {
 
         notif.setContentIntent(resultPendingIntent);
 
-        logNotification(logBump);
         return notif;
     }
 }

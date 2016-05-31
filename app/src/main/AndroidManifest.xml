@@ -33,7 +33,9 @@
 
         </receiver>
 
-        <activity android:name=".ListActivity.WeaconListActivity">
+        <activity
+            android:name=".ListActivity.WeaconListActivity"
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

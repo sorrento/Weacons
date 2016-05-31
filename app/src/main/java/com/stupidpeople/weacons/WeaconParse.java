@@ -434,27 +434,34 @@ public class WeaconParse extends ParseObject {
         return mHelper.getActivityClass();
     }
 
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
-        return mHelper.buildSingleNotification(resultPendingIntent, sound, mContext, refreshButton, logBump);
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, Context ctx) {
+        return mHelper.buildSingleNotification(resultPendingIntent, ctx);
     }
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
-        obsolete = false;
 
         fetchingResults elementsListener = new fetchingResults() {
             @Override
             public void onReceive(Connection.Response response) {
+                obsolete = false;
+                refreshing = false;
+
                 fetchedElements = processResponse(response);
                 fetchedElementListener.OneTaskCompleted();
             }
 
             @Override
             public void onError(Exception e) {
+                obsolete = false;
+                refreshing = false;
                 myLog.error(e);
             }
 
             @Override
             public void OnEmptyAnswer() {
+                obsolete = false;
+                refreshing = false;
+
                 fetchedElements = new ArrayList();
 //                processResponse("");
                 myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "WARN");
@@ -496,7 +503,6 @@ public class WeaconParse extends ParseObject {
 
     public void setInteresting(boolean b) {
         this.isInteresting = b;
-        ParseActions.AddToInteresting(this);
     }
 
     public String getParadaId() {

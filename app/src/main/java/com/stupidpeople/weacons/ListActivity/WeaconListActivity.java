@@ -28,7 +28,6 @@ import com.parse.ParseException;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
-import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
@@ -58,7 +57,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     private GPSCoordinates mGps;
     private ArrayList<WeaconParse> activeWeacons;
     private SwipeRefreshLayout mRefresh;
-    private newDataReceiver refreshReceiver;
+    private newDataReceiver newDataReceiver;
     private TextView emptyView;
 
     @Override
@@ -75,7 +74,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             myLog.initialize();
             mContext = this;
 
-
+            Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
             startServiceIfNeeded();
 
             myLog.add("opening la lista activity", "wifi");
@@ -112,13 +111,13 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    refreshList();
+                    refreshList(true);
                 }
             });
 
             //Refresh & silence & delete notif receiver
-            refreshReceiver = new newDataReceiver();
-            mContext.registerReceiver(refreshReceiver, new IntentFilter(parameters.NEW_WEACONS_DATA));
+            newDataReceiver = new newDataReceiver();
+            mContext.registerReceiver(newDataReceiver, new IntentFilter(parameters.updateInfo));
 
             mRecyclerView.setAdapter(adapter);
 
@@ -126,7 +125,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION_PERMISSION);//for Androis 6
             }
 
-            refreshList();
+//            refreshList(false);
         } catch (Resources.NotFoundException e) {
             myLog.error(e);
         }
@@ -135,32 +134,17 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(refreshReceiver);
+        unregisterReceiver(newDataReceiver);
     }
 
-    void refreshList() {
-        if (LogInManagement.getActiveWeacons().size() == 0) {
-            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-            wifiManager.startScan();
-            return;
-        }
-        Toast.makeText(this, R.string.refreshing, Toast.LENGTH_SHORT).show();
+    void refreshList(boolean forced) {
 
-        sendBroadcast(new Intent(parameters.refreshIntentName));
-//        LogInManagement.FetchAllActive(new MultiTaskCompleted() {
-//            @Override
-//            public void OneTaskCompleted() {
-//                activeWeacons = LogInManagement.getActiveWeacons();
-//                adapter.notifyDataSetChanged();
-//                mRefresh.setRefreshing(false);
-//
-//            }
-//
-//            @Override
-//            public void OnError(Exception e) {
-//                myLog.error(e);
-//            }
-//        });
+        if (forced) mRefresh.setRefreshing(true);
+
+        Intent intent = new Intent(parameters.refreshIntent);
+        intent.putExtra("forced", forced);
+        sendBroadcast(intent);
+
     }
 
     private void startServiceIfNeeded() {
@@ -349,10 +333,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         if (myHash == null) myHash = new HashSet<>();
         myHash.add(we);
 
-        LogBump logBump = new LogBump(LogBump.LogType.UPLOADED_BUSSTOP);
-        logBump.setReasonToNotify(LogBump.ReasonToNotify.FETCHING);
-
-        LogInManagement.setNewWeacons(myHash, mContext, logBump);
+        LogInManagement.setNewWeacons(myHash, mContext);
 
         SendWifis(we);
     }
@@ -360,17 +341,25 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     @Override
     protected void onResume() {
         super.onResume();
+        Toast.makeText(mContext, "Estamos retomandola Actividad", Toast.LENGTH_SHORT).show();
 
         //Show NO WEACON message
         if (LogInManagement.getActiveWeacons().size() == 0) {
-            mRecyclerView.setVisibility(View.GONE);
-            emptyView.setVisibility(View.VISIBLE);
-        } else {
-            mRecyclerView.setVisibility(View.VISIBLE);
-            emptyView.setVisibility(View.GONE);
-        }
+//            mRecyclerView.setVisibility(View.GONE);
+//            emptyView.setVisibility(View.VISIBLE);
 
-        refreshList();
+            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            wifiManager.startScan();
+
+        } else {
+            emptyView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
+            updateList();
+
+            if (LogInManagement.getActiveWeacons().get(0).obsolete = true) {
+                refreshList(false);
+            }
+        }
     }
 
     public void OnCLickClear(View view) {
@@ -401,7 +390,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
                             ParseActions.increaseNScannings(we);
 
-                            ParseActions.getNearWeacons(mGps.getGeoPoint(), new MultiTaskCompleted() {
+                            ParseActions.getNearWifiSpots(mGps.getGeoPoint(), new MultiTaskCompleted() {
                                 @Override
                                 public void OneTaskCompleted() {
                                     //And finally, make the new stop "interesting".
@@ -442,16 +431,20 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         @Override
         public void onReceive(Context context, Intent intent) {
             try {
-                if (intent.getAction().equals(parameters.NEW_WEACONS_DATA)) {
-                    activeWeacons = LogInManagement.getActiveWeacons();
-                    adapter.setWeaconItemList(activeWeacons);
-                    adapter.notifyDataSetChanged();
-                    mRefresh.setRefreshing(false);
+                if (intent.getAction().equals(parameters.updateInfo)) {
+                    updateList();
                 }
             } catch (Exception e) {
                 myLog.error(e);
             }
         }
+    }
+
+    private void updateList() {
+        mRefresh.setRefreshing(false);
+        activeWeacons = LogInManagement.getActiveWeacons();
+        adapter.setWeaconItemList(activeWeacons);
+        adapter.notifyDataSetChanged();
     }
 
     class srComparator implements Comparator<ScanResult> {

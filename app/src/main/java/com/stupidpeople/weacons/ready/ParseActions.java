@@ -2,6 +2,7 @@ package com.stupidpeople.weacons.ready;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.os.Vibrator;
 import android.widget.Toast;
 
 import com.parse.CountCallback;
@@ -19,17 +20,21 @@ import com.parse.SaveCallback;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
-import com.stupidpeople.weacons.LogBump;
+import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
+import com.stupidpeople.weacons.Wigle;
 import com.stupidpeople.weacons.booleanCallback;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import util.myLog;
 import util.parameters;
@@ -45,61 +50,92 @@ public abstract class ParseActions {
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
      *
-     * @param logBump
-     * @param callBackWeacons for returning the set of weacons in the zone in this scanning
      * @param ctx
+     * @param callBackWeacons for returning the set of weacons in the zone in this scanning
      */
-    public static void CheckSpotMatches(List<ScanResult> sr, final LogBump logBump, final CallBackWeacons callBackWeacons, final Context ctx) {
+    public static void CheckSpotMatches(final List<ScanResult> sr, final Context ctx, final CallBackWeacons callBackWeacons) {
+        final ArrayList<String> bssids = new ArrayList<>();
 
-        ArrayList<String> bssids = new ArrayList<>();
-
-        for (ScanResult r : sr) {
-            bssids.add(r.BSSID);
-        }
+        for (ScanResult r : sr) bssids.add(r.BSSID);
 
         //Query BSSID
         ParseQuery<WifiSpot> qb = ParseQuery.getQuery(WifiSpot.class);
         qb.whereContainedIn("bssid", bssids)
                 .fromPin(parameters.pinWeacons)
-                .include("associated_place");
+                .whereNotEqualTo("distanceWe", -1)
+                .include("associated_place")
+                .findInBackground(new FindCallback<WifiSpot>() {
 
-        qb.findInBackground(new FindCallback<WifiSpot>() {
+                    @Override
+                    public void done(List<WifiSpot> spots, ParseException e) {
+                        if (e == null) {
+                            HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<>();
 
-            @Override
-            public void done(List<WifiSpot> spots, ParseException e) {
-                if (e == null) {
-//                    HashSet<WeaconParse> weaconHash = new HashSet<>();
-                    HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<WeaconParse, ArrayList<String>>();
+                            if (spots.size() == 0) {
+                                myLog.add("No bssids matches", tag);
+                                //WIGLE
+                                checkOnWigle(bssids, weaconHash, ctx);
+                            } else { //There are matches
 
-                    if (spots.size() == 0) {
-                        logBump.build();
+                                for (WifiSpot spot : spots) {
+                                    addWeAndSpotToHash(weaconHash, spot);
+                                    //registerHitSSID(spot); todo
+                                }
 
-                    } else { //There are matches
+                                // It's important always deliver built weacons (in this way, they are of subclasses, as bus
+                                WeaconParse.build(weaconHash, ctx);
+                            }
 
-                        for (WifiSpot spot : spots) {
-                            WeaconParse we = spot.getWeacon();
-                            ArrayList<String> arr = new ArrayList<>();
-                            if (weaconHash.containsKey(we)) arr = weaconHash.get(we);
-                            arr.add(spot.getSSID());
-                            weaconHash.put(we, arr);
 
-//                            registerHitSSID(spot); todo
+                            //insertion of TEST weacons
+                            if (parameters.testWeacons) addTestWeacons(weaconHash, ctx);
+
+                            myLog.weaconsDetected(weaconHash, spots.size(), sr.size());
+
+                            callBackWeacons.OnReceive(createHashSet(weaconHash.keySet()));
+
+                        } else {
+                            myLog.add("EEE en Chechkspotmarches:" + e.getLocalizedMessage(), tag);
                         }
-                        logBump.setWifiSpots(spots);
-
-                        // It's important always deliver built weacons (in this way, they are of subclasses, as bus
-                        WeaconParse.build(weaconHash, ctx);
-//                        myLog.add(sb.toString(), tag);
-//                        myLog.add("Detected spots: " + spots.size() + " | Different weacons: " + weaconHash.size(), tag);
                     }
+                });
 
-                    callBackWeacons.OnReceive(weaconHash);
 
-                } else {
-                    myLog.add("EEE en Chechkspotmarches:" + e.getLocalizedMessage(), tag);
-                }
-            }
-        });
+    }
+
+    private static void addWeAndSpotToHash(HashMap<WeaconParse, ArrayList<String>> weaconHash, WifiSpot spot) {
+        WeaconParse we = spot.getWeacon();
+        ArrayList<String> arr = new ArrayList<>();
+        if (weaconHash.containsKey(we)) arr = weaconHash.get(we);
+        arr.add(spot.getSSID());
+        weaconHash.put(we, arr);
+    }
+
+    private static void addTestWeacons(HashMap<WeaconParse, ArrayList<String>> weaconsDetected, Context mContext) {
+        ParseQuery<WeaconParse> q = ParseQuery.getQuery(WeaconParse.class);
+        List<String> arr = Arrays.asList(parameters.weaconsTest);
+        List<WeaconParse> res = null;
+
+        try {
+            res = q.whereContainedIn("objectId", arr).find();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        for (WeaconParse we : res) {
+            we.build(mContext);
+            ArrayList<String> arr2 = new ArrayList<>();
+            arr2.add("NONE");
+            weaconsDetected.put(we, arr2);
+        }
+    }
+
+    private static HashSet<WeaconParse> createHashSet(Set<WeaconParse> weaconParses) {
+        HashSet<WeaconParse> res = new HashSet<>();
+
+        for (WeaconParse we : weaconParses) res.add(we);
+
+        return res;
     }
 
     /***
@@ -163,12 +199,12 @@ public abstract class ParseActions {
     /**
      * get the weacons around and pin them
      */
-    public static void getNearWeacons(Context ctx) {
+    public static void getNearWifiSpots(Context ctx) {
         LocationCallback listener = new LocationCallback() {
             @Override
             public void LocationReceived(GPSCoordinates gps) {
                 ParseGeoPoint pos = gps.getGeoPoint();
-                getNearWeacons(pos, null);
+                getNearWifiSpots(pos, null);
             }
 
             @Override
@@ -185,7 +221,7 @@ public abstract class ParseActions {
     }
 
 
-    public static void getNearWeacons(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
+    public static void getNearWifiSpots(ParseGeoPoint pos, final MultiTaskCompleted mtc) {
 
 //        //Query Weacons
 //        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
@@ -259,25 +295,34 @@ public abstract class ParseActions {
      *
      * @param weacons
      */
-    public static void AddToInteresting(final ArrayList<WeaconParse> weacons) {
+    public static void AddToInteresting(final ArrayList<WeaconParse> weacons) throws ParseException {
         for (final WeaconParse we : weacons) AddToInteresting(we);
     }
 
     public static void AddToInteresting(final WeaconParse we) {
         if (we.isInteresting()) return;
 
+        we.setInteresting(true);
+
         ParseObject fav = new ParseObject("Favorites");
         fav.put("WeaconId", we.getObjectId());
-        fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    myLog.add("se ha pinneado el favorito  " + we.getName(), tag);
-                } else {
-                    myLog.add("No se ha pinneaso el favorito " + we.getName() + e.getLocalizedMessage(), tag);
-                }
-            }
-        });
+        try {
+            fav.pin(parameters.pinFavorites);
+        } catch (ParseException e) {
+            myLog.error(e);
+        }
+        LogInManagement.now.update();
+//        fav.pinInBackground(parameters.pinFavorites, new SaveCallback() {
+//            @Override
+//            public void done(ParseException e) {
+//                if (e == null) {
+//                    myLog.add("se ha pinneado el favorito  " + we.getName(), tag);
+//
+//                } else {
+//                    myLog.add("No se ha pinneaso el favorito " + we.getName() + e.getLocalizedMessage(), tag);
+//                }
+//            }
+//        });
     }
 
     public static boolean isInteresting(String objectId) {
@@ -295,35 +340,43 @@ public abstract class ParseActions {
     public static void removeInteresting(ArrayList<WeaconParse> notifiedWeacons) {
         ArrayList arr = new ArrayList();
 
-        //To remove the Silence button:
-//        LogInManagement.NotifyFetching(false, false);//interesting=true for starting the timer 30segs
-        Notifications.RemoveSilenceButton();//TODO quitar de aqui
-
-        for (WeaconParse we : notifiedWeacons) arr.add(we.getObjectId());
+        for (WeaconParse we : notifiedWeacons) {
+            we.setInteresting(false);
+            arr.add(we.getObjectId());
+        }
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Favorites");
-        query.whereContainedIn("WeaconId", arr)
-                .fromPin(parameters.pinFavorites)
-                .findInBackground(new FindCallback<ParseObject>() {
-                    @Override
-                    public void done(List<ParseObject> list, ParseException e) {
-                        if (e == null) {
-                            myLog.add("Recibidos favoritos para borrar:" + list.size(), tag);
-                            ParseObject.unpinAllInBackground(parameters.pinFavorites, list, new DeleteCallback() {
-                                @Override
-                                public void done(ParseException e) {
-                                    if (e == null) {
-                                        myLog.add("Borrads los elementso de favoritos", tag);
-                                    } else {
-                                        myLog.add("No se han borrado los elementos de favo", tag);
-                                    }
-                                }
-                            });
-                        } else {
-                            myLog.error(e);
-                        }
-                    }
-                });
+        try {
+            List list = query.whereContainedIn("WeaconId", arr)
+                    .fromPin(parameters.pinFavorites)
+                    .find();
+            ParseObject.unpinAll(parameters.pinFavorites,list);
+        } catch (ParseException e) {
+            myLog.error(e);
+        }
+//lo mismo pero en BG
+//        query.whereContainedIn("WeaconId", arr)
+//                .fromPin(parameters.pinFavorites)
+//                .findInBackground(new FindCallback<ParseObject>() {
+//                    @Override
+//                    public void done(List<ParseObject> list, ParseException e) {
+//                        if (e == null) {
+//                            myLog.add("Recibidos favoritos para borrar:" + list.size(), tag);
+//                            ParseObject.unpinAllInBackground(parameters.pinFavorites, list, new DeleteCallback() {
+//                                @Override
+//                                public void done(ParseException e) {
+//                                    if (e == null) {
+//                                        myLog.add("Borrads los elementso de favoritos", tag);
+//                                    } else {
+//                                        myLog.add("No se han borrado los elementos de favo", tag);
+//                                    }
+//                                }
+//                            });
+//                        } else {
+//                            myLog.error(e);
+//                        }
+//                    }
+//                });
     }
 
     //HOME
@@ -476,7 +529,7 @@ public abstract class ParseActions {
                         if (b) {
                             //actualizamos
                             myLog.add("***There are new SPOTS in the zone , gonna update", "OJO");
-                            getNearWeacons(point, null);
+                            getNearWifiSpots(point, null);
                         } else {
                             myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "OJO");
                         }
@@ -488,7 +541,7 @@ public abstract class ParseActions {
                         if (b) {
                             //actualizamos
                             myLog.add("***There are newer in the zone (updatedAt), gonna update", "OJO");
-                            getNearWeacons(point, null);
+                            getNearWifiSpots(point, null);
                         } else {
                             //Check if we moved
                             didWeMoved(point, newInAreaCB);
@@ -671,7 +724,11 @@ public abstract class ParseActions {
         ParseObject.saveAllInBackground(intensities, new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                myLog.add("saved several intensities ", "ADD_STOP");
+                if (e == null) {
+                    myLog.add("saved several intensities ", "ADD_STOP");
+                } else {
+                    myLog.add("Not possible to saved intensities " + e.getLocalizedMessage(), "ADD_STOP");
+                }
             }
         });
     }
@@ -687,5 +744,92 @@ public abstract class ParseActions {
                 }
             }
         });
+    }
+
+
+    // WIGLE
+
+    private static void checkOnWigle(ArrayList<String> bssids, final HashMap<WeaconParse, ArrayList<String>> weaconHash, final Context ctx) {
+
+        //Query BSSID
+        ParseQuery<WifiSpot> qb = ParseQuery.getQuery(WifiSpot.class);
+        qb.whereContainedIn("bssid", bssids)
+                .fromPin(parameters.pinWeacons)
+                .whereEqualTo("distanceWe", -1)
+                .include("associated_place")
+                .findInBackground(new FindCallback<WifiSpot>() {
+
+                    @Override
+                    public void done(List<WifiSpot> spots, ParseException e) {
+                        if (e == null) {
+//                            HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<>();
+
+                            if (spots.size() == 0) myLog.add("No bssids matches", tag);
+                            else { //There are matches
+
+
+                                //we take only the first, to avoid messing up
+                                WifiSpot wifiSpot = spots.get(0);
+                                WeaconParse we = wifiSpot.getWeacon();
+
+                                Vibrator vi = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+                                vi.vibrate(1000);
+                                Toast.makeText(ctx, "Hemos encontrado un wifi d WIGLE!\n" + we.getName(), Toast.LENGTH_SHORT).show();
+
+                                // It's important always deliver built weacons (in this way, they are of subclasses, as bus
+                                we.build(ctx);
+                                addWeAndSpotToHash(weaconHash, wifiSpot);
+
+
+                                new Wigle(we, ctx);
+                            }
+
+                        } else {
+                            myLog.add("EEE en Chechkspotmarches:" + e.getLocalizedMessage(), tag);
+                        }
+                    }
+                });
+
+    }
+
+    public static void wigleRemoveSSIDS(final WeaconParse we) {
+        ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
+        q.whereEqualTo("distanceWe", -1)
+                .whereEqualTo("associated_place", we)
+                .findInBackground(new FindCallback<WifiSpot>() {
+                    @Override
+                    public void done(final List<WifiSpot> list, ParseException e) {
+                        if (e == null) {
+                            myLog.add("Tenemos wigle asociacos a este weacon:" + list.size() + " " + we.getName(), "WIGLE");
+                            ParseObject.deleteAllInBackground(list, new DeleteCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    if (e == null) {
+                                        myLog.add("Se han borrado tods los wigle de aquí:" + list.size(), "WIGLE");
+                                    } else {
+
+                                        myLog.add("NO Se han borrado tods los wigle de aquí:" + e.getLocalizedMessage(), "WIGLE");
+                                    }
+                                }
+                            });
+                        } else {
+                            myLog.error(e);
+                        }
+                    }
+                });
+
+    }
+
+    public static void wigleHasWeaconGoodSSID(WeaconParse we, final booleanCallback bcb) {
+        ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
+        q.whereNotEqualTo("distanceWe", -1)
+                .whereEqualTo("associated_place", we)
+                .countInBackground(new CountCallback() {
+                    @Override
+                    public void done(int i, ParseException e) {
+                        if (e == null) bcb.OnResult(i > 0);
+                        else myLog.error(e);
+                    }
+                });
     }
 }

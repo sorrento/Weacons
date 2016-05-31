@@ -30,7 +30,7 @@ public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements
 
     public void setWeaconItemList(List<WeaconParse> weaconItemList) {
         this.weaconItemList = weaconItemList;
-        Collections.reverse(this.weaconItemList);
+//        Collections.reverse(this.weaconItemList);
     }
 
     @Override

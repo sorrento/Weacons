@@ -26,23 +26,28 @@ import util.parameters;
  */
 public class LogInManagement {
     private static final String tag = "LIM";
+
     public static CurrentSituation now;
     public static HashSet<WeaconParse> lastWeaconsDetected;
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
-    private static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
-    private static boolean someOneAppearing = false;
-    private static boolean someoneQuitting = false;
-    private static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
+    public static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     private static boolean anyInterestingAppearing = false;
     private static ArrayList<WeaconParse> activeWeacons;
+    private static boolean someOneAppearing = false;
+    private static boolean someoneQuitting = false;
+
+    public static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
+    public static NotifFeatures notifFeatures;
+    private static boolean fetching;
+    public static boolean areObsolete;
+    private static Timer t;
 
 
     /**
      * Informs the weacons detected, in order to send/update/remove  notification
      * and log in /out in the chat
      */
-    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected, Context ctx, LogBump logBump) {
-
+    public static void setNewWeacons(HashSet<WeaconParse> weaconsDetected, Context ctx) {
 
         lastWeaconsDetected = weaconsDetected;
         someoneQuitting = false;
@@ -51,28 +56,12 @@ public class LogInManagement {
         try {
 
             //Check differences with last scanning and keep accumulation history
-            checkDisappearing(ctx, logBump);
+            checkDisappearing(ctx);
             checkAppearing();
 
             now = new CurrentSituation(weaconsDetected, occurrences);
-            boolean shouldFetch = now.anyFetchable() && now.anyInteresting;
 
-            logBump.setOccurrences(occurrences);
-            logBump.setSituation(now);
-
-            //Notify or change notification
-            if (someOneAppearing || someoneQuitting) {
-                if (someOneAppearing) logBump.setReasonToNotify(LogBump.ReasonToNotify.APPEARING);
-                if (someoneQuitting)
-                    logBump.setReasonToNotify(LogBump.ReasonToNotify.DISSAPIRARING);
-
-                if (shouldFetch) fetchAllActiveAndInform(ctx, logBump);
-                else Inform(ctx, logBump);
-
-            } else {
-                logBump.setReasonToNotify(LogBump.ReasonToNotify.NONE);
-                logBump.build();
-            }
+            decider(ctx);
 
             if (parameters.isMilenkosPhone()) Notifications.notifyOccurrences(occurrences);
 
@@ -81,15 +70,45 @@ public class LogInManagement {
         }
     }
 
-    public static void fetchAllActiveAndInform(final Context context, final LogBump logBump) {
-        markAsRefreshing(true);
-        Inform(context, logBump);
-        markAsRefreshing(false);
+    /**
+     * Decide if updateInfo or not and the features of the notification
+     *
+     * @param ctx
+     */
+    private static void decider(Context ctx) {
 
-        final MultiTaskCompleted multiTaskCompleted = new MultiTaskCompleted() {
+        if (someOneAppearing || someoneQuitting) {
+
+            boolean sound = anyInterestingAppearing && !now.anyHome;
+//            boolean automaticFetching = now.anyFetchable() && anyInterestingAppearing && !now.anyHome;
+            boolean refreshBtn = now.anyFetchable();
+            boolean silenceBtn = now.anyInteresting;
+
+            notifFeatures = new NotifFeatures(sound, refreshBtn, silenceBtn);
+
+            //Notify or change notification
+            ctx.sendBroadcast(new Intent(parameters.updateInfo));
+        }
+    }
+
+    public static void fetchAllActiveAndInform(final Context ctx, boolean forceTheFetching) {
+
+        if (fetching) {
+            if (forceTheFetching) cancelTimer();
+            else return; // To avoid useless fetching
+        }
+
+        fetching = true;
+
+        // Show "refreshing"
+        informWeaconsRefreshing(ctx);
+
+        final MultiTaskCompleted allFetched = new MultiTaskCompleted() {
             @Override
             public void OneTaskCompleted() {
-                Inform(context, logBump);
+                clearAfterATime(ctx, 30000);
+                //show with fetched info
+                ctx.sendBroadcast(new Intent(parameters.updateInfo));
             }
 
             @Override
@@ -97,6 +116,7 @@ public class LogInManagement {
                 myLog.error(e);
             }
         };
+
         final int nTotal = getActiveWeacons().size();
 
         MultiTaskCompleted singleFetch = new MultiTaskCompleted() {
@@ -105,16 +125,13 @@ public class LogInManagement {
             @Override
             public void OneTaskCompleted() {
                 iTasksCompleted++;
-                if (iTasksCompleted == nTotal) {
-                    allHaveBeenFetched(context, null);
-                    multiTaskCompleted.OneTaskCompleted();
-                }
+                if (iTasksCompleted == nTotal) allFetched.OneTaskCompleted();
             }
 
             @Override
             public void OnError(Exception e) {
                 iTasksCompleted++;
-                if (iTasksCompleted == nTotal) multiTaskCompleted.OneTaskCompleted();
+                if (iTasksCompleted == nTotal) allFetched.OneTaskCompleted();
             }
         };
 
@@ -125,14 +142,6 @@ public class LogInManagement {
                 singleFetch.OneTaskCompleted();
             }
         }
-    }
-
-    private static void Inform(Context context, LogBump logBump) {
-        // Notification
-        Notify(logBump);
-
-        //WeaconsList
-        context.sendBroadcast(new Intent(parameters.NEW_WEACONS_DATA));
     }
 
     public static ArrayList<WeaconParse> getActiveWeacons() {
@@ -159,10 +168,8 @@ public class LogInManagement {
 
     /**
      * List of DISAPPEARING (NOT IN NEW). Modifies field occurrences
-     *
-     * @param logBump
      */
-    private static void checkDisappearing(Context ctx, LogBump logBump) {
+    private static void checkDisappearing(Context ctx) {
         Iterator<Map.Entry<WeaconParse, Integer>> itOld = occurrences.entrySet().iterator();
 
         while (itOld.hasNext()) {
@@ -175,8 +182,6 @@ public class LogInManagement {
                 // +++ -
                 if (n > 0) {
                     entry.setValue(-1);
-                    logBump.addQuitting(entry.getKey().getName());
-//                    myLog.add("just leaving " + we.getName(), tag);
 
                     // --- -
                 } else {
@@ -184,7 +189,6 @@ public class LogInManagement {
 
                     if (n < -parameters.repeatedOffToDisappear) {
                         itOld.remove();
-                        Inform(ctx, logBump); //to remove from the message bar ("currently around...")
                     } else if (n == -we.getRepeatedOffRemoveFromNotification() && IsInNotification(we)) {
                         movingOutForNotification(we); //remove from notification
                     } else if (n == -parameters.repeatedOffToChatOff && Chat.IsInChat(we)) {
@@ -249,7 +253,7 @@ public class LogInManagement {
 
     //NOTIFICATIONS
 
-    private static void Notify(LogBump logBump) {
+    private static void Notify() {
         boolean sound = anyInterestingAppearing && !now.anyHome;
         boolean automaticFetching = anyInterestingAppearing && !now.anyHome;
         boolean silenceButton = now.anyInteresting;
@@ -261,20 +265,20 @@ public class LogInManagement {
         String u = now.anyFetchable() ? "Hay alguno fetchable" : "No hay ninguno fetchable";
 
 
-        logBump.setSound(sound, r + " Y " + s);
-        logBump.setSilenceButton(silenceButton, t);
-        logBump.setRefreshButton(refreshButton, u);
-        logBump.setAutomaticFetching(automaticFetching, r + " Y " + s);
+//        logBump.setSound(sound, r + " Y " + s);
+//        logBump.setSilenceButton(silenceButton, t);
+//        logBump.setRefreshButton(refreshButton, u);
+//        logBump.setAutomaticFetching(automaticFetching, r + " Y " + s);
 
 
-        Notifications.Notify(weaconsToNotify, numberOfActiveNonNotified(), sound, automaticFetching,
-                refreshButton, silenceButton, logBump);
+//        Notifications.Notify(weaconsToNotify, numberOfActiveNonNotified(), sound, automaticFetching,
+//                refreshButton, silenceButton);
 
 //
 //        if (now.anyFetchable()) {
 //            if (automaticFetching) {
 //                NotifyFetching(sound, now.anyInteresting);
-//            } else { //simply notify
+//            } else { //simply updateInfo
 //                Notifications.showNotification(weaconsToNotify, anyInterestingAppearing, true, now.anyInteresting);
 ////                lastTimeWeFetched = false;
 //            }
@@ -291,68 +295,88 @@ public class LogInManagement {
         return weaconsToNotify.contains(we);
     }
 
-    private static int numberOfActiveNonNotified() {
+    public static int numberOfActiveNonNotified() {
         int nactive = getActiveWeacons().size();
         int nnotified = weaconsToNotify.size();
-//        myLog.add("ACTVICE NON NOTIFIED: " + nactive + "-" + nnotified, "aut");
 
         return nactive - nnotified;
     }
 
-    private static void allHaveBeenFetched(final Context ctx, final LogBump logBump) {
-//        if (t != null) {
-//            t.cancel();
-//            t.purge();
-//        }
+    private static void clearAfterATime(final Context ctx, int delay) {
 
-        final Timer t = new Timer();
+        cancelTimer();
+        t = new Timer();
 
         TimerTask task = new TimerTask() {
-            int im = 0;
-
             @Override
             public void run() {
-                im++;
-                myLog.add("------han pasado los 30seg: " + im, LogBump.tag);
-                informWeaconsObsolete(ctx, new LogBump(LogBump.LogType.OBSOLETE_REMOVAL));
-                t.cancel();
-                t.purge();
+                myLog.add("------han pasado los 30seg: ", "timer");
+                fetching = false;
+                informWeaconsObsolete(ctx);
             }
         };
 
-        t.schedule(task, 30000);
-
+        t.schedule(task, delay);
     }
 
-    private static void informWeaconsObsolete(Context ctx, LogBump logBump) {
-        for (WeaconParse we : activeWeacons) we.setObsolete(true);
-        Inform(ctx, logBump);
-    }
-
-    private static void markAsRefreshing(boolean b) {
-        for (WeaconParse we : getActiveWeacons()) {
-            if (we.notificationRequiresFetching()) we.refreshing = b;
+    private static void cancelTimer() {
+        if (t != null) {
+            myLog.add("Timer  gonna cancel", "timer");
+            t.cancel();
+            t.purge();
+            t = null;
         }
     }
+
+    private static void informWeaconsObsolete(Context ctx) {
+        areObsolete=true;
+        for (WeaconParse we : activeWeacons) we.setObsolete(true);
+        ctx.sendBroadcast(new Intent(parameters.updateInfo));
+    }
+
+    private static void informWeaconsRefreshing(Context ctx) {
+        for (WeaconParse we : activeWeacons) we.refreshing = true;
+        ctx.sendBroadcast(new Intent(parameters.updateInfo));
+    }
+
+//    public static void markAsRefreshing(boolean b) {
+//        for (WeaconParse we : getActiveWeacons()) {
+//            if (we.notificationRequiresFetching()) we.refreshing = b;
+//        }
+//    }
+//    public static void markAsObsolete(boolean b) {
+//        for (WeaconParse we : getActiveWeacons()) {
+//            if (we.notificationRequiresFetching()) we.setObsolete(b);
+//        }
+//    }
 
     /**
      * Created by Milenko on 04/03/2016.
      */
     public static class CurrentSituation {
         private static final int MILI_TO_BE_HOME = 40 * 60 * 1000;//30 * 60 * 1000;
+
         public boolean anyHome;
         public int nFetchings;
-        //        public boolean shouldFetch;
         public boolean anyInteresting;
-        private ArrayList<WeaconParse> interestingOnes = new ArrayList();
+
+        private final HashSet<WeaconParse> mDetected;
+        private final HashMap<WeaconParse, Integer> mOccurences;
+
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {
 
-            int i = 0;
+            mOccurences = occurrences;
+            mDetected = weaconsDetected;
 
+            update();
+        }
+
+        public void update() {
+            int i = 0;
             try {
-                for (WeaconParse we : weaconsDetected) {
-                    int repetitions = occurrences.get(we);
+                for (WeaconParse we : mDetected) {
+                    int repetitions = mOccurences.get(we);
 
                     //Count
                     if (we.notificationRequiresFetching()) i++;
@@ -363,10 +387,11 @@ public class LogInManagement {
                     } else if (repetitions > 15 && !we.inHome()) {
                         long timeDiff = new Date().getTime() - we.getTimeFirstApperaringInThisRow().getTime();
                         if (timeDiff > MILI_TO_BE_HOME) {
-                            we.setInHome(true); //TODO Cómo se deja de ser Home?
+                            we.setInHome(true);
                             anyHome = true;
                         }
                     }
+                    if (we.inHome()) anyHome = true;//TODO remove home if has pass 3 months
 
 
 //                    // Should fetch
@@ -377,13 +402,7 @@ public class LogInManagement {
 //                    }
 
                     //Interesting
-                    if (we.isInteresting()) {
-                        interestingOnes.add(we);
-                        anyInteresting = true;
-                    }
-
-                    //home
-                    if (we.inHome()) anyHome = true;//TODO remove home if has pass 3 months
+                    if (we.isInteresting()) anyInteresting = true;
 
                 }
 
@@ -400,7 +419,6 @@ public class LogInManagement {
                     ", nFetchings=" + nFetchings +
 //                    ", shouldFetch=" + shouldFetch +
                     ", anyInteresting=" + anyInteresting +
-                    ", interestingOnes=" + interestingOnes +
                     '}';
 
         }
@@ -410,4 +428,5 @@ public class LogInManagement {
         }
 
     }
+
 }

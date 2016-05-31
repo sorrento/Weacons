@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.stupidpeople.weacons.HelperBaseFecthNotif;
 import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.NotifFeatures;
 import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
@@ -143,10 +144,13 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     }
 
     @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, boolean sound, Context mContext, boolean refreshButton, LogBump logBump) {
+    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent,  Context mContext) {
         mNotifTitle = NotiSingleCompactTitle();
         mNotifBottom = Notifications.bottomMessage(mContext);
-        NotificationCompat.Builder notif = baseNotif(mContext, sound, refreshButton);
+
+        NotifFeatures f = LogInManagement.notifFeatures;
+
+        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.refreshButton);
 
         //Bigtext style
         mNotifContent = NotiSingleExpandedContent();
@@ -166,7 +170,6 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
 
         mBody = mNotifContent.toString();
 
-        logNotification(logBump);
         return notif;
     }
 
