@@ -21,8 +21,8 @@ import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.Notifications;
 import com.stupidpeople.weacons.R;
+import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
 import com.stupidpeople.weacons.Wigle;
@@ -53,8 +53,10 @@ public abstract class ParseActions {
      * @param ctx
      * @param callBackWeacons for returning the set of weacons in the zone in this scanning
      */
-    public static void CheckSpotMatches(final List<ScanResult> sr, final Context ctx, final CallBackWeacons callBackWeacons) {
+    public static void checkSpotMatches(final List<ScanResult> sr, final Context ctx, final CallBackWeacons callBackWeacons) {
         final ArrayList<String> bssids = new ArrayList<>();
+
+        myLog.add(StringUtils.ListarSR(sr), "SSIDS");
 
         for (ScanResult r : sr) bssids.add(r.BSSID);
 
@@ -62,7 +64,7 @@ public abstract class ParseActions {
         ParseQuery<WifiSpot> qb = ParseQuery.getQuery(WifiSpot.class);
         qb.whereContainedIn("bssid", bssids)
                 .fromPin(parameters.pinWeacons)
-                .whereNotEqualTo("distanceWe", -1)
+                .whereNotEqualTo("distanceWe", -1) //wigle tienen -1
                 .include("associated_place")
                 .findInBackground(new FindCallback<WifiSpot>() {
 
@@ -350,7 +352,7 @@ public abstract class ParseActions {
             List list = query.whereContainedIn("WeaconId", arr)
                     .fromPin(parameters.pinFavorites)
                     .find();
-            ParseObject.unpinAll(parameters.pinFavorites,list);
+            ParseObject.unpinAll(parameters.pinFavorites, list);
         } catch (ParseException e) {
             myLog.error(e);
         }
@@ -457,15 +459,20 @@ public abstract class ParseActions {
 
                 if (e == null) {
                     myLog.add("Detected: " + sr.size() + " alread created:y " + list.size(), "ADD_STOP");
-                    for (WifiSpot ws : list) {
-                        spotsAlreadyCreated.add(ws.getBSSID());
-                    }
+                    for (WifiSpot ws : list) spotsAlreadyCreated.add(ws.getBSSID());
 
                     for (ScanResult r : sr) {
                         if (!spotsAlreadyCreated.contains(r.BSSID)) {
                             double dist = weBusStop.getGPS().distanceInKilometersTo(gps.getGeoPoint());
                             newOnes.add(new WifiSpot(r, weBusStop, gps, dist * 1000));
                         }
+                    }
+
+                    //Case there is no new wifi, we assign just one (it will produce that gathers two weacons)
+                    if (newOnes.size() == 0) {
+                        myLog.add("Assingnango una wifi que ya estaba asignada", "ADD_STOP");
+                        double dist = weBusStop.getGPS().distanceInKilometersTo(gps.getGeoPoint());
+                        newOnes.add(new WifiSpot(sr.get(0), weBusStop, gps, dist * 1000));
                     }
 
                     //Upload batch
@@ -506,7 +513,6 @@ public abstract class ParseActions {
                     myLog.error(e);
             }
         });
-        ;
     }
 
 
@@ -680,20 +686,16 @@ public abstract class ParseActions {
      * @param mts
      * @param listener
      */
-    public static void getFreeBusStopsInRadius(final GPSCoordinates gps, final int mts, final FindCallback<WeaconParse> listener) {
+    public static void getFreeBusStopsInRadius(final GPSCoordinates gps, final double mts, final FindCallback<WeaconParse> listener) {
         ParseGeoPoint geoPoint = gps.getGeoPoint();
-
-
-        //Filtramos aquellos menor a "mts"
+        // Filtramos aquellos menor a "mts"
         FindCallback<WeaconParse> listener2 = new FindCallback<WeaconParse>() {
             @Override
             public void done(List<WeaconParse> list, ParseException e) {
                 List<WeaconParse> nearest = new ArrayList<>();
-                for (WeaconParse we :
-                        list) {
+                for (WeaconParse we : list) {
                     if (we.getGPS().distanceInKilometersTo(gps.getGeoPoint()) < (mts / 1000))
                         nearest.add(we);
-                    else break;
                 }
                 listener.done(nearest, e);
             }
@@ -701,7 +703,6 @@ public abstract class ParseActions {
 
         ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
         query.whereEqualTo("Type", "bus_stop")
-//                .whereWithinKilometers("GPS", geoPoint, mts / 1000)
                 .whereNear("GPS", geoPoint)
                 .setLimit(7)
                 .whereDoesNotExist("n_scannings")
@@ -711,7 +712,6 @@ public abstract class ParseActions {
     public static void SaveIntensities2(List<ScanResult> sr, GPSCoordinates mGps) {
         ArrayList<ParseObject> intensities = new ArrayList<>();
         for (ScanResult r : sr) {
-//            ParseObject intensity = ParseObject.create("Intensities");
             ParseObject intensity = new ParseObject("Intensities");
             intensity.put("level", r.level);
             intensity.put("GPS", mGps.getGeoPoint());
@@ -720,7 +720,6 @@ public abstract class ParseActions {
 
             intensities.add(intensity);
         }
-        myLog.add("..savingseveral intensities " + intensities.size(), "ADD_STOP");
         ParseObject.saveAllInBackground(intensities, new SaveCallback() {
             @Override
             public void done(ParseException e) {
@@ -764,7 +763,8 @@ public abstract class ParseActions {
                         if (e == null) {
 //                            HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<>();
 
-                            if (spots.size() == 0) myLog.add("No bssids matches", tag);
+                            if (spots.size() == 0)
+                                myLog.add("No bssids matches on Wigle neither", tag);
                             else { //There are matches
 
 
@@ -831,5 +831,22 @@ public abstract class ParseActions {
                         else myLog.error(e);
                     }
                 });
+    }
+
+    public static void removeSpotsOfWeacon(WeaconParse we, final DeleteCallback deleteCB) {
+        FindCallback<WifiSpot> findCallback = new FindCallback<WifiSpot>() {
+            @Override
+            public void done(List<WifiSpot> list, ParseException e) {
+                ParseObject.deleteAllInBackground(list, deleteCB);
+            }
+        };
+        getSpotsOfWeacon(we, findCallback);
+
+    }
+
+    private static void getSpotsOfWeacon(WeaconParse we, FindCallback<WifiSpot> findCallback) {
+        ParseQuery<WifiSpot> q = new ParseQuery<>(WifiSpot.class);
+        q.whereEqualTo("associated_place", we)
+                .findInBackground(findCallback);
     }
 }

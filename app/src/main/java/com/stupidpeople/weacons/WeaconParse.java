@@ -64,8 +64,7 @@ public class WeaconParse extends ParseObject {
 
 
     public String getDescription() {
-        String message = getString("Description");
-        return message;
+        return getString("Description");
     }
 
     public String getImageParseUrl() {
@@ -83,8 +82,7 @@ public class WeaconParse extends ParseObject {
         if (o == null) return false;
         if (!(o instanceof WeaconParse)) return false;
 
-        WeaconParse other = (WeaconParse) o;
-        return this.getObjectId() == other.getObjectId();
+        return this.getObjectId().equals(((WeaconParse) o).getObjectId());
     }
 
     public String getName() {
@@ -120,12 +118,19 @@ public class WeaconParse extends ParseObject {
     public parameters.typeOfWeacon getType() {
         String type = getString("Type");
         parameters.typeOfWeacon sol = parameters.typeOfWeacon.nothing;
-        if (type.equals("bus_stop")) {
-            sol = parameters.typeOfWeacon.bus_station;
-        } else if (type.equals("AIRPORT")) {
-            sol = parameters.typeOfWeacon.airport;
-        } else if (type.equals("restaurant")) {
-            sol = parameters.typeOfWeacon.restaurant;
+        switch (type) {
+            case "bus_stop":
+                sol = parameters.typeOfWeacon.bus_station;
+                break;
+            case "AIRPORT":
+                sol = parameters.typeOfWeacon.airport;
+                break;
+            case "restaurant":
+                sol = parameters.typeOfWeacon.restaurant;
+                break;
+            case "University":  //es ESADE, cambiar, asumo que todas tienen schedule
+                sol = parameters.typeOfWeacon.university;
+                break;
         }
 
         return sol;
@@ -153,9 +158,8 @@ public class WeaconParse extends ParseObject {
 
     public Bitmap getLogoRounded() {
         Bitmap bm = getLogo();
-        Bitmap logoRounded = imageUtils.drawableToBitmap(new RoundImage(bm));
 
-        return logoRounded;
+        return imageUtils.drawableToBitmap(new RoundImage(bm));
     }
 
     public ParseGeoPoint getGPS() {
@@ -362,8 +366,10 @@ public class WeaconParse extends ParseObject {
                 //                break;
                 //            case travel_agency:
                 //                break;
-                //            case university:
-                //                break;
+                case university:
+                    //TODO change since it applies ony to esade
+                    mHelper = new HelperSchedule(this, ctx);
+                    break;
                 //            case veterinary_care:
                 //                break;
                 //            case zoo:
@@ -443,7 +449,7 @@ public class WeaconParse extends ParseObject {
         fetchingResults elementsListener = new fetchingResults() {
             @Override
             public void onReceive(Connection.Response response) {
-                obsolete = false;
+                setObsolete(false);
                 refreshing = false;
 
                 fetchedElements = processResponse(response);
@@ -452,14 +458,14 @@ public class WeaconParse extends ParseObject {
 
             @Override
             public void onError(Exception e) {
-                obsolete = false;
+                setObsolete(false);
                 refreshing = false;
                 myLog.error(e);
             }
 
             @Override
             public void OnEmptyAnswer() {
-                obsolete = false;
+                setObsolete(false);
                 refreshing = false;
 
                 fetchedElements = new ArrayList();

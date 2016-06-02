@@ -34,8 +34,8 @@ import java.util.List;
 import util.myLog;
 import util.parameters;
 
-import static com.stupidpeople.weacons.ready.ParseActions.CheckSpotMatches;
 import static com.stupidpeople.weacons.ready.ParseActions.DownloadWeaconsIfNeeded;
+import static com.stupidpeople.weacons.ready.ParseActions.checkSpotMatches;
 
 /**
  * Created by Milenko on 04/10/2015.
@@ -230,7 +230,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 } else if (action.equals(parameters.silenceIntentName)) {
 //                    ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
                     LogInManagement.notifFeatures.silenceButton = false;
-                    ParseActions.removeInteresting(LogInManagement.weaconsToNotify);
+                    ParseActions.removeInteresting(LogInManagement.getActiveWeacons());
                     Notifications.Notify();
 
                     // SCREEN on
@@ -238,7 +238,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     myLog.add("Ha encendido la pantalla", "wifi");
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
-                            LogInManagement.now.anyFetchable()) {
+                            LogInManagement.now.anyFetchable() && !LogInManagement.now.anyHome) {
                         LogInManagement.fetchAllActiveAndInform(mContext, false);
                     }
 
@@ -266,19 +266,23 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             final String action = intent.getAction();
 
             try {
-                if (action.equals(WifiManager.NETWORK_STATE_CHANGED_ACTION)) {
-                    NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-                    if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
-                        myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
+                switch (action) {
+                    case WifiManager.NETWORK_STATE_CHANGED_ACTION:
+                        NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+                        if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
+                            myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
 
-                        transferLogsToParse();
-                    }
+                            transferLogsToParse();
+                        }
 
-                } else if (action.equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)) {
-                    processScanResults(wifiManager.getScanResults());
+                        break;
+                    case WifiManager.SCAN_RESULTS_AVAILABLE_ACTION:
+                        processScanResults(wifiManager.getScanResults());
 
-                } else {
-                    myLog.add("Entering in a different state of network: " + action, tag);
+                        break;
+                    default:
+                        myLog.add("Entering in a different state of network: " + action, tag);
+                        break;
                 }
 //                How to test BOOT_COMPLETED without restart emulator or real device? It's easy. Try this:
                 //                adb -s device-or-emulator-id shell am broadcast -a android.intent.action.BOOT_COMPLETED
@@ -296,7 +300,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
             if (iScan % 30 == 0) ParseActions.DownloadWeaconsIfNeeded(mContext);
 
-            CheckSpotMatches(sr, mContext, new CallBackWeacons() {
+            //For testing showing single weacon
+            if (parameters.ignoreScanning) sr.clear();
+
+            checkSpotMatches(sr, mContext, new CallBackWeacons() {
                 @Override
                 public void OnReceive(HashSet<WeaconParse> weaconHash) {
                     LogInManagement.setNewWeacons(weaconHash, mContext);

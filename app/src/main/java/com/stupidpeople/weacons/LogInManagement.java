@@ -31,15 +31,14 @@ public class LogInManagement {
     public static HashSet<WeaconParse> lastWeaconsDetected;
     //{we, n} n = times  appeared in a row. If negative, n of time not appearing consecutively since
     public static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
+    public static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
+    public static NotifFeatures notifFeatures;
+    public static boolean areObsolete;
     private static boolean anyInterestingAppearing = false;
     private static ArrayList<WeaconParse> activeWeacons;
     private static boolean someOneAppearing = false;
     private static boolean someoneQuitting = false;
-
-    public static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
-    public static NotifFeatures notifFeatures;
     private static boolean fetching;
-    public static boolean areObsolete;
     private static Timer t;
 
 
@@ -310,7 +309,6 @@ public class LogInManagement {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                myLog.add("------han pasado los 30seg: ", "timer");
                 fetching = false;
                 informWeaconsObsolete(ctx);
             }
@@ -321,7 +319,6 @@ public class LogInManagement {
 
     private static void cancelTimer() {
         if (t != null) {
-            myLog.add("Timer  gonna cancel", "timer");
             t.cancel();
             t.purge();
             t = null;
@@ -355,13 +352,11 @@ public class LogInManagement {
      */
     public static class CurrentSituation {
         private static final int MILI_TO_BE_HOME = 40 * 60 * 1000;//30 * 60 * 1000;
-
+        private final HashSet<WeaconParse> mDetected;
+        private final HashMap<WeaconParse, Integer> mOccurences;
         public boolean anyHome;
         public int nFetchings;
         public boolean anyInteresting;
-
-        private final HashSet<WeaconParse> mDetected;
-        private final HashMap<WeaconParse, Integer> mOccurences;
 
 
         public CurrentSituation(HashSet<WeaconParse> weaconsDetected, HashMap<WeaconParse, Integer> occurrences) {

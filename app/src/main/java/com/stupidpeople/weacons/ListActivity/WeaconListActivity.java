@@ -5,6 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
@@ -19,10 +21,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.stupidpeople.weacons.GPSCoordinates;
@@ -58,12 +61,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     private ArrayList<WeaconParse> activeWeacons;
     private SwipeRefreshLayout mRefresh;
     private newDataReceiver newDataReceiver;
-    private TextView emptyView;
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,8 +71,10 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             myLog.initialize();
             mContext = this;
 
+            if (isFirstTime()) ShowExplainationDialog();
+
             Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
-            startServiceIfNeeded();
+
 
             myLog.add("opening la lista activity", "wifi");
             mRecyclerView = new RecyclerView(this);
@@ -84,8 +83,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
             mRecyclerView.addItemDecoration(new DividerItemDecoration(this, getResources().getDrawable(R.drawable.abc_list_divider_mtrl_alpha)));
 
-            emptyView = (TextView) findViewById(R.id.empty_view);
-
             //Fill the list with launched
             //TODO if there is no data, refresh
             activeWeacons = LogInManagement.getActiveWeacons();
@@ -93,7 +90,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             adapter.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
 
                     //TODO make work click over item
 //                    WeaconParse we = (WeaconParse) v.getTag();
@@ -123,12 +119,80 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION_PERMISSION);//for Androis 6
+            } else {
+                startServiceIfNeeded();
             }
 
 //            refreshList(false);
         } catch (Resources.NotFoundException e) {
             myLog.error(e);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Toast.makeText(mContext, "Estamos retomandola Actividad", Toast.LENGTH_SHORT).show();
+
+        someTest();
+
+        //Show NO WEACON message
+        if (LogInManagement.getActiveWeacons().size() == 0) {
+
+            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+            wifiManager.startScan();
+
+        } else {
+//            emptyView.setVisibility(View.GONE);
+//            mRecyclerView.setVisibility(View.VISIBLE);
+            updateList();
+
+            if (LogInManagement.getActiveWeacons().get(0).obsolete = true) {
+                refreshList(false);
+            }
+        }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_FINE_LOCATION_PERMISSION && grantResults.length > 0
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startServiceIfNeeded();
+        } else {
+            new MaterialDialog.Builder(this)
+                    .title(R.string.attention)
+                    .content(getString(R.string.gps_explaination))
+                    .positiveText(R.string.got_it)
+                    .onPositive(new MaterialDialog.SingleButtonCallback() {
+                        @Override
+                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .show();
+        }
+
+    }
+
+    private void ShowExplainationDialog() {
+        new MaterialDialog.Builder(this)
+                .title(R.string.welcome)
+                .content(R.string.inital_explaination)
+                .positiveText(R.string.got_it)
+//                .negativeText(R.string.disagree)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        dialog.dismiss();//TODO llamar al segundo dialog4
+                    }
+                })
+                .show();
+    }
+
+    private boolean isFirstTime() {
+        SharedPreferences prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
+        return prefs.getBoolean("firstrunService", true);
     }
 
     @Override
@@ -295,33 +359,61 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     private void showDialogDecision(final List<WeaconParse> busStops) {
         //create the list of strings
-        final ArrayList<String> arr = new ArrayList<>();
-        myLog.add("Vamos amostrar el dialog", "ADD_STOP");
 
-        for (int i = 0; i < busStops.size() - 1; i++) {
-            WeaconParse we = busStops.get(i);
-            int dist = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
-            String s = we.getParadaId() + " " + we.getName() + " " + dist + "m";
-            arr.add(s);
-            myLog.add("Opcion:" + s, "ADD_STOP");
+        int size = busStops.size();
+        myLog.add("Vamos amostrar el dialog: lista de :" + size, "ADD_STOP");
+
+        MaterialDialog.Builder db = new MaterialDialog.Builder(this);
+
+        if (size == 0) {
+            db.title(R.string.no_bustop_title)
+                    .content(R.string.no_busstop_message_dialog)
+                    .positiveText(R.string.ok);//todo boton de reportar parada que no salta
+
+        } else {
+            final ArrayList<String> arr = new ArrayList<>();
+
+            for (int i = 0; i < size; i++) {
+                WeaconParse we = busStops.get(i);
+                int dist = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
+                String s = we.getParadaId() + " " + we.getName() + " " + dist + "m";
+                arr.add(s);
+                myLog.add("Opcion:" + s, "ADD_STOP");
+            }
+
+            if (size == 1) {
+                db.title(R.string.isthisone)
+                        .content(arr.get(0))
+                        .positiveText(R.string.ok)
+                        .negativeText(R.string.cancel)
+                        .onPositive(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                WeaconParse we = busStops.get(0);
+                                we.build(mContext);
+                                uploadBusStopAndNotify(we);
+                            }
+                        });
+            } else {
+                arr.add(getString(R.string.non_of_these));
+                db.title(R.string.whichone)
+                        .items(arr)
+                        .itemsCallback(new MaterialDialog.ListCallback() {
+                            @Override
+                            public void onSelection(MaterialDialog materialDialog, View view, int i, CharSequence charSequence) {
+                                if (i < arr.size() - 1) {
+                                    WeaconParse we = busStops.get(i);
+                                    we.build(mContext);
+                                    uploadBusStopAndNotify(we);
+                                }
+                                materialDialog.dismiss();
+                            }
+                        });
+            }
         }
-        arr.add(getString(R.string.non_of_these));
 
-        new MaterialDialog.Builder(this)
-                .title("Which one?")
-                .items(arr)
-                .itemsCallback(new MaterialDialog.ListCallback() {
-                    @Override
-                    public void onSelection(MaterialDialog materialDialog, View view, int i, CharSequence charSequence) {
-                        if (i < arr.size() - 1) {
-                            WeaconParse we = busStops.get(i);
-                            we.build(mContext);
-                            uploadBusStopAndNotify(we);
-                        }
-                        materialDialog.dismiss();
-                    }
-                })
-                .show();
+        MaterialDialog d = db.build();
+        d.show();
 
     }
 
@@ -338,29 +430,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         SendWifis(we);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Toast.makeText(mContext, "Estamos retomandola Actividad", Toast.LENGTH_SHORT).show();
-
-        //Show NO WEACON message
-        if (LogInManagement.getActiveWeacons().size() == 0) {
-//            mRecyclerView.setVisibility(View.GONE);
-//            emptyView.setVisibility(View.VISIBLE);
-
-            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-            wifiManager.startScan();
-
-        } else {
-            emptyView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
-            updateList();
-
-            if (LogInManagement.getActiveWeacons().get(0).obsolete = true) {
-                refreshList(false);
-            }
-        }
-    }
 
     public void OnCLickClear(View view) {
         ParseActions.ClearHomes();
@@ -382,7 +451,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 Collections.sort(sr, new srComparator());
 
                 try {
-                    MultiTaskCompleted assignTask = new MultiTaskCompleted() {
+                    final MultiTaskCompleted assignTask = new MultiTaskCompleted() {
                         @Override
                         public void OneTaskCompleted() {
                             //Reload weacons in the area after upload everything
@@ -410,9 +479,19 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                         }
                     };
 
-                    List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 5) : sr;
+                    final List<ScanResult> srShort = sr.size() > 4 ? sr.subList(0, 5) : sr;
 
-                    ParseActions.assignSpotsToWeacon(we, srShort, mGps, mContext, assignTask);
+                    // Quitamos los spots que había y ponemos los nuevos
+                    ParseActions.removeSpotsOfWeacon(we, new DeleteCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e == null) {
+                                ParseActions.assignSpotsToWeacon(we, srShort, mGps, mContext, assignTask);
+                            } else {
+                                myLog.error(e);
+                            }
+                        }
+                    });
                 } catch (Exception e) {
                     myLog.error(e);
                 }
@@ -425,6 +504,17 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 myLog.add(text, "WARN");
             }
         });
+    }
+
+    private void updateList() {
+        mRefresh.setRefreshing(false);
+        activeWeacons = LogInManagement.getActiveWeacons();
+        adapter.setWeaconItemList(activeWeacons);
+        adapter.notifyDataSetChanged();
+    }
+
+    private void someTest() {
+
     }
 
     private class newDataReceiver extends BroadcastReceiver {
@@ -440,12 +530,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         }
     }
 
-    private void updateList() {
-        mRefresh.setRefreshing(false);
-        activeWeacons = LogInManagement.getActiveWeacons();
-        adapter.setWeaconItemList(activeWeacons);
-        adapter.notifyDataSetChanged();
-    }
+
+////Testing
 
     class srComparator implements Comparator<ScanResult> {
 
@@ -454,5 +540,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             return rhs.level - lhs.level;
         }
     }
+
+
 }
 

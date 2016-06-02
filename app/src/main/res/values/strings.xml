@@ -76,7 +76,7 @@
     <string name="no_lines_available">No lines available</string>
     <string name="no_info_stop_nybow">No info for this stop by now.</string>
     <string name="location_precision">"Location precision (mts): "</string>
-    <string name="unable_gps_precision">Unable to get enough GPS precision</string>
+    <string name="unable_gps_precision">Unable to get enough GPS precision, let\'s try a little more...</string>
     <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
     <string name="turn_on_gps">Please turn on the GPS</string>
     <string name="in_busstop">At Bus Stop</string>
@@ -88,4 +88,15 @@
     <string name="gps_no_accuracy">Not possible to get position with required precision.</string>
     <string name="no_bustop_around">There is no busstop around here that needs to be uploaded</string>
     <string name="no_wifis">No wifis around here</string>
+    <string name="got_it">Got it</string>
+    <string name="gps_explaination">Weacons app requires to know your approximate position from time to time to get the surrounding weacons.</string>
+    <string name="attention">Attention</string>
+    <string name="welcome">Welcome</string>
+    <string name="inital_explaination">In this screen you will find the weacons around you, like bustops. If you are in a bustop and it doesn\'t appear here, press the \"add\" button up in the corner of the screen to add it.</string>
+    <string name="no_bustop_title">No bus stops</string>
+    <string name="no_busstop_message_dialog">You are too far from the bus stop or this one was already uploaded. Just wait a little</string>
+    <string name="ok">ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="isthisone">Is it this one?</string>
+    <string name="whichone">Which one?</string>
 </resources>

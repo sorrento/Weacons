@@ -36,7 +36,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, Context mContext) {
         NotifFeatures f = LogInManagement.notifFeatures;
 
-        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.refreshButton);
+        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.silenceButton);
         Notifications.addRefreshButton(notif);
 
         mNotifTitle = NotiSingleCompactTitle();

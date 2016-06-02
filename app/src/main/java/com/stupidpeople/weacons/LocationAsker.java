@@ -14,6 +14,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import util.myLog;
+import util.parameters;
 
 /**
  * Created by Milenko on 25/09/2015.
@@ -38,6 +39,13 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 
     public LocationAsker(final Context ctx, final double accuracyNeededMts, final LocationCallback locationCallback) {
         this(ctx, locationCallback);
+
+        // For tests
+        if (parameters.doFakePosition) {
+            locationCallback.LocationReceived(parameters.fakeCoords, 3);
+            return;
+        }
+
         iFail = 0;
         locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
 
@@ -56,7 +64,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
                     double accuracy = location.getAccuracy();
                     if (accuracy <= accuracyNeededMts) {
 
-                        myLog.add("estamos a con precision mejor de 10 mtes " + accuracy, tag);
+                        myLog.add("estamos a con precision mejor de " + accuracyNeededMts + " mts " + accuracy, tag);
                         removerListener(location);
                     } else {
                         iFail++;
@@ -116,7 +124,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 
         if (mLastLocation == null)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                askCoarseLocation();
+                askCoarseLocation(); //marshmellow rquiere permiso para esto tambien
             } else {
                 askFineLocation();
             }

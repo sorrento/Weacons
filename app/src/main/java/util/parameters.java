@@ -3,6 +3,7 @@ package util;
 import android.os.Build;
 
 import com.parse.ParseGeoPoint;
+import com.stupidpeople.weacons.GPSCoordinates;
 
 /**
  * Created by Milenko on 20/07/2015.
@@ -12,7 +13,7 @@ public class parameters {
     final public static int defaultThreshold = -100; //For weacon detection
 
     public static final String pinWeacons = "Weacons";
-    public static final String pinWigle= "Wigle";
+    public static final String pinWigle = "Wigle";
     public static final String pinFavorites = "Favoritos";
     public static final String pinParseLog = "Logs";
     public static final String pinSapo = "SAPO2";
@@ -65,10 +66,19 @@ public class parameters {
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
 
-    //    TEST
-    public static boolean testWeacons = false;
-    public static String[] weaconsTest = {"hAxGuSgJlJ"};
+    //    TESTS
+    public static boolean testWeacons = true;
+    public static boolean doFakePosition = false;
+    public static boolean ignoreScanning = true;
+
+    public static String[] weaconsTest = {"YouCAbDETK"};
     //"hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
+    //"YouCAbDETK" ESADE MBA
+    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
+    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = canVolpallerasVernet;
+
+    ////////////////////////////
+
 
     public static boolean isMilenkosPhone() {
         String model = Build.MODEL;

@@ -18,7 +18,7 @@
  <string name='no_info_stop_nybow'>No hi ha informació sobre aquesta parada per ara.</string>
  <string name="refresh_button">ACTUALITZAR</string>
  <string name="location_precision">"Precisió de la ubicació (mts): "</string>
- <string name="unable_gps_precision">No es pot obtenir la precisió del GPS</string>
+ <string name="unable_gps_precision">No es pot obtenir la precisió del GPS. intentem una mica més...</string>
  <string name="busstop_uploaded">"S\'ha pujat la parada: "</string>
  <string name="turn_on_gps">Si us plau habiliti el GPS</string>
  <string name="in_busstop">en parada d\'autobus</string>
@@ -30,4 +30,15 @@
  <string name="gps_no_accuracy">No és possible obtenir la posició amb la precisió requerida.</string>
  <string name="no_bustop_around">No hi ha parades per aquí a prop que necessiten ser donades d\'alta.</string>
  <string name="no_wifis">No wifis around here</string>
+ <string name="gps_explaination">L\'aplicació Weapons requereix saber la teva ubicació aproximada de tant en tant, per carregar els weacons</string>
+ <string name="got_it">Entès</string>
+ <string name="attention">Atenció</string>
+ <string name="inital_explaination">En aquesta pantalla trobaràs els weacon que estan al teu voltant, com les parades de bus. Si estàs en una parada i no apareix aquí, prem el botó "afegir" a la part superior de la pantalla.</string>
+ <string name="welcome">benvingut</string>
+ <string name="isthisone">És aquesta parada?</string>
+ <string name="cancel">cancel·lar</string>
+ <string name="no_busstop_message_dialog">Ets massa lluny de la parada o bé ja ha estat pujada. Espera uns segons.</string>
+ <string name="ok">OK</string>
+ <string name="whichone">En què parada estàs?</string>
+ <string name="no_bustop_title">No hi ha parades</string>
 </resources>

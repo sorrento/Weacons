@@ -18,7 +18,7 @@
     <string name="no_lines_available">No hay líneas disponibles</string>
     <string name="no_info_stop_nybow">No hay datos ahora mismo.</string>
     <string name="location_precision">"Precisión de la ubicación (mts): "</string>
-    <string name="unable_gps_precision">No se puede obtener la precisión del GPS</string>
+    <string name="unable_gps_precision">No se puede obtener la precisión del GPS, tratemos un poco más...</string>
     <string name="busstop_uploaded">"Se ha subido la parada: "</string>
     <string name="turn_on_gps">Por favor habilite el GPS</string>
     <string name="in_busstop">En Parada de autobus</string>
@@ -30,4 +30,15 @@
     <string name="gps_no_accuracy">No es posible obtener la posición con la precisión requerida.</string>
     <string name="no_bustop_around">No hay paradas por aquí cerca que necesiten ser dadas de alta.</string>
     <string name="no_wifis">No hay redes wifis por aqui</string>
+    <string name="attention">Atención</string>
+    <string name="got_it">Entendido</string>
+    <string name="gps_explaination">La aplicación Weacons requiere saber tu ubicación aproximada de vez en cuando, para cargar los weacons</string>
+    <string name="inital_explaination">En esta pantalla encontrarás los weacon que están a tu alrededor, como las paradas de bus. Si estás en una parada y no aparece aquí, aprieta el botón \"agregar\" en la parte superior de la pantalla.</string>
+    <string name="welcome">Bienvenido</string>
+    <string name="cancel">Cancelar</string>
+    <string name="isthisone">Es esta parada?</string>
+    <string name="no_busstop_message_dialog">Estás demasiado lejos de la parada o bien ya ha sido subida. Espera unos segundos.</string>
+    <string name="ok">OK</string>
+    <string name="whichone">¿En qué parada estás?</string>
+    <string name="no_bustop_title">No hay paradas</string>
 </resources>

@@ -35,8 +35,8 @@
             android:layout_marginLeft="6dp"
             android:layout_marginTop="3dp"
             android:ellipsize="end"
-            android:maxLines="1"
-            android:text="Name"
+            android:maxLines="2"
+            android:text="Name muy largo que seguramente no cabe en una linea, porque tiene demasiado texto"
             android:textColor="@color/abc_primary_text_material_light"
             android:textSize="17dp" />
 
@@ -47,7 +47,7 @@
             android:layout_margin="1dp"
             android:layout_marginBottom="14dp"
             android:paddingLeft="6dp"
-            android:text="Lorem ipsum ad his scripta blandit partiendo, eum fastidii accumsan euripidis in, eum liber hendrerit an. Qui ut wisi vocibus suscipiantur, quo dicit ridens inciderint id. Quo mundi lobortis reformidans eu, legimus senserit definiebas an eos. Eu sit tincidunt incorrupte definitionem, vis mutat affert percipit cu, eirmod consectetuer signiferumque eu per. In usu latine equidem dolores. Quo no falli viris intellegam, ut fugit veritus placerat per."
+            android:text="L1:3m \nL2:4m \nL3:14m\nL4 nos eve"
             android:textColor="@color/abc_secondary_text_material_light" />
     </LinearLayout>
 

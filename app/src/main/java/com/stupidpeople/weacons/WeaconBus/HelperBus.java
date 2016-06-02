@@ -150,7 +150,7 @@ public class HelperBus extends HelperBaseFecthNotif {
         String name;
         String greyPart;
 
-        name = StringUtils.shorten(we.getName(), 10);
+        name = StringUtils.shorten(we.getName(), 15);
 
         if (we.refreshing) {
             greyPart = mContext.getString(R.string.refreshing);
@@ -268,7 +268,7 @@ public class HelperBus extends HelperBaseFecthNotif {
             JSONArray mJsonArray = new JSONArray(response);
 
             if (mJsonArray.length() == 0) {
-
+//TODO
             }
 
 

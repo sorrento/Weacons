@@ -49,7 +49,7 @@ public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Re
         if (response == null) {
             callback.OnEmptyAnswer();
         } else {
-            myLog.add(" Q= " + url + "\n    " + response.body(), "FET");
+            myLog.add(" Q= " + url + "\n    " + response.body() + "\n", "FET");
             callback.onReceive(response);
         }
     }
