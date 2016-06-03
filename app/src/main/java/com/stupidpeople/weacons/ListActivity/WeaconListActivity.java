@@ -28,6 +28,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseQuery;
 import com.stupidpeople.weacons.GPSCoordinates;
 import com.stupidpeople.weacons.LocationAsker;
 import com.stupidpeople.weacons.LocationCallback;
@@ -35,6 +36,7 @@ import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiAsker;
+import com.stupidpeople.weacons.WifiSpot;
 import com.stupidpeople.weacons.askScanResults;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
@@ -514,8 +516,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     }
 
     private void someTest() {
-
+//        checkWigleonLocal();
     }
+
 
     private class newDataReceiver extends BroadcastReceiver {
         @Override
@@ -533,6 +536,27 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
 ////Testing
 
+    /**
+     * vrificia que haya guardado los wigle en local
+     */
+    private void checkWigleonLocal() {
+        ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
+        q.whereEqualTo("distanceWe", -1)
+                .fromPin(parameters.pinWeacons)
+                .findInBackground(new FindCallback<WifiSpot>() {
+                    @Override
+                    public void done(List<WifiSpot> list, ParseException e) {
+                        if (e == null) {
+                            myLog.add("wifis wigle on local: " + Listar(list), "aut");
+
+                        } else {
+                            myLog.error(e);
+                        }
+                    }
+                });
+    }
+
+    //////////////////////
     class srComparator implements Comparator<ScanResult> {
 
         @Override

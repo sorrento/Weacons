@@ -39,6 +39,8 @@ import java.util.Set;
 import util.myLog;
 import util.parameters;
 
+import static com.stupidpeople.weacons.StringUtils.Listar;
+
 /**
  * Created by Milenko on 03/03/2016.
  */
@@ -59,6 +61,9 @@ public abstract class ParseActions {
         myLog.add(StringUtils.ListarSR(sr), "SSIDS");
 
         for (ScanResult r : sr) bssids.add(r.BSSID);
+
+        // TEST
+        if (parameters.simulateWifi) bssids.add(parameters.wifiToSimulateMac);
 
         //Query BSSID
         ParseQuery<WifiSpot> qb = ParseQuery.getQuery(WifiSpot.class);
@@ -746,6 +751,26 @@ public abstract class ParseActions {
     }
 
 
+    // WIFI SPOTS
+
+    public static void removeSpotsOfWeacon(WeaconParse we, final DeleteCallback deleteCB) {
+        FindCallback<WifiSpot> findCallback = new FindCallback<WifiSpot>() {
+            @Override
+            public void done(List<WifiSpot> list, ParseException e) {
+                ParseObject.deleteAllInBackground(list, deleteCB);
+            }
+        };
+        getSpotsOfWeacon(we, findCallback);
+
+    }
+
+    private static void getSpotsOfWeacon(WeaconParse we, FindCallback<WifiSpot> findCallback) {
+        ParseQuery<WifiSpot> q = new ParseQuery<>(WifiSpot.class);
+        q.whereEqualTo("associated_place", we)
+                .findInBackground(findCallback);
+    }
+
+
     // WIGLE
 
     private static void checkOnWigle(ArrayList<String> bssids, final HashMap<WeaconParse, ArrayList<String>> weaconHash, final Context ctx) {
@@ -767,14 +792,14 @@ public abstract class ParseActions {
                                 myLog.add("No bssids matches on Wigle neither", tag);
                             else { //There are matches
 
-
                                 //we take only the first, to avoid messing up
                                 WifiSpot wifiSpot = spots.get(0);
                                 WeaconParse we = wifiSpot.getWeacon();
 
-                                Vibrator vi = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
-                                vi.vibrate(1000);
+//                                Vibrator vi = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
+//                                vi.vibrate(1000);
                                 Toast.makeText(ctx, "Hemos encontrado un wifi d WIGLE!\n" + we.getName(), Toast.LENGTH_SHORT).show();
+                                myLog.add("FOUND WIGLE\n" + we + "\n\n" + Listar(spots), "**********");
 
                                 // It's important always deliver built weacons (in this way, they are of subclasses, as bus
                                 we.build(ctx);
@@ -833,20 +858,4 @@ public abstract class ParseActions {
                 });
     }
 
-    public static void removeSpotsOfWeacon(WeaconParse we, final DeleteCallback deleteCB) {
-        FindCallback<WifiSpot> findCallback = new FindCallback<WifiSpot>() {
-            @Override
-            public void done(List<WifiSpot> list, ParseException e) {
-                ParseObject.deleteAllInBackground(list, deleteCB);
-            }
-        };
-        getSpotsOfWeacon(we, findCallback);
-
-    }
-
-    private static void getSpotsOfWeacon(WeaconParse we, FindCallback<WifiSpot> findCallback) {
-        ParseQuery<WifiSpot> q = new ParseQuery<>(WifiSpot.class);
-        q.whereEqualTo("associated_place", we)
-                .findInBackground(findCallback);
-    }
 }

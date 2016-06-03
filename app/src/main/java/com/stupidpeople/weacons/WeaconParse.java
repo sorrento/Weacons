@@ -34,7 +34,7 @@ import util.stringUtils;
  */
 @ParseClassName("Weacon")
 public class WeaconParse extends ParseObject {
-    public ArrayList fetchedElements;
+    public ArrayList fetchedElements=new ArrayList();
     public boolean obsolete = false;
     public boolean refreshing = false;
     private HelperBase mHelper;

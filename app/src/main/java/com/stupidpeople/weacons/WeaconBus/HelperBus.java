@@ -240,9 +240,7 @@ public class HelperBus extends HelperBaseFecthNotif {
 
                 StringBuilder sb = new StringBuilder(name + " ");
 
-                for (Bus bus : lt.buses) {
-                    sb.append(bus.arrivalTimeText + ", ");
-                }
+                for (Bus bus : lt.buses) sb.append(bus.arrivalTimeText + ", ");
 
                 String s = sb.toString();
                 String sub = s.substring(0, s.length() - 2);

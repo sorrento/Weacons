@@ -34,6 +34,10 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
 
     @Override
     public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, Context mContext) {
+        //if no message, put the standard for the place
+        if (we.fetchedElements.size() == 0)
+            return super.buildSingleNotification(resultPendingIntent, mContext);
+
         NotifFeatures f = LogInManagement.notifFeatures;
 
         NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.silenceButton);

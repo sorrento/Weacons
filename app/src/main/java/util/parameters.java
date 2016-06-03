@@ -66,16 +66,24 @@ public class parameters {
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
 
-    //    TESTS
-    public static boolean testWeacons = true;
-    public static boolean doFakePosition = false;
-    public static boolean ignoreScanning = true;
+    //////    TESTS
 
+    public static boolean testWeacons = true;
     public static String[] weaconsTest = {"YouCAbDETK"};
     //"hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
     //"YouCAbDETK" ESADE MBA
-    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
-    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = canVolpallerasVernet;
+
+    public static boolean doFakePosition = false;
+    //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
+//    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.47422028, 2.08041);//Pg. Sant Magí
+    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087,2.07244985754 );//Av. Graells
+
+    public static boolean ignoreScanning = true;
+
+    public static boolean simulateWifi = false;
+    public static String wifiToSimulateMac = "64:16:F0:54:E8:EE";//para graells
+//    public static String wifiToSimulateMac = "00:19:15:86:d0:fb";//TELETRIX, wigle para sant magi
+//    public static String wifiToSimulateMac= "f8:8e:85:16:28:41";//piripiri
 
     ////////////////////////////
 

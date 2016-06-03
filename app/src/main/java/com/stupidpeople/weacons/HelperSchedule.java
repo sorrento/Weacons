@@ -54,37 +54,6 @@ public class HelperSchedule extends HelperBaseFecthNotif {
         return inboxStyle;
     }
 
-    private ArrayList<SpannableString> summarizeByClass() {
-        ArrayList<SpannableString> arr = new ArrayList<>();
-
-        if (we.refreshing) {
-            arr.add(new SpannableString(mContext.getString(R.string.refreshing)));
-        } else if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
-            arr.add(new SpannableString("No Info"));
-        } else {
-
-            for (Object o : we.fetchedElements) {
-                Lesson lt = (Lesson) o;
-                String name = lt.getTitle();
-
-                StringBuilder sb = new StringBuilder(name + " ");
-
-//                for (Bus bus : lt.buses) {
-//                    sb.append(bus.arrivalTimeText + ", ");
-//                }
-                sb.append(lt.getHora() + " | " + lt.getAula());
-
-                String s = sb.toString();
-                String sub = s.substring(0, s.length() - 2);
-
-                arr.add(StringUtils.getSpannableString(sub, name.length()));
-
-            }
-        }
-        return arr;
-
-    }
-
     @Override
     protected String getFetchingFinalUrl() {
         return we.getFetchingPartialUrl() + we.getParadaId();
@@ -95,6 +64,8 @@ public class HelperSchedule extends HelperBaseFecthNotif {
         return "SCHEDULE";
     }
 
+    //    Lesson{otro='(Edición:2)', aula='Aula:204N,203N', imgUrl='null', hora='18:45', title='Master in Finance Curso 1', assig='Spanish Language and Culture 2 (part 2) (Edición:2)'}
+    //  We want in one line: 18.45 Spanish La. Aula:204N,203N
     @Override
     protected SpannableString NotiOneLineSummary() {
         String name;
@@ -111,24 +82,6 @@ public class HelperSchedule extends HelperBaseFecthNotif {
         }
         return StringUtils.getSpannableString(name + " " + greyPart, name.length());
 
-    }
-
-    private String summarizeFirstLessons() {
-        String substring = mContext.getString(R.string.press_refresh);
-        //TODO esto se debería poner en general
-        if (we.fetchedElements == null)
-            substring = mContext.getString(R.string.press_refresh);
-
-        else if (we.fetchedElements.size() == 0)
-            substring = "No schedule available";
-
-        else if (we.fetchedElements.size() > 0) {
-
-            Lesson lesson = (Lesson) we.fetchedElements.get(0);
-            substring = lesson.getHora() + "|" + lesson.getTitle() + "|" + lesson.getAula();
-        }
-
-        return substring;
     }
 
     @Override
@@ -150,6 +103,55 @@ public class HelperSchedule extends HelperBaseFecthNotif {
         }
         return msg;
 
+    }
+
+    private ArrayList<SpannableString> summarizeByClass() {
+        ArrayList<SpannableString> arr = new ArrayList<>();
+
+        if (we.refreshing) {
+            arr.add(new SpannableString(mContext.getString(R.string.refreshing)));
+        } else if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
+            arr.add(new SpannableString("No Info"));
+        } else {
+
+            for (Object o : we.fetchedElements) {
+                Lesson lt = (Lesson) o;
+                String hour = lt.getHora();
+
+                StringBuilder sb = new StringBuilder(hour + " ");
+
+//                for (Bus bus : lt.buses) {
+//                    sb.append(bus.arrivalTimeText + ", ");
+//                }
+                sb.append(StringUtils.shorten(lt.getAssig(),10) + "|" + lt.getAula());
+
+                String s = sb.toString();
+                String sub = s.substring(0, s.length() - 2);
+
+                arr.add(StringUtils.getSpannableString(sub, hour.length()));
+
+            }
+        }
+        return arr;
+
+    }
+
+    private String summarizeFirstLessons() {
+        String substring = mContext.getString(R.string.press_refresh);
+        //TODO esto se debería poner en general
+        if (we.fetchedElements == null)
+            substring = mContext.getString(R.string.press_refresh);
+
+        else if (we.fetchedElements.size() == 0)
+            substring = "No schedule available";
+
+        else if (we.fetchedElements.size() > 0) {
+
+            Lesson lesson = (Lesson) we.fetchedElements.get(0);
+            substring = lesson.getHora() + " " + StringUtils.shorten(lesson.assig, 12) + "|" + lesson.aula;
+        }
+
+        return substring;
     }
 
     private class Lesson {
