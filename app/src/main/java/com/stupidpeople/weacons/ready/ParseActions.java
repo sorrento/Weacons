@@ -2,7 +2,6 @@ package com.stupidpeople.weacons.ready;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
-import android.os.Vibrator;
 import android.widget.Toast;
 
 import com.parse.CountCallback;
@@ -25,7 +24,7 @@ import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
 import com.stupidpeople.weacons.WifiSpot;
-import com.stupidpeople.weacons.Wigle;
+import com.stupidpeople.weacons.Wigles;
 import com.stupidpeople.weacons.booleanCallback;
 
 import java.util.ArrayList;
@@ -86,7 +85,7 @@ public abstract class ParseActions {
 
                                 for (WifiSpot spot : spots) {
                                     addWeAndSpotToHash(weaconHash, spot);
-                                    //registerHitSSID(spot); todo
+                                    registerSpotLastTimeSeen(spot);
                                 }
 
                                 // It's important always deliver built weacons (in this way, they are of subclasses, as bus
@@ -108,6 +107,11 @@ public abstract class ParseActions {
                 });
 
 
+    }
+
+    private static void registerSpotLastTimeSeen(WifiSpot spot) {
+//        spot.put("lastTimeSeen",new Date());
+        spot.pinInBackground(parameters.pinLastTimeSeen);
     }
 
     private static void addWeAndSpotToHash(HashMap<WeaconParse, ArrayList<String>> weaconHash, WifiSpot spot) {
@@ -153,55 +157,55 @@ public abstract class ParseActions {
      * @param center  center of queried area
      * @param context
      */
-    public static void getSpots(final boolean bLocal, final double radio, final GPSCoordinates center, final Context context) {
-        try {
-            //1.Remove spots and weacons in local
-            myLog.add("retrieving SSIDS from local:" + bLocal + " user: " + ParseUser.getCurrentUser(), tag);
-            ParseObject.unpinAllInBackground(parameters.pinWeacons, new DeleteCallback() {
-                @Override
-                public void done(ParseException e) {
-                    if (e == null) {
-
-                        //2. Load them
-                        ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
-                        query.whereWithinKilometers("GPS", new ParseGeoPoint(center.getLatitude(), center.getLongitude()), radio);
-                        query.include("associated_place");
-                        query.setLimit(900);
-
-                        if (bLocal) query.fromLocalDatastore();
-                        query.findInBackground(new FindCallback<WifiSpot>() {
-                            @Override
-                            public void done(List<WifiSpot> spots, ParseException e) {
-                                if (e == null) {
-
-                                    //3. Pin them
-                                    myLog.add("number of SSIDS Loaded for weacons:" + spots.size(), tag);
-                                    if (!bLocal)
-                                        ParseObject.pinAllInBackground(parameters.pinWeacons, spots, new SaveCallback() {
-                                            @Override
-                                            public void done(ParseException e) {
-                                                if (e == null) {
-                                                    myLog.add("Wecaons pinned ok", "aut");
-                                                    Toast.makeText(context, "Weacons Loaded", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    myLog.add("---Error retrieving Weacons from web: " + e.getMessage(), tag);
-                                                }
-                                            }
-                                        });
-                                } else {
-                                    myLog.add("---ERROR from parse obtienning ssids" + e.getMessage(), tag);
-                                }
-                            }
-                        });
-                    } else {
-                        myLog.error(e);
-                    }
-                }
-            });
-        } catch (Exception e) {
-            myLog.add("---Error: failed retrieving SPOTS: " + e.getMessage(), tag);
-        }
-    }
+//    public static void getSpots(final boolean bLocal, final double radio, final GPSCoordinates center, final Context context) {
+//        try {
+//            //1.Remove spots and weacons in local
+//            myLog.add("retrieving SSIDS from local:" + bLocal + " user: " + ParseUser.getCurrentUser(), tag);
+//            ParseObject.unpinAllInBackground(parameters.pinWeacons, new DeleteCallback() {
+//                @Override
+//                public void done(ParseException e) {
+//                    if (e == null) {
+//
+//                        //2. Load them
+//                        ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
+//                        query.whereWithinKilometers("GPS", new ParseGeoPoint(center.getLatitude(), center.getLongitude()), radio);
+//                        query.include("associated_place");
+//                        query.setLimit(900);
+//
+//                        if (bLocal) query.fromLocalDatastore();
+//                        query.findInBackground(new FindCallback<WifiSpot>() {
+//                            @Override
+//                            public void done(List<WifiSpot> spots, ParseException e) {
+//                                if (e == null) {
+//
+//                                    //3. Pin them
+//                                    myLog.add("number of SSIDS Loaded for weacons:" + spots.size(), tag);
+//                                    if (!bLocal)
+//                                        ParseObject.pinAllInBackground(parameters.pinWeacons, spots, new SaveCallback() {
+//                                            @Override
+//                                            public void done(ParseException e) {
+//                                                if (e == null) {
+//                                                    myLog.add("Wecaons pinned ok", "aut");
+//                                                    Toast.makeText(context, "Weacons Loaded", Toast.LENGTH_SHORT).show();
+//                                                } else {
+//                                                    myLog.add("---Error retrieving Weacons from web: " + e.getMessage(), tag);
+//                                                }
+//                                            }
+//                                        });
+//                                } else {
+//                                    myLog.add("---ERROR from parse obtienning ssids" + e.getMessage(), tag);
+//                                }
+//                            }
+//                        });
+//                    } else {
+//                        myLog.error(e);
+//                    }
+//                }
+//            });
+//        } catch (Exception e) {
+//            myLog.add("---Error: failed retrieving SPOTS: " + e.getMessage(), tag);
+//        }
+//    }
 
     /**
      * get the weacons around and pin them
@@ -287,12 +291,6 @@ public abstract class ParseActions {
         return timeDiff > WEEK_IN_MILI;
     }
 
-    public static void getBusStopsInRadius(GPSCoordinates mGps, double kms, FindCallback<WeaconParse> listener) {
-        ParseQuery<WeaconParse> query = ParseQuery.getQuery(WeaconParse.class);
-        query.whereEqualTo("Type", "bus_stop")
-                .whereWithinKilometers("GPS", mGps.getGeoPoint(), kms)
-                .findInBackground(listener);
-    }
 
     //Interesting
 
@@ -622,15 +620,15 @@ public abstract class ParseActions {
      */
     private static void anyNewer(final ParseGeoPoint point, final booleanCallback bcb) {
         // Web. Query Weacons first
-        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
-        queryWe.whereNear("GPS", point)
-                .setLimit(300)
-                .whereEqualTo("Type", "bus_stop");
-        myLog.add("----For comparation, quering aaround         " + point, "OJO");
+//        ParseQuery<WeaconParse> queryWe = ParseQuery.getQuery(WeaconParse.class);
+//        queryWe.whereNear("GPS", point)
+//                .setLimit(300)
+//                .whereEqualTo("Type", "bus_stop");
+//        myLog.add("----For comparation, quering aaround         " + point, "OJO");
 
         ParseQuery<WifiSpot> queryWi = ParseQuery.getQuery(WifiSpot.class);
         queryWi.whereWithinKilometers("GPS", point, 1)
-                .whereMatchesQuery("associated_place", queryWe)
+//                .whereMatchesQuery("associated_place", queryWe)
                 .orderByDescending("updatedAt")
                 .getFirstInBackground(new GetCallback<WifiSpot>() {
                     @Override
@@ -691,7 +689,7 @@ public abstract class ParseActions {
      * @param mts
      * @param listener
      */
-    public static void getFreeBusStopsInRadius(final GPSCoordinates gps, final double mts, final FindCallback<WeaconParse> listener) {
+    public static void getBusStopsInRadius(final GPSCoordinates gps, final double mts, final FindCallback<WeaconParse> listener) {
         ParseGeoPoint geoPoint = gps.getGeoPoint();
         // Filtramos aquellos menor a "mts"
         FindCallback<WeaconParse> listener2 = new FindCallback<WeaconParse>() {
@@ -710,7 +708,7 @@ public abstract class ParseActions {
         query.whereEqualTo("Type", "bus_stop")
                 .whereNear("GPS", geoPoint)
                 .setLimit(7)
-                .whereDoesNotExist("n_scannings")
+//                .whereDoesNotExist("n_scannings")
                 .findInBackground(listener2);
     }
 
@@ -806,7 +804,7 @@ public abstract class ParseActions {
                                 addWeAndSpotToHash(weaconHash, wifiSpot);
 
 
-                                new Wigle(we, ctx);
+                                new Wigles(we, ctx);
                             }
 
                         } else {

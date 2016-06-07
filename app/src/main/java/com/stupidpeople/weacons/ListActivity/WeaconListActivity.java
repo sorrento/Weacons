@@ -149,7 +149,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 //            mRecyclerView.setVisibility(View.VISIBLE);
             updateList();
 
-            if (LogInManagement.getActiveWeacons().get(0).obsolete = true) {
+            if (LogInManagement.getActiveWeacons().get(0).isObsolete()) {
                 refreshList(false);
             }
         }
@@ -294,17 +294,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             @Override
             public void done(List<WeaconParse> busStops, ParseException e) {
                 if (e == null) {
-                    myLog.add("... estos son las paradas cercanas en 100 mts y sin ssids:" +
+                    myLog.add("... estos son las paradas cercanas en 100 mts " +
                             Listar((ArrayList<WeaconParse>) busStops), tag);
 
-                    if (busStops.size() > 0) {
-                        showDialogDecision(busStops);
-                    } else {
-                        // Just inform there is no busstop around
-                        String msg = getString(R.string.no_bustop_around);
-                        myLog.add(msg, "ADD_STOP");
-                        Toast.makeText(mContext, msg, Toast.LENGTH_LONG).show();
-                    }
+                    showDialogDecision(busStops);
+
                 } else {
                     myLog.error(e);
                 }
@@ -350,7 +344,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 mGps = gps;
 //                ParseActions.getClosestBusStop(gps, oneParadaCallback);
 
-                ParseActions.getFreeBusStopsInRadius(gps, 100, nearestBusStopsCallback);
+                ParseActions.getBusStopsInRadius(gps, 100, nearestBusStopsCallback);
             }
         };
 
@@ -519,23 +513,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 //        checkWigleonLocal();
     }
 
-
-    private class newDataReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-                if (intent.getAction().equals(parameters.updateInfo)) {
-                    updateList();
-                }
-            } catch (Exception e) {
-                myLog.error(e);
-            }
-        }
-    }
-
-
-////Testing
-
     /**
      * vrificia que haya guardado los wigle en local
      */
@@ -554,6 +531,22 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                         }
                     }
                 });
+    }
+
+
+////Testing
+
+    private class newDataReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+                if (intent.getAction().equals(parameters.updateInfo)) {
+                    updateList();
+                }
+            } catch (Exception e) {
+                myLog.error(e);
+            }
+        }
     }
 
     //////////////////////

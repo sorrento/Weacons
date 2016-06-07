@@ -15,7 +15,7 @@
  <string name='go_closer'>\nSi us plau, ves més a prop.</string>
  <string name='refreshing_notif'>Refrescant notificació...</string>
  <string name='no_lines_available'>No hi ha línies disponibles</string>
- <string name='no_info_stop_nybow'>No hi ha informació sobre aquesta parada per ara.</string>
+ <string name="notif_bus_NoInfo">No hi ha informació sobre aquesta parada per ara.</string>
  <string name="refresh_button">ACTUALITZAR</string>
  <string name="location_precision">"Precisió de la ubicació (mts): "</string>
  <string name="unable_gps_precision">No es pot obtenir la precisió del GPS. intentem una mica més...</string>
@@ -37,7 +37,7 @@
  <string name="welcome">benvingut</string>
  <string name="isthisone">És aquesta parada?</string>
  <string name="cancel">cancel·lar</string>
- <string name="no_busstop_message_dialog">Ets massa lluny de la parada o bé ja ha estat pujada. Espera uns segons.</string>
+ <string name="no_busstop_message_dialog">No tenim cap parada registrada en un radi de 100 mts</string>
  <string name="ok">OK</string>
  <string name="whichone">En què parada estàs?</string>
  <string name="no_bustop_title">No hi ha parades</string>

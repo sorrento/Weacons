@@ -27,21 +27,21 @@ import util.RoundImage;
 import util.imageUtils;
 import util.myLog;
 import util.parameters;
-import util.stringUtils;
 
 /**
  * Created by Milenko on 30/07/2015.
  */
 @ParseClassName("Weacon")
 public class WeaconParse extends ParseObject {
-    public ArrayList fetchedElements=new ArrayList();
-    public boolean obsolete = false;
+    public ArrayList<fetchableElement> fetchedElements = new ArrayList<>();
     public boolean refreshing = false;
+    private boolean obsolete = false;
     private HelperBase mHelper;
     private String[] cards;
     private boolean isInteresting;
     private boolean inHome;
     private Date timeFirstApperaringInThisRow;
+    private boolean emptyOrError;//in the fetching answer
 
     public WeaconParse() {
     }
@@ -55,13 +55,6 @@ public class WeaconParse extends ParseObject {
     }
 
     //GETTERS
-
-    public static void SetObsolete(ArrayList<WeaconParse> weaconsList, boolean b) {
-        for (WeaconParse we : weaconsList) {
-            we.setObsolete(b);
-        }
-    }
-
 
     public String getDescription() {
         return getString("Description");
@@ -97,7 +90,7 @@ public class WeaconParse extends ParseObject {
             if (c1) arr.add("<3");
             //        if (c2) arr.add("N");
             if (c3) arr.add("H");
-            if (c1 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
+            if (c1 || c3) extra = "[" + StringUtils.concatenate(arr, " ") + "]";
         }
 
 
@@ -413,19 +406,8 @@ public class WeaconParse extends ParseObject {
         return getString("FetchingUrl");
     }
 
-    public SpannableString NotiSingleExpandedContent() {
-
-        if (mHelper == null) {
-            String s = "Sorry, mhelper=null";
-            myLog.add(s, "WARN");
-            return SpannableString.valueOf(s);
-        } else {
-            return mHelper.NotiSingleExpandedContent();
-        }
-    }
-
-    public SpannableString NotiOneLineSummary() {
-        return mHelper.NotiOneLineSummary();
+    public SpannableString inboxSummary() {
+        return mHelper.inboxSummaryText();
     }
 
 
@@ -446,37 +428,52 @@ public class WeaconParse extends ParseObject {
 
     public void fetchForNotification(final MultiTaskCompleted fetchedElementListener) {
 
-        fetchingResults elementsListener = new fetchingResults() {
-            @Override
-            public void onReceive(Connection.Response response) {
-                setObsolete(false);
-                refreshing = false;
+        if (((HelperBaseFecthNotif) this.mHelper).doFetchingAEstaHora()) {
 
-                fetchedElements = processResponse(response);
-                fetchedElementListener.OneTaskCompleted();
-            }
+            fetchingResults elementsListener = new fetchingResults() {
+                @Override
+                public void onReceive(Connection.Response response) {
+                    setObsolete(false);
+                    refreshing = false;
 
-            @Override
-            public void onError(Exception e) {
-                setObsolete(false);
-                refreshing = false;
-                myLog.error(e);
-            }
+                    ((HelperBaseFecthNotif) mHelper).lastUpdateTime = new Date();
+                    fetchedElements = processResponse(response);
+                    emptyOrError = fetchedElements.size() == 0;
+                    fetchedElementListener.OneTaskCompleted();
+                }
 
-            @Override
-            public void OnEmptyAnswer() {
-                setObsolete(false);
-                refreshing = false;
+                @Override
+                public void onError(Exception e) {
+                    emptyOrError = true;
+                    setObsolete(false);
+                    refreshing = false;
+                    myLog.add("ERROR:\n" + e, "FET");
+                }
 
-                fetchedElements = new ArrayList();
+                @Override
+                public void OnEmptyAnswer() {
+                    emptyOrError = true;
+                    setObsolete(false);
+                    refreshing = false;
+
+                    fetchedElements = new ArrayList();
 //                processResponse("");
-                myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "WARN");
-                fetchedElementListener.OneTaskCompleted();
-            }
-        };
+                    myLog.add("Tenesmos un feching fallido (emtpy answer) en " + getName(), "WARN");
+                    fetchedElementListener.OneTaskCompleted();
+                }
+            };
 
-        (new fetchNotificationWeacon(getFetchingFinalUrl(), elementsListener)).execute();
+            (new fetchNotificationWeacon(getFetchingFinalUrl(), elementsListener)).execute();
 
+        } else {
+            // Not fetching at this time
+            fetchedElementListener.OneTaskCompleted();
+            return;
+        }
+    }
+
+    public boolean isObsolete() {
+        return obsolete;
     }
 
     /**
@@ -493,7 +490,6 @@ public class WeaconParse extends ParseObject {
    /*
     TODO clean from here
      */
-
 
     public int getRepeatedOffRemoveFromNotification() {
         return mHelper.getRepeatedOffRemoveFromNotification();
@@ -540,5 +536,12 @@ public class WeaconParse extends ParseObject {
     }
 
 
+    public boolean emptyAnswerOrErrorFetching() {
+        return emptyOrError;
+    }
+
+    public SpannableString textForListActivity() {
+        return mHelper.textForListActivity();
+    }
 }
 

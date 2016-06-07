@@ -97,7 +97,6 @@ public class StringUtils {
         return s.substring(0, Math.min(m, s.length()));
     }
 
-
     @NonNull
     static String Notif2String(String cqTitle, String cqContent, String title, String body, String bottom) {
         StringBuilder sb = new StringBuilder();
@@ -109,6 +108,71 @@ public class StringUtils {
         sb.append("  " + "  " + title + "\n");
         sb.append(body + "\n");
         sb.append("  " + "  " + bottom + "\n");
+        return sb.toString();
+    }
+
+    public static String FirstWord(String s) {
+        String[] pp = s.split(" ");
+        return pp[0];
+    }
+
+    public static String TrimFirstWord(String s) {
+        int i = s.indexOf(" ");
+        return s.substring(i + 1);
+    }
+
+    @NonNull
+    public static String ConcatenateComma(String[] lista) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < lista.length - 1; i++) {
+            sb.append(lista[i] + ", ");
+        }
+        sb.append(lista[lista.length - 1]);
+
+        return sb.toString();
+    }
+
+    public static String TrimFirstWords(String s, int n) {
+        String sa = s;
+        for (int i = 0; i < n; i++) {
+            String sol = TrimFirstWord(sa);
+            sa = sol;
+        }
+        return sa;
+    }
+
+
+    public static String ConcatenateComma(ArrayList<String> arr, int m) {
+        return concatenate(arr, m, ", ");
+    }
+
+    public static String concatenate(ArrayList<String> arr, String s) {
+        return concatenate(arr, 100, s);
+    }
+
+    public static String ConcatenateComma(ArrayList<LogBump.ReasonToNotify> arr) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < arr.size() - 1; i++) {
+            sb.append(arr.get(i) + ", ");
+        }
+
+        sb.append(arr.get(arr.size() - 1));
+
+        return sb.toString();
+
+    }
+
+    @NonNull
+    public static String concatenate(ArrayList<String> arr, int nShorten, String sep) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < arr.size() - 1; i++) {
+            sb.append(shorten(arr.get(i), nShorten) + sep);
+        }
+        sb.append(shorten(arr.get(arr.size() - 1), nShorten));
+
         return sb.toString();
     }
 }

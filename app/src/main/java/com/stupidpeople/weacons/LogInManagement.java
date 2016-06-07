@@ -326,8 +326,19 @@ public class LogInManagement {
     }
 
     private static void informWeaconsObsolete(Context ctx) {
-        areObsolete=true;
-        for (WeaconParse we : activeWeacons) we.setObsolete(true);
+        areObsolete = true;
+        for (WeaconParse we : activeWeacons) {
+            //No poner como obsoletos los de larga duración como restaurant o schedule TODO
+//            HelperBaseFecthNotif helperFet = (HelperBaseFecthNotif) we.mHelper;
+//            long minutes = helperFet.fetchedDataIsValidDuringMinutes();
+//            if (b && minutes > 1) {
+//                long timeDiff = new Date().getTime() - helperFet.lastUpdateTime.getTime();
+//                ;
+//                if (timeDiff < 1000 * 60 * minutes) return;
+//            }
+//
+            we.setObsolete(true);
+        }
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
 

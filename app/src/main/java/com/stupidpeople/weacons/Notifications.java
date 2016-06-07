@@ -15,7 +15,10 @@ import java.util.HashMap;
 import util.myLog;
 import util.parameters;
 
-import static com.stupidpeople.weacons.LogInManagement.*;
+import static com.stupidpeople.weacons.LogInManagement.notifFeatures;
+import static com.stupidpeople.weacons.LogInManagement.numberOfActiveNonNotified;
+import static com.stupidpeople.weacons.LogInManagement.othersActive;
+import static com.stupidpeople.weacons.LogInManagement.weaconsToNotify;
 
 /**
  * Created by Milenko on 17/07/2015.
@@ -26,7 +29,6 @@ public class Notifications {
 //    public static boolean mSilenceButton;
 
     static String tag = "NOTIF";
-    //    static Timer t = new Timer();
     private static NotificationManager mNotificationManager;
     private static Context mContext;
     private static int idNotiOcurrences = 102;
@@ -205,7 +207,7 @@ public class Notifications {
         inboxStyle.setBigContentTitle(cqTitle);
         if (othersActive()) inboxStyle.setSummaryText(bottomMessage(mContext));
 
-        for (WeaconParse we : mWeacons) inboxStyle.addLine(we.NotiOneLineSummary());
+        for (WeaconParse we : mWeacons) inboxStyle.addLine(we.inboxSummary());
 
         notif.setStyle(inboxStyle);
 

@@ -13,9 +13,10 @@ public class parameters {
     final public static int defaultThreshold = -100; //For weacon detection
 
     public static final String pinWeacons = "Weacons";
-    public static final String pinWigle = "Wigle";
     public static final String pinFavorites = "Favoritos";
     public static final String pinParseLog = "Logs";
+    public static final String pinLastTimeSeen = "spotsHits";
+    public static final String pinWigle = "Wigle";
     public static final String pinSapo = "SAPO2";
 
     public static final String COMPANY = "Company";
@@ -46,8 +47,10 @@ public class parameters {
     public static int nHitsForLogIn = 3; //recommend 3. Number of hits for declaring the login in a spot
     public static long timeBetweenFlightQueries = (long) (2 * 60 * 1000);//in milliseconds, to verify if there are changes in gates, ets
     public static double radioSpotsQuery = 50; //Determines how many spots to load, (kilometers around user's position
-    public static boolean isSapoActive = false;
     public static int spaceBetweenCards = 30; //in pixels
+
+    //SAPO
+    public static boolean isSapoActive = true;
 
     //Default values to repetition of weacon detection
     public static int repeatedOffRemoveFromNotification = 5;
@@ -68,20 +71,22 @@ public class parameters {
 
     //////    TESTS
 
-    public static boolean testWeacons = true;
+    public static boolean testWeacons = false;
     public static String[] weaconsTest = {"YouCAbDETK"};
-    //"hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
-    //"YouCAbDETK" ESADE MBA
+    // "YouCAbDETK" ESADE MBA
+    // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
+    // "VGXy6yZLbY" Versió
 
     public static boolean doFakePosition = false;
     //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
 //    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.47422028, 2.08041);//Pg. Sant Magí
     public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087,2.07244985754 );//Av. Graells
 
-    public static boolean ignoreScanning = true;
+    public static boolean ignoreScanning = false;
 
     public static boolean simulateWifi = false;
     public static String wifiToSimulateMac = "64:16:F0:54:E8:EE";//para graells
+
 //    public static String wifiToSimulateMac = "00:19:15:86:d0:fb";//TELETRIX, wigle para sant magi
 //    public static String wifiToSimulateMac= "f8:8e:85:16:28:41";//piripiri
 

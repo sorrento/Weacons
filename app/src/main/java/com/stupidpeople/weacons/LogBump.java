@@ -9,11 +9,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import util.myLog;
 import util.parameters;
-import util.stringUtils;
 
 /**
  * Created by Milenko on 03/05/2016.
@@ -165,7 +163,7 @@ public class LogBump {
     }
 
     private String ReasonToNotifyText() {
-        return "  " + "Reasons to notify:" + stringUtils.ConcatenateComma(reasonsToNotify) + "\n";
+        return "  " + "Reasons to notify:" + StringUtils.ConcatenateComma(reasonsToNotify) + "\n";
     }
 
     private String OccurrenceSummary() {
@@ -174,7 +172,7 @@ public class LogBump {
 
     private String QuittingList() {
         return quitting.size() > 0 ? "  " + "Quitting: " +
-                stringUtils.ConcatenateComma(quitting, 15) + "\n" : "";
+                StringUtils.ConcatenateComma(quitting, 15) + "\n" : "";
     }
 
     private String SummaryWeaconsFound() {

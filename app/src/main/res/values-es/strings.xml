@@ -8,7 +8,7 @@
     <string name="type_busstop">PARADA</string>
     <string name="currently_active">Más otros %1$d weacons activos</string>
     <string name="and_others">" y algún otro."</string>
-    <string name="press_refresh_bus_long">Presiones ACTUALIZAR para obtener información actualizada sobre los tiempo de llegada de autobuses a esta parada.</string>
+    <string name="press_refresh_bus_long">Presione ACTUALIZAR para obtener información actualizada sobre los tiempo de llegada de autobuses a esta parada.</string>
     <string name="currently_active_one">Y otro weacon aún activo</string>
     <string name="looking_for_busstop">Buscando paradas por aquí...</string>
     <string name="distance_bus_stop">La parada más cercana es %1$s\nd = %2$d mts.</string>
@@ -16,7 +16,7 @@
     <string name="updating_data">\nActualizando los datos...</string>
     <string name="refreshing_notif">Actualizando la notificación...</string>
     <string name="no_lines_available">No hay líneas disponibles</string>
-    <string name="no_info_stop_nybow">No hay datos ahora mismo.</string>
+    <string name="notif_bus_NoInfo">No hay datos ahora mismo.</string>
     <string name="location_precision">"Precisión de la ubicación (mts): "</string>
     <string name="unable_gps_precision">No se puede obtener la precisión del GPS, tratemos un poco más...</string>
     <string name="busstop_uploaded">"Se ha subido la parada: "</string>
@@ -33,11 +33,11 @@
     <string name="attention">Atención</string>
     <string name="got_it">Entendido</string>
     <string name="gps_explaination">La aplicación Weacons requiere saber tu ubicación aproximada de vez en cuando, para cargar los weacons</string>
-    <string name="inital_explaination">En esta pantalla encontrarás los weacon que están a tu alrededor, como las paradas de bus. Si estás en una parada y no aparece aquí, aprieta el botón \"agregar\" en la parte superior de la pantalla.</string>
+    <string name="inital_explaination">En esta pantalla encontrarás los weacons que están a tu alrededor, como las paradas de bus. Si estás en una parada y no aparece aquí, aprieta el botón \"agregar\" en la parte superior de la pantalla.</string>
     <string name="welcome">Bienvenido</string>
     <string name="cancel">Cancelar</string>
     <string name="isthisone">Es esta parada?</string>
-    <string name="no_busstop_message_dialog">Estás demasiado lejos de la parada o bien ya ha sido subida. Espera unos segundos.</string>
+    <string name="no_busstop_message_dialog">No tenemos registradas paradas en un radio de 100 mts</string>
     <string name="ok">OK</string>
     <string name="whichone">¿En qué parada estás?</string>
     <string name="no_bustop_title">No hay paradas</string>

@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
 
 import java.io.BufferedWriter;
@@ -15,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -139,7 +139,7 @@ public class myLog {
             if (c1) arr.add("<3");
 //            if (c2) arr.add("N");
             if (c3) arr.add("H");
-            if (c1 || c3) extra = "[" + stringUtils.concatenate(arr, " ") + "]";
+            if (c1 || c3) extra = "[" + StringUtils.concatenate(arr, " ") + "]";
 
             sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
         }
@@ -148,7 +148,7 @@ public class myLog {
     }
 
     private static String ListOfSsids(ArrayList<String> arrayList, int i) {
-        return "(" + util.stringUtils.ConcatenateComma(arrayList, i) + ")";
+        return "(" + StringUtils.ConcatenateComma(arrayList, i) + ")";
     }
 
 }

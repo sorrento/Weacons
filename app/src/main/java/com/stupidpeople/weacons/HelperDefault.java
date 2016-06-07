@@ -1,7 +1,6 @@
 package com.stupidpeople.weacons;
 
 import android.content.Context;
-import android.text.SpannableString;
 
 import util.parameters;
 
@@ -24,9 +23,5 @@ public class HelperDefault extends HelperBase {
         }
     }
 
-    @Override
-    protected SpannableString NotiOneLineSummary() {
-        String name = we.getName();
-        return StringUtils.getSpannableString(name + ". " + we.getDescription(), name.length());
-    }
+
 }

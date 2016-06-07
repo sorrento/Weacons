@@ -1,12 +1,16 @@
 package com.stupidpeople.weacons.WeaconBus;
 
+import android.text.SpannableString;
+
+import com.stupidpeople.weacons.StringUtils;
+import com.stupidpeople.weacons.fetchableElement;
 
 import java.util.ArrayList;
 
 /**
  * Created by Milenko on 02/02/2016.
  */
-public class BusLine {
+public class BusLine implements fetchableElement {
     public String lineCode, destination;
     public ArrayList<Bus> buses = new ArrayList<>();
 
@@ -24,11 +28,34 @@ public class BusLine {
     }
 
     public int getShortestTime() {
-        int min = 1100;
+        int minimal = 1100;
         for (Bus bus : buses) {
-            if (bus.arrivalTimeMins < min) min = bus.arrivalTimeMins;
+            if (bus.arrivalTimeMins < minimal) minimal = bus.arrivalTimeMins;
         }
-        return min;
+        return minimal;
     }
 
+    @Override
+    public SpannableString oneLineSummary() {
+
+        String name = lineCode;
+        StringBuilder sb = new StringBuilder(name + " ");
+
+        for (Bus bus : buses) sb.append(bus.arrivalTimeText + ", ");
+
+        String s = sb.toString();
+        String sub = s.substring(0, s.length() - 2);
+
+        return StringUtils.getSpannableString(sub, name.length());
+    }
+
+    @Override
+    public SpannableString getLongSpan() {
+        return oneLineSummary();
+    }
+
+    @Override
+    public String veryShortSummary() {
+        return lineCode + ":" + getShortestTime() + "m";
+    }
 }

@@ -3,10 +3,8 @@ package com.stupidpeople.weacons.WeaconAirport;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.support.v4.app.NotificationCompat;
-import android.text.SpannableString;
 
 import com.stupidpeople.weacons.HelperBase;
-import com.stupidpeople.weacons.LogBump;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.NotifFeatures;
 import com.stupidpeople.weacons.R;
@@ -28,10 +26,6 @@ public class HelperAiport2 extends HelperBase {
         return "AIRPORT";
     }
 
-    @Override
-    protected SpannableString NotiOneLineSummary() {
-        return SpannableString.valueOf(we.getDescription());
-    }
 
     @Override
     protected NotificationCompat.Builder buildSingleNotification(

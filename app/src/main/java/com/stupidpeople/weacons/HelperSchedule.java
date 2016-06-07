@@ -1,9 +1,7 @@
 package com.stupidpeople.weacons;
 
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
-import android.text.TextUtils;
 
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
@@ -23,6 +21,11 @@ public class HelperSchedule extends HelperBaseFecthNotif {
     }
 
     @Override
+    protected long fetchedDataIsValidDuringMinutes() {
+        return 30;
+    }
+
+    @Override
     protected ArrayList processResponse(Connection.Response response) {
         if (response == null) return null;
         ArrayList arr = new ArrayList();
@@ -39,24 +42,23 @@ public class HelperSchedule extends HelperBaseFecthNotif {
     }
 
     @Override
-    protected NotificationCompat.InboxStyle getInboxStyle() {
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(NotiSingleExpandedTitle());
-        if (LogInManagement.othersActive())
-            inboxStyle.setSummaryText(Notifications.bottomMessage(mContext));
-
-        StringBuilder sb = new StringBuilder();
-        for (SpannableString s : summarizeByClass()) {
-            inboxStyle.addLine(s);
-            sb.append("   " + s + "\n");
-        }
-        sInbox = sb.toString();
-        return inboxStyle;
+    protected String getFetchingFinalUrl() {
+        return we.getFetchingPartialUrl() + we.getParadaId();
     }
 
     @Override
-    protected String getFetchingFinalUrl() {
-        return we.getFetchingPartialUrl() + we.getParadaId();
+    protected SpannableString msgPressRefreshLong() {
+        return SpannableString.valueOf(mContext.getString(R.string.pulldown_refresh_Schedule));
+    }
+
+    @Override
+    protected String msgRefreshing() {
+        return mContext.getString(R.string.getting_schedule);
+    }
+
+    @Override
+    protected String msgPressRefresh() {
+        return mContext.getString(R.string.refresh_to_schedule);
     }
 
     @Override
@@ -64,97 +66,7 @@ public class HelperSchedule extends HelperBaseFecthNotif {
         return "SCHEDULE";
     }
 
-    //    Lesson{otro='(Edición:2)', aula='Aula:204N,203N', imgUrl='null', hora='18:45', title='Master in Finance Curso 1', assig='Spanish Language and Culture 2 (part 2) (Edición:2)'}
-    //  We want in one line: 18.45 Spanish La. Aula:204N,203N
-    @Override
-    protected SpannableString NotiOneLineSummary() {
-        String name;
-        String greyPart;
-        //TODo parte de esto debería estar en comun
-        name = StringUtils.shorten(we.getName(), 15);
-
-        if (we.refreshing) {
-            greyPart = mContext.getString(R.string.refreshing);
-        } else if (we.obsolete) {
-            greyPart = we.getTypeString() + ". " + mContext.getString(R.string.press_refresh);
-        } else {
-            greyPart = summarizeFirstLessons();
-        }
-        return StringUtils.getSpannableString(name + " " + greyPart, name.length());
-
-    }
-
-    @Override
-    protected SpannableString NotiSingleExpandedContent() {
-        SpannableString msg = new SpannableString("");
-        try {
-            if (we.refreshing)
-                return SpannableString.valueOf(mContext.getString(R.string.refreshing));
-
-            if (we.obsolete) {
-                msg = SpannableString.valueOf(mContext.getString(R.string.press_refresh_bus_long));
-            } else {
-                for (SpannableString s : summarizeByClass()) {
-                    msg = SpannableString.valueOf(TextUtils.concat(msg, "\n", s));
-                }
-            }
-        } catch (Exception e) {
-            myLog.error(e);
-        }
-        return msg;
-
-    }
-
-    private ArrayList<SpannableString> summarizeByClass() {
-        ArrayList<SpannableString> arr = new ArrayList<>();
-
-        if (we.refreshing) {
-            arr.add(new SpannableString(mContext.getString(R.string.refreshing)));
-        } else if (we.fetchedElements == null || we.fetchedElements.size() == 0) {
-            arr.add(new SpannableString("No Info"));
-        } else {
-
-            for (Object o : we.fetchedElements) {
-                Lesson lt = (Lesson) o;
-                String hour = lt.getHora();
-
-                StringBuilder sb = new StringBuilder(hour + " ");
-
-//                for (Bus bus : lt.buses) {
-//                    sb.append(bus.arrivalTimeText + ", ");
-//                }
-                sb.append(StringUtils.shorten(lt.getAssig(),10) + "|" + lt.getAula());
-
-                String s = sb.toString();
-                String sub = s.substring(0, s.length() - 2);
-
-                arr.add(StringUtils.getSpannableString(sub, hour.length()));
-
-            }
-        }
-        return arr;
-
-    }
-
-    private String summarizeFirstLessons() {
-        String substring = mContext.getString(R.string.press_refresh);
-        //TODO esto se debería poner en general
-        if (we.fetchedElements == null)
-            substring = mContext.getString(R.string.press_refresh);
-
-        else if (we.fetchedElements.size() == 0)
-            substring = "No schedule available";
-
-        else if (we.fetchedElements.size() > 0) {
-
-            Lesson lesson = (Lesson) we.fetchedElements.get(0);
-            substring = lesson.getHora() + " " + StringUtils.shorten(lesson.assig, 12) + "|" + lesson.aula;
-        }
-
-        return substring;
-    }
-
-    private class Lesson {
+    private class Lesson implements fetchableElement {
         String otro = null, aula = null, imgUrl = null;
         String hora;
         String title;
@@ -209,7 +121,7 @@ public class HelperSchedule extends HelperBaseFecthNotif {
             return imgUrl;
         }
 
-        public String getHora() {
+        public String getHour() {
             return hora;
         }
 
@@ -219,6 +131,34 @@ public class HelperSchedule extends HelperBaseFecthNotif {
 
         public String getAssig() {
             return assig;
+        }
+
+        //    Lesson{otro='(Edición:2)', aula='Aula:204N,203N', imgUrl='null', hora='18:45', title='Master in Finance Curso 1', assig='Spanish Language and Culture 2 (part 2) (Edición:2)'}
+
+        @Override
+        public SpannableString oneLineSummary() {
+            String hour = getHour();
+            String s = hour + " " + StringUtils.shorten(getAssig(), 15) + " | " + getAula();
+
+            //  We want in one line: 18.45 Spanish La. Aula:204N,203N
+            return StringUtils.getSpannableString(s, hour.length());
+
+        }
+
+        @Override
+        public SpannableString getLongSpan() {
+            String name = getHour();
+            String extra = getOtro() == null ? "" : " | " + getOtro();
+
+            String margin = "\n\t\t\t";
+            String gray = getAssig() + margin + getTitle() + margin + getAula() + extra;
+
+            return StringUtils.getSpannableString(name + " " + gray, name.length());
+        }
+
+        @Override
+        public String veryShortSummary() {
+            return getHour() + " " + getAssig();
         }
     }
 }

@@ -74,7 +74,7 @@
     <string name="go_closer">\nPlease go closer.</string>
     <string name="refreshing_notif">Refreshing notification...</string>
     <string name="no_lines_available">No lines available</string>
-    <string name="no_info_stop_nybow">No info for this stop by now.</string>
+    <string name="notif_bus_NoInfo">No info for this stop by now.</string>
     <string name="location_precision">"Location precision (mts): "</string>
     <string name="unable_gps_precision">Unable to get enough GPS precision, let\'s try a little more...</string>
     <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
@@ -94,9 +94,16 @@
     <string name="welcome">Welcome</string>
     <string name="inital_explaination">In this screen you will find the weacons around you, like bustops. If you are in a bustop and it doesn\'t appear here, press the \"add\" button up in the corner of the screen to add it.</string>
     <string name="no_bustop_title">No bus stops</string>
-    <string name="no_busstop_message_dialog">You are too far from the bus stop or this one was already uploaded. Just wait a little</string>
+    <string name="no_busstop_message_dialog">You are too far from any bus stop. </string>
     <string name="ok">ok</string>
     <string name="cancel">Cancel</string>
     <string name="isthisone">Is it this one?</string>
     <string name="whichone">Which one?</string>
+    <string name="getting_schedule">Getting the schedule...</string>
+    <string name="refresh_to_schedule">Refresh to obtain today\'s schedule</string>
+    <string name="notif_restaurant_resfresh">Press Refresh to see today\'s menu</string>
+    <string name="notif_restaurant_refreshing">Getting the menu...</string>
+    <string name="refresh_menu_long">Refresh to see today\'s menu</string>
+    <string name="pulldown_refresh_Schedule">Pull down to obtain the updated schedule for today\'s lessons</string>
+    <string name="action_add_bus_stopç">Add Bus Stop</string>
 </resources>

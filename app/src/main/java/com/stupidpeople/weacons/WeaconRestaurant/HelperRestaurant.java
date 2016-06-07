@@ -1,28 +1,25 @@
 package com.stupidpeople.weacons.WeaconRestaurant;
 
-import android.app.PendingIntent;
 import android.content.Context;
-import android.support.v4.app.NotificationCompat;
 import android.text.SpannableString;
-import android.text.TextUtils;
 
 import com.stupidpeople.weacons.HelperBaseFecthNotif;
-import com.stupidpeople.weacons.LogBump;
-import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.NotifFeatures;
-import com.stupidpeople.weacons.Notifications;
+import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.StringUtils;
 import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.fetchableElement;
 
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import util.myLog;
+
+import static com.stupidpeople.weacons.StringUtils.getSpannableString;
+import static com.stupidpeople.weacons.StringUtils.shorten;
 
 /**
  * Created by Milenko on 18/03/2016.
@@ -34,49 +31,78 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     }
 
     @Override
-    protected ArrayList processResponse(Connection.Response response) {
-        Document doc = null;
-        ArrayList<ArrayList<String>> arrayGrande = null;
-        try {
-            try {
-                doc = response.parse();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    protected boolean doFetchingAEstaHora() {
+        return true;
+        //TODO
+//        //entre las 10 y 16
+//        Date date = new Date();   // given date
+//        Calendar c = GregorianCalendar.getInstance(); // creates a new calendar instance
+//        c.setTime(date);   // assigns calendar to given date
+//
+//        int h = c.get(Calendar.HOUR_OF_DAY); // gets hour in 24h format
+//
+//        return h > 10 && h < 16;
+    }
 
+    @Override
+    protected long fetchedDataIsValidDuringMinutes() {
+        return 60 * 5;
+    }
+
+    @Override
+    protected ArrayList processResponse(Connection.Response response) {
+        ArrayList<MealSection> arr = new ArrayList<>();
+
+        try {
+            Document doc = response.parse();
             Element cuadro = doc.select("div[id=content_area").first();
             Elements table = cuadro.select("div[class=n diyfeLiveArea]");
-            arrayGrande = new ArrayList<>();
-            ArrayList<String> arr = new ArrayList<>();
 
+            MealSection mealSection = new MealSection("");
             for (Element el : table) {
                 Element child = el.child(0);
 
+                //Title
                 if (child.tagName().equals("h1")) {
-                    if (arr.size() > 0) arrayGrande.add(arr);
-                    arr = new ArrayList<>();
-                    arr.add(child.text());
+                    mealSection = new MealSection(child.text());
+
                 } else if (child.tagName().equals("p")) {
                     for (Element hijo : el.children()) {
-                        arr.add(hijo.text());
+                        if (hijo.hasText())
+                            mealSection.addDish(hijo.text());
                     }
                 } else {
                     continue;
                 }
+                if (mealSection.isValid()) arr.add(mealSection);
             }
 
-            if (arr.size() > 1)
-                arrayGrande.add(arr); //el primer campo de cada array tiene el titulo, tipo "postres"
+//
+//            for (Element el : table) {
+//                Element child = el.child(0);
+//
+//                if (child.tagName().equals("h1")) {
+//                    if (arr.size() > 0) arrayGrande.add(arr);
+//                    arr = new ArrayList<>();
+//                    arr.add(child.text());
+//                } else if (child.tagName().equals("p")) {
+//                    for (Element hijo : el.children()) {
+//                        arr.add(hijo.text());
+//                    }
+//                } else {
+//                    continue;
+//                }
+//            }
+//
+//            if (arr.size() > 1)
+//                arrayGrande.add(arr); //el primer campo de cada array tiene el titulo, tipo "postres"
+//
         } catch (Exception e) {
             myLog.error(e);
         }
-        return arrayGrande;
+        return arr;
     }
 
-    @Override
-    protected NotificationCompat.InboxStyle getInboxStyle() {
-        return null;
-    }
 
     @Override
     protected String getFetchingFinalUrl() {
@@ -87,90 +113,126 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
     protected String typeString() {
         return "RESTAURANT";
     }
+//    @Override
+//    protected SpannableString NotiSingleContentExpanded() {
+//        if (we.fetchedElements == null || we.fetchedElements.size() == 0)
+//            return SpannableString.valueOf(we.getDescription());
+//
+//        SpannableString sst = null;
+//        try {
+//            //TODO only en ciertas horas el menú, por la tarde poner la decripcion
+//            for (Object o : we.fetchedElements) {
+//                ArrayList<String> arr = (ArrayList<String>) o;
+//
+//                String title = arr.get(0);
+//                StringBuilder sb = new StringBuilder(title + ": ");
+//
+//                // Dishes
+//                for (int i = 1; i < arr.size() - 1; i++) {
+//                    sb.append(arr.get(i));
+//                    if (i < arr.size() - 2) {
+//                        sb.append(" | ");
+//                    }
+//                }
+//
+//                SpannableString ssNew = StringUtils.getSpannableString(sb.toString(), title.length());
+//
+//                sst = sst == null ? ssNew : SpannableString.valueOf(TextUtils.concat(sst, "\n", ssNew));
+//            }
+//        } catch (Exception e) {
+//            myLog.error(e);
+//        }
+//
+//        return sst;
+//    }
+
+//    @Override
+//    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent, Context mContext) {
+//        mNotifTitle = NotiSingleTitle();
+//        mNotifBottom = Notifications.bottomMessage(mContext);
+//
+//        NotifFeatures f = LogInManagement.notifFeatures;
+//
+//        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.refreshButton);
+//
+//        //Bigtext style
+//        mNotifContent = NotiSingleContentExpanded();
+//        NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
+//                .setBigContentTitle(mNotifTitle)
+//                .bigText(mNotifContent);
+//        if (LogInManagement.othersActive()) textStyle.setSummaryText(mNotifBottom);
+//
+//        notif.setStyle(textStyle);
+//
+//        if (we.getFetchingPartialUrl() != null)
+//            Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
+//
+////        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, true);
+//
+//        notif.setContentIntent(resultPendingIntent);
+//
+//        mBody = mNotifContent.toString();
+//
+//        return notif;
+//    }
+
+
+    // Notifications' messages
+    @Override
+    protected String msgRefreshing() {
+        return mContext.getString(R.string.notif_restaurant_refreshing);
+    }
 
     @Override
-    protected SpannableString NotiOneLineSummary() {
-        String name;
-        String greyPart = "See today's menu.";
-        int len = 16;
+    protected String msgPressRefresh() {
+        return mContext.getString(R.string.notif_restaurant_resfresh);
+    }
 
-        if (we.getName().length() > len) {
-            name = we.getName().substring(0, len) + ".";
-        } else {
-            name = we.getName();
+    @Override
+    protected String msgNoFetched() {
+        return we.getDescription();
+    }
+
+    @Override
+    protected SpannableString msgPressRefreshLong() {
+        return SpannableString.valueOf(mContext.getString(R.string.refresh_menu_long));
+    }
+
+    class MealSection implements fetchableElement {
+
+        private String title = "";
+        private ArrayList<String> dishes;
+
+        public MealSection(String section) {
+            title = section;
+            dishes = new ArrayList<>();
         }
 
-        return StringUtils.getSpannableString(name + " " + greyPart, name.length());
+        @Override
+        public SpannableString oneLineSummary() {
+            String name = shorten(title, 7);
+            String gray = dishes.get(0);
 
-    }
-
-    @Override
-    protected SpannableString NotiSingleExpandedContent() {
-        if (we.fetchedElements == null || we.fetchedElements.size() == 0)
-            return SpannableString.valueOf(we.getDescription());
-
-        SpannableString sst = null;
-        try {
-            //TODO only en ciertas horas el menú, por la tarde poner la decripcion
-            for (Object o : we.fetchedElements) {
-                ArrayList<String> arr = (ArrayList<String>) o;
-
-                String title = arr.get(0);
-                StringBuilder sb = new StringBuilder(title + ": ");
-
-                // Dishes
-                for (int i = 1; i < arr.size() - 1; i++) {
-                    sb.append(arr.get(i));
-                    if (i < arr.size() - 2) {
-                        sb.append(" | ");
-                    }
-                }
-
-//                myLog.add("Hasta ahora:\n" + sb.toString(), "aut");
-
-                SpannableString ssNew = StringUtils.getSpannableString(sb.toString(), title.length());
-
-                if (sst == null) {
-                    sst = ssNew;
-                } else {
-                    sst = SpannableString.valueOf(TextUtils.concat(sst, "\n", ssNew));
-                }
-            }
-        } catch (Exception e) {
-            myLog.error(e);
+            return StringUtils.getSpannableString(name + " " + gray, name.length());
         }
 
-        return sst;
+        @Override
+        public String veryShortSummary() {
+            return StringUtils.FirstWord(dishes.get(0));
+        }
+
+        public void addDish(String dish) {
+            dishes.add(dish);
+        }
+
+        public boolean isValid() {
+            return dishes.size() > 0 && !title.equals("");
+        }
+
+        public SpannableString getLongSpan() {
+            String name = title;
+            String gray = StringUtils.concatenate(dishes, "\n");
+            return getSpannableString(name + "\n" + gray, name.length());
+        }
     }
-
-    @Override
-    public NotificationCompat.Builder buildSingleNotification(PendingIntent resultPendingIntent,  Context mContext) {
-        mNotifTitle = NotiSingleCompactTitle();
-        mNotifBottom = Notifications.bottomMessage(mContext);
-
-        NotifFeatures f = LogInManagement.notifFeatures;
-
-        NotificationCompat.Builder notif = baseNotif(mContext, f.sound, f.refreshButton);
-
-        //Bigtext style
-        mNotifContent = NotiSingleExpandedContent();
-        NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle()
-                .setBigContentTitle(mNotifTitle)
-                .bigText(mNotifContent);
-        if (LogInManagement.othersActive()) textStyle.setSummaryText(mNotifBottom);
-
-        notif.setStyle(textStyle);
-
-        if (we.getFetchingPartialUrl() != null)
-            Notifications.addRefreshButton(notif); //TODO consider restaurant that doesn need fecth in notification
-
-//        myLog.logNotification(title, String.valueOf(msg), summary, false, refreshButton, true);
-
-        notif.setContentIntent(resultPendingIntent);
-
-        mBody = mNotifContent.toString();
-
-        return notif;
-    }
-
 }

@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -26,8 +27,12 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications;
+import com.stupidpeople.weacons.SAPO;
 import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.WifiSpot;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
@@ -172,7 +177,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
     }
 
 
-    private void transferLogsToParse() throws ParseException {
+    private void onWifiTransferLogsToParse() throws ParseException {
         ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
         int res = query.fromPin(parameters.pinParseLog)
                 .count();
@@ -204,6 +209,86 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         }
     }
 
+    /**
+     * update online the las time each spot with weacon has been detected
+     *
+     * @throws ParseException
+     */
+    private void onWifiTransferUpdateTime() throws ParseException {
+        ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
+        int count = q.fromPin(parameters.pinLastTimeSeen).count();
+
+        if (count > 40) {
+            q = ParseQuery.getQuery(WifiSpot.class);
+            final List<WifiSpot> spots = q.fromPin(parameters.pinLastTimeSeen).setLimit(1000).find();
+
+            ArrayList<String> objs = new ArrayList<>();
+            for (WifiSpot spot : spots) objs.add(spot.getObjectId());
+
+            ParseQuery<WifiSpot> q2 = ParseQuery.getQuery(WifiSpot.class);
+            q2.whereContainedIn("objectId", objs)
+                    .findInBackground(new FindCallback<WifiSpot>() {
+                        @Override
+                        public void done(List<WifiSpot> list, ParseException e) {
+                            if (e == null) {
+                                myLog.add("De los que teniamos pinneados para actualizar la fecha: " + spots.size() +
+                                        " existen online sólo  " + list.size(), "aut");
+
+                                saveSpotsWithUpdatedTime(spots, list);
+
+                            } else {
+                                myLog.add("ERROR leyendo wifispots para actualizarles la fecha" + e.getLocalizedMessage(), "ONWIFI");
+                            }
+                        }
+                    });
+        }
+
+    }
+
+    /**
+     * and remove them from local. We avoid uplading spots deleted online
+     *
+     * @param spots list of spots inlocal
+     * @param list  list of (subset)spots that are online
+     */
+    private void saveSpotsWithUpdatedTime(final List<WifiSpot> spots, List<WifiSpot> list) {
+        addTimestampAndUploadSpots(list);
+
+        ParseObject.saveAllInBackground(spots, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    ParseObject.unpinAllInBackground(parameters.pinLastTimeSeen, spots, new DeleteCallback() {
+                        @Override
+                        public void done(ParseException e) {
+                            if (e == null) {
+                                myLog.add("subidos las actualizaciones de todos las fechas de WIFISPOTS: " + spots.size(), "ONWIFI");
+                            } else {
+                                myLog.add("ERROR en  actualizaciones de todos las fechas de WIFISPOTS: " + e.getLocalizedMessage(), "ONWIFI");
+                            }
+                        }
+                    });
+                } else {
+                    myLog.error(e);
+                }
+            }
+        });
+    }
+
+    private void addTimestampAndUploadSpots(List<WifiSpot> list) {
+        for (WifiSpot s : list) s.put("lastTimeSeen", new Date());
+        ParseObject.saveAllInBackground(list, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("Se han actualizado las fechas de lasttimeseen", "ONWIFI");
+                } else {
+                    myLog.add("ERROR, NO Se han actualizado las fechas de lasttimeseen" + e.getLocalizedMessage(), "ONWIFI");
+
+                }
+            }
+        });
+    }
 
     private class EventsReceiver extends BroadcastReceiver {
         @Override
@@ -255,6 +340,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 myLog.error(e);
             }
         }
+
     }
 
     public class WifiReceiver extends BroadcastReceiver {
@@ -272,7 +358,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                         if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
                             myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
 
-                            transferLogsToParse();
+                            onWifiTransferLogsToParse();
+                            onWifiTransferUpdateTime();
+                            SAPO.onWifiUploadSapo();
+
                         }
 
                         break;
@@ -303,6 +392,9 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             //For testing showing single weacon
             if (parameters.ignoreScanning) sr.clear();
 
+            //SAPO
+            if (parameters.isSapoActive) SAPO.pinSpots(sr, mContext, null);
+
             checkSpotMatches(sr, mContext, new CallBackWeacons() {
                 @Override
                 public void OnReceive(HashSet<WeaconParse> weaconHash) {
@@ -311,6 +403,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             });
         }
     }
+
 }
 
 
