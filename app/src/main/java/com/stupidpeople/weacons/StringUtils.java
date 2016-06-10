@@ -166,6 +166,7 @@ public class StringUtils {
 
     @NonNull
     public static String concatenate(ArrayList<String> arr, int nShorten, String sep) {
+        if (arr == null || arr.size() == 0) return "";
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < arr.size() - 1; i++) {

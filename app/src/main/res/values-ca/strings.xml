@@ -41,4 +41,11 @@
  <string name="ok">OK</string>
  <string name="whichone">En què parada estàs?</string>
  <string name="no_bustop_title">No hi ha parades</string>
+ <string name="getting_schedule">Obtenint l\'horari d\'avui</string>
+ <string name="action_add_bus_stopç">afegir parada</string>
+ <string name="notif_restaurant_refreshing">Obtenint el menú d\'avui ...</string>
+ <string name="pulldown_refresh_Schedule">Tiri cap avall per obtenir l\'horari d\'avui</string>
+ <string name="notif_restaurant_resfresh">Premeu Actualitzar per obtenir el menú d\'avui</string>
+ <string name="refresh_menu_long">Actualitzi per veure el menú d\'avui</string>
+ <string name="refresh_to_schedule">Actualitzi per veure l\'horari d\'avui</string>
 </resources>

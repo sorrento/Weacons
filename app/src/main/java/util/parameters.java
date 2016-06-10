@@ -50,7 +50,8 @@ public class parameters {
     public static int spaceBetweenCards = 30; //in pixels
 
     //SAPO
-    public static boolean isSapoActive = true;
+//    public static boolean isSapoActive =;
+
 
     //Default values to repetition of weacon detection
     public static int repeatedOffRemoveFromNotification = 5;
@@ -71,7 +72,7 @@ public class parameters {
 
     //////    TESTS
 
-    public static boolean testWeacons = false;
+    public static boolean testWeacons = true;
     public static String[] weaconsTest = {"YouCAbDETK"};
     // "YouCAbDETK" ESADE MBA
     // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
@@ -80,7 +81,7 @@ public class parameters {
     public static boolean doFakePosition = false;
     //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
 //    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.47422028, 2.08041);//Pg. Sant Magí
-    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087,2.07244985754 );//Av. Graells
+    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087, 2.07244985754);//Av. Graells
 
     public static boolean ignoreScanning = false;
 

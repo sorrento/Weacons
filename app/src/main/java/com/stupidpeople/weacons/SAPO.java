@@ -1,9 +1,9 @@
 package com.stupidpeople.weacons;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 
-import com.parse.FindCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -13,79 +13,137 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import util.myLog;
-import util.parameters;
+import util.srComparator;
 
 /**
  * Created by Milenko on 07/06/2016.
  */
 public class SAPO {
     static final String tag = "SAPO";
-    private static final String pinSapo = parameters.pinSapo;
     private static final String parseSapoClass = "WifiSapo";
-    private static final long Week = 1 * 24 * 60 * 60 * 1000;//7 * 24 * 60 * 60 * 1000 todo , puse un dia para tenstibg
+    private static final int repeticiones = 20; //cuantas veces se repite una wifi en scaneos, para ser subidas
+    private static HashMap<String, Integer> bssidTable;
+    private static boolean llegamosalos20 = false;
+
 
     public static void pinSpots(final List<ScanResult> sr, final Context ctx, final GPSCoordinates gps) {
-        try {
-            myLog.add("entering in pinSpots", tag);
 
+        try {
             for (final ScanResult r : sr) {
+                if (yaEsta(r)) incrementar(r);
+                else agregarATabla(r);
+            }
+
+
+            if (llegamosalos20) {
+                myLog.add("*****hemos llegado a " + repeticiones, tag);
+
+                ArrayList<String> bssids = getBssids(sr);
 
                 ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-                q.whereEqualTo("bssid", r.BSSID);
-                q.fromPin(pinSapo);
+                q.whereContainedIn("bssid", bssids);
+                q.whereEqualTo("user", ParseUser.getCurrentUser());
+
                 q.getFirstInBackground(new GetCallback<ParseObject>() {
                     @Override
-                    public void done(ParseObject wifiSpot, ParseException e) {
+                    public void done(ParseObject po, ParseException e) {
 
                         if (e == null) {
+                            myLog.add("Ya había uno de estos en internecs" + po.getString("ssid"), tag);
 
-                            if (gps != null) {
-                                wifiSpot.put("GPS", new ParseGeoPoint(gps.getLatitude(), gps.getLongitude()));
+                            // desconectar sapo
+                            if (po.getInt("counter") > 300) {
+                                myLog.add("-----------Apagamos sapolio", tag);
+                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", ctx.MODE_PRIVATE);
+                                prefs.edit().putBoolean("sapoActive", false).commit();
                             }
 
-                            incrementSapoSpot(wifiSpot);
-
-
-                            int counter = wifiSpot.getInt("counter");
-                            ParseGeoPoint gps = wifiSpot.getParseGeoPoint("GPS");
-                            String name = wifiSpot.getString("ssid");
-
-                            myLog.add("\t--- " + counter + "|" + gps + "|" + name, tag);
-
-                            if (counter == 100 && gps == null) {
-                                myLog.add("*****BINGO ono tiene 100", tag);
-                                pinSpotsPuttingGPS(ctx, sr);
-                                return;
-                            }
-
+                            incrementar20ysubir(po, repeticiones);
                         } else {
-                            //no existe el objeto
-                            myLog.add("error al traer wifisapo:" + e.getLocalizedMessage(), tag);
-                            createWifiSpotSapo(r, gps);
+                            myLog.add("No habia ninguno de estos  en internex, lo subirmos: " + e.getLocalizedMessage(), tag);
+                            subirConGPS(maspower(sr), ctx);
+                        }
+
+                        bssidTable = new HashMap<>();
+                    }
+                });
+
+            }
+
+            llegamosalos20 = false;
+
+        } catch (Exception e) {
+            myLog.add("Error en loop sobre scanresults" + e.getLocalizedMessage(), tag);
+        }
+
+    }
+
+    private static void incrementar(ScanResult r) {
+        final String s = r.BSSID;
+
+        int n = bssidTable.get(s);
+        if (n + 1 == repeticiones) llegamosalos20 = true;
+        bssidTable.put(s, n + 1);
+
+        myLog.add("+" + r.SSID + "->" + (n + 1), tag);
+    }
+
+    private static void agregarATabla(ScanResult r) {
+        bssidTable.put(r.BSSID, 1);
+        myLog.add("Agregado a tabla:" + r.SSID, tag);
+
+
+    }
+
+    private static ScanResult maspower(List<ScanResult> sr) {
+        Collections.sort(sr, new srComparator());
+        return sr.get(0);
+    }
+
+    private static void incrementar20ysubir(final ParseObject parseObject, int repeticiones) {
+        parseObject.increment("counter", repeticiones);
+        parseObject.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                myLog.add("subido el elemento incrmentado:" + parseObject.getString("ssid"), tag);
+            }
+        });
+    }
+
+    private static void subirConGPS(final ScanResult r, Context ctx) {
+
+        new LocationAsker(ctx, new LocationCallback() {
+            @Override
+            public void LocationReceived(GPSCoordinates gps) {
+
+                ParseObject ws = new ParseObject(parseSapoClass);
+                ws.put("ssid", r.SSID);
+                ws.put("bssid", r.BSSID);
+                ws.put("user", ParseUser.getCurrentUser());
+
+                ws.put("counter", repeticiones);
+                ws.put("GPS", new ParseGeoPoint(gps.getLatitude(), gps.getLongitude()));
+
+                ws.saveInBackground(new SaveCallback() {
+                    @Override
+                    public void done(ParseException e) {
+                        if (e == null) {
+                            myLog.add("EXITO, subido con GPS " + r.SSID, tag);
+                        } else {
+                            myLog.add("Error al subir el frecuent con GPS" + e.getLocalizedMessage(), tag);
                         }
                     }
                 });
             }
-        } catch (Exception e) {
-            myLog.error(e);
-        }
-    }
-
-    private static void pinSpotsPuttingGPS(final Context ctx, final List<ScanResult> sr) {
-        new LocationAsker(ctx, new LocationCallback() {
-            @Override
-            public void LocationReceived(GPSCoordinates gps) {
-                myLog.add("received le coordineates:" + gps, tag);
-                pinSpots(sr, ctx, gps);
-            }
 
             @Override
             public void NotPossibleToReachAccuracy() {
-                myLog.add("Not possible to get GPS", tag);
+                myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
             }
 
             @Override
@@ -95,106 +153,14 @@ public class SAPO {
         });
     }
 
-    private static void createWifiSpotSapo(ScanResult r, GPSCoordinates gps) {
-        ParseObject ws = new ParseObject(parseSapoClass);
-        ws.put("ssid", r.SSID);
-        ws.put("bssid", r.BSSID);
-        ws.put("user", ParseUser.getCurrentUser());
-        ws.put("counter", 1);
-        if (gps != null) {
-            ws.put("GPS", new ParseGeoPoint(gps.getLatitude(), gps.getLongitude()));
-        }
-        ws.pinInBackground(pinSapo, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    myLog.add("pinned un wifi" + e.getLocalizedMessage(), tag);
+    private static ArrayList<String> getBssids(List<ScanResult> sr) {
+        ArrayList<String> arr = new ArrayList<>();
+        for (ScanResult r : sr) arr.add(r.BSSID);
 
-                } else {
-                    myLog.add("error pinning new sapo" + e.getLocalizedMessage(), tag);
-                }
-            }
-        });
+        return arr;
     }
 
-    private static void incrementSapoSpot(ParseObject wifiSpot) {
-        myLog.add("we have one spot matching, gonna increment", tag);
-        wifiSpot.increment("counter");
-
-        wifiSpot.pinInBackground(pinSapo);
-    }
-
-    public static void onWifiUploadSapo() throws ParseException {
-        myLog.add("vamos a subir a inernets", tag);
-        if (timeSapeando() > Week) {
-            // 1. elegimos los de local que tienen el GPS, pero si ya está online, no subimos de nuevo
-            ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-            q.findInBackground(new FindCallback<ParseObject>() {
-                @Override
-                public void done(List<ParseObject> list, ParseException e) {
-                    ArrayList<String> objs = new ArrayList<>();
-                    for (ParseObject o : list) objs.add(o.getObjectId());
-
-                    ParseQuery<ParseObject> q2 = ParseQuery.getQuery(parseSapoClass);
-
-                    ParseQuery<ParseObject> locales = q2.fromPin(pinSapo)
-                            .whereExists("GPS")
-                            .whereNotContainedIn("objectId", objs);
-
-                    //borramos del local todos
-                    try {
-                        ParseObject.unpinAll(pinSapo);
-                    } catch (ParseException e1) {
-                        myLog.add("Error unpinning all" + e.getLocalizedMessage(), tag);
-                    }
-
-                    downloadAndPinSapos();
-
-                }
-            });
-
-
-        } else {
-            myLog.add("No ha pasado una semanita aun", tag);
-        }
-    }
-
-    /**
-     * bajamos a local los de internet que tienen GPS, dl propio usuairo
-     */
-    private static void downloadAndPinSapos() {
-        ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-        q.whereEqualTo("user", ParseUser.getCurrentUser())
-                .findInBackground(new FindCallback<ParseObject>() {
-                    @Override
-                    public void done(List<ParseObject> list, ParseException e) {
-                        ParseObject.pinAllInBackground(pinSapo, list, new SaveCallback() {
-                            @Override
-                            public void done(ParseException e) {
-                                if (e == null) {
-                                    myLog.add("FINAL, bajads a local todos los sapos de inteners, del propio usuario", tag);
-                                }
-                            }
-                        });
-                    }
-                });
-    }
-
-    private static long timeSapeando() throws ParseException {
-        ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-
-        ParseObject first = q.fromPin(pinSapo)
-                .orderByAscending("createdAt")
-                .getFirst();
-        Date dateIni = first.getCreatedAt();
-
-        first = q.fromPin(pinSapo)
-                .orderByDescending("updatedAt")
-                .getFirst();
-        Date dateEnd = first.getCreatedAt();
-
-        myLog.add("old date=" + dateIni + "| new date" + dateEnd, tag);
-
-        return dateEnd.getTime() - dateIni.getTime();
+    private static boolean yaEsta(ScanResult r) {
+        return bssidTable.containsKey(r.BSSID);
     }
 }

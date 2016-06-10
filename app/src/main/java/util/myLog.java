@@ -78,7 +78,7 @@ public class myLog {
     }
 
     public static void error(Exception e) {
-        myLog.add(Log.getStackTraceString(e), "err");
+        myLog.add(Log.getStackTraceString(e), "err-------");
     }
 
     public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {

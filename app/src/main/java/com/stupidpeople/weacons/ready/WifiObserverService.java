@@ -360,7 +360,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                             onWifiTransferLogsToParse();
                             onWifiTransferUpdateTime();
-                            SAPO.onWifiUploadSapo();
+//                            SAPO.onWifiUploadSapo();
 
                         }
 
@@ -384,7 +384,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             }
         }
 
-        private void processScanResults(List<ScanResult> sr) {
+        private void processScanResults(final List<ScanResult> sr) {
             iScan++;
 
             if (iScan % 30 == 0) ParseActions.DownloadWeaconsIfNeeded(mContext);
@@ -393,7 +393,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             if (parameters.ignoreScanning) sr.clear();
 
             //SAPO
-            if (parameters.isSapoActive) SAPO.pinSpots(sr, mContext, null);
+            if (prefs.getBoolean("sapoActive", true)) SAPO.pinSpots(sr, mContext, null);
 
             checkSpotMatches(sr, mContext, new CallBackWeacons() {
                 @Override

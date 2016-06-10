@@ -41,4 +41,11 @@
     <string name="ok">OK</string>
     <string name="whichone">¿En qué parada estás?</string>
     <string name="no_bustop_title">No hay paradas</string>
+    <string name="action_add_bus_stopç">Agregar parada</string>
+    <string name="getting_schedule">Obteniendo el horario de hoy</string>
+    <string name="notif_restaurant_refreshing">Obteniendo el menú de hoy...</string>
+    <string name="notif_restaurant_resfresh">Presione Actualizar para obtener el menú de hoy</string>
+    <string name="pulldown_refresh_Schedule">Tire hacia abajo para obtner el horario de hoy</string>
+    <string name="refresh_menu_long">Actualice para ver el menú de hoy</string>
+    <string name="refresh_to_schedule">Actualice para ver el horario de hoy</string>
 </resources>

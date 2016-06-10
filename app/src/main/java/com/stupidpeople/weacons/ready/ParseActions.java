@@ -46,8 +46,7 @@ import static com.stupidpeople.weacons.StringUtils.Listar;
 public abstract class ParseActions {
 
     private static final int WEEK_IN_MILI = 7 * 24 * 60 * 60 * 1000;
-    private static String tag = "PIN";
-
+    private static String tag = "PARSE";
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
      *
@@ -78,7 +77,6 @@ public abstract class ParseActions {
                             HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<>();
 
                             if (spots.size() == 0) {
-                                myLog.add("No bssids matches", tag);
                                 //WIGLE
                                 checkOnWigle(bssids, weaconHash, ctx);
                             } else { //There are matches
@@ -786,9 +784,8 @@ public abstract class ParseActions {
                         if (e == null) {
 //                            HashMap<WeaconParse, ArrayList<String>> weaconHash = new HashMap<>();
 
-                            if (spots.size() == 0)
-                                myLog.add("No bssids matches on Wigle neither", tag);
-                            else { //There are matches
+                            if (spots.size() != 0) {
+                                //There are matches
 
                                 //we take only the first, to avoid messing up
                                 WifiSpot wifiSpot = spots.get(0);
@@ -802,7 +799,6 @@ public abstract class ParseActions {
                                 // It's important always deliver built weacons (in this way, they are of subclasses, as bus
                                 we.build(ctx);
                                 addWeAndSpotToHash(weaconHash, wifiSpot);
-
 
                                 new Wigles(we, ctx);
                             }

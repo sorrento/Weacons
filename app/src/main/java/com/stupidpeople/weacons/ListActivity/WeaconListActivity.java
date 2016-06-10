@@ -44,12 +44,12 @@ import com.stupidpeople.weacons.ready.WifiObserverService;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
 import util.myLog;
 import util.parameters;
+import util.srComparator;
 
 import static com.stupidpeople.weacons.StringUtils.Listar;
 
@@ -194,6 +194,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     private boolean isFirstTime() {
         SharedPreferences prefs = getSharedPreferences("com.stupidpeople.weacons", MODE_PRIVATE);
+
         return prefs.getBoolean("firstrunService", true);
     }
 
@@ -548,16 +549,5 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             }
         }
     }
-
-    //////////////////////
-    class srComparator implements Comparator<ScanResult> {
-
-        @Override
-        public int compare(ScanResult lhs, ScanResult rhs) {
-            return rhs.level - lhs.level;
-        }
-    }
-
-
 }
 
