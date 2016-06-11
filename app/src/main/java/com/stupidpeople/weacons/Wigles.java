@@ -3,6 +3,12 @@ package com.stupidpeople.weacons;
 import android.content.Context;
 import android.net.wifi.ScanResult;
 
+import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Location.GPSCoordinates;
+import com.stupidpeople.weacons.Location.LocationAsker;
+import com.stupidpeople.weacons.Location.LocationCallback;
+import com.stupidpeople.weacons.Wifi.WifiAsker;
+import com.stupidpeople.weacons.Wifi.askScanResults;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 
@@ -13,7 +19,7 @@ import java.util.TimerTask;
 
 import util.myLog;
 
-import static com.stupidpeople.weacons.StringUtils.ListarSR;
+import static util.StringUtils.ListarSR;
 
 /**
  * Created by Milenko on 22/05/2016.
@@ -69,10 +75,6 @@ public class Wigles {
                 }
 
                 new LocationAsker(mContext, 15, new LocationCallback() {
-                    @Override
-                    public void LocationReceived(GPSCoordinates gps) {
-
-                    }
 
                     @Override
                     public void NotPossibleToReachAccuracy() {

@@ -18,13 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <receiver android:name=".BootReceiver">
+        <receiver android:name=".Broadcasts.BootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".ServiceRevival">
+        <receiver android:name=".Broadcasts.ServiceRevival">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
                 <action android:name="android.intent.action.BATTERY_LOW" />
@@ -44,7 +44,7 @@
 
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name=".SettingsActivity.SettingsActivity"
             android:label="@string/app_name" />
 
         <service

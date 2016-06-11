@@ -25,11 +25,11 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.Notifications;
+import com.stupidpeople.weacons.Notifications.Notifications;
 import com.stupidpeople.weacons.SAPO;
-import com.stupidpeople.weacons.WeaconParse;
-import com.stupidpeople.weacons.WifiSpot;
+import com.stupidpeople.weacons.Wifi.WifiSpot;
 
 import java.util.ArrayList;
 import java.util.Date;

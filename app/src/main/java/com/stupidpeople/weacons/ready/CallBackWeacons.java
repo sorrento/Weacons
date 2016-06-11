@@ -1,9 +1,7 @@
 package com.stupidpeople.weacons.ready;
 
-import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 
 /**

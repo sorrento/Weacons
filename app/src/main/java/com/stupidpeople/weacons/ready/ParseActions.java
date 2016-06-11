@@ -16,14 +16,13 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
-import com.stupidpeople.weacons.GPSCoordinates;
-import com.stupidpeople.weacons.LocationAsker;
-import com.stupidpeople.weacons.LocationCallback;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Location.GPSCoordinates;
+import com.stupidpeople.weacons.Location.LocationAsker;
+import com.stupidpeople.weacons.Location.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
-import com.stupidpeople.weacons.StringUtils;
-import com.stupidpeople.weacons.WeaconParse;
-import com.stupidpeople.weacons.WifiSpot;
+import com.stupidpeople.weacons.Wifi.WifiSpot;
 import com.stupidpeople.weacons.Wigles;
 import com.stupidpeople.weacons.booleanCallback;
 
@@ -35,10 +34,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import util.StringUtils;
 import util.myLog;
 import util.parameters;
 
-import static com.stupidpeople.weacons.StringUtils.Listar;
+import static util.StringUtils.Listar;
 
 /**
  * Created by Milenko on 03/03/2016.
@@ -210,11 +210,7 @@ public abstract class ParseActions {
      */
     public static void getNearWifiSpots(Context ctx) {
         LocationCallback listener = new LocationCallback() {
-            @Override
-            public void LocationReceived(GPSCoordinates gps) {
-                ParseGeoPoint pos = gps.getGeoPoint();
-                getNearWifiSpots(pos, null);
-            }
+
 
             @Override
             public void NotPossibleToReachAccuracy() {
@@ -223,7 +219,8 @@ public abstract class ParseActions {
 
             @Override
             public void LocationReceived(GPSCoordinates gps, double accuracy) {
-
+                ParseGeoPoint pos = gps.getGeoPoint();
+                getNearWifiSpots(pos, null);
             }
         };
         new LocationAsker(ctx, listener);
@@ -527,8 +524,14 @@ public abstract class ParseActions {
         myLog.add("VEamos si se necesita bajar weacons:", "OJO");
         //AskLocation
         new LocationAsker(ctx, new LocationCallback() {
+
             @Override
-            public void LocationReceived(final GPSCoordinates gps) {
+            public void NotPossibleToReachAccuracy() {
+
+            }
+
+            @Override
+            public void LocationReceived(GPSCoordinates gps, double accuracy) {
                 final ParseGeoPoint point = gps.getGeoPoint();
                 final booleanCallback newInAreaCB = new booleanCallback() {
                     @Override
@@ -557,15 +560,6 @@ public abstract class ParseActions {
                 };
 
                 anyNewer(point, anyUpdatedCallback);
-            }
-
-            @Override
-            public void NotPossibleToReachAccuracy() {
-
-            }
-
-            @Override
-            public void LocationReceived(GPSCoordinates gps, double accuracy) {
 
             }
 
@@ -672,13 +666,6 @@ public abstract class ParseActions {
         return count;
     }
 
-
-    public static void SaveBumpLog(String text) {
-        ParseObject po = new ParseObject("log");
-        po.put("msg", text);
-        po.put("type", "Bump");
-        po.pinInBackground(parameters.pinParseLog);
-    }
 
     /**
      * Gets all buststps without ssids associated in the radios, sorted by distance
@@ -794,7 +781,8 @@ public abstract class ParseActions {
 //                                Vibrator vi = (Vibrator) ctx.getSystemService(Context.VIBRATOR_SERVICE);
 //                                vi.vibrate(1000);
                                 Toast.makeText(ctx, "Hemos encontrado un wifi d WIGLE!\n" + we.getName(), Toast.LENGTH_SHORT).show();
-                                myLog.add("FOUND WIGLE\n" + we + "\n\n" + Listar(spots), "**********");
+                                final String text = "FOUND WIGLE\n" + we + "\n\n" + Listar(spots);
+                                myLog.addToParse(text, "Wigle");
 
                                 // It's important always deliver built weacons (in this way, they are of subclasses, as bus
                                 we.build(ctx);

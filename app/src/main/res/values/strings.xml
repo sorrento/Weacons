@@ -68,21 +68,21 @@
     <string name="and_others">" and others."</string>
     <string name="press_refresh_bus_long">Please press REFRESH to have updated information about the estimated arrival times of buses at this stop.</string>
     <string name="currently_active_one">And other weacon still active</string>
-    <string name="looking_for_busstop">Looking for bus stop here...</string>
+    <string name="looking_for_busstop">Looking for bus stop here…</string>
     <string name="distance_bus_stop">The nearest bus stop is %1$s\nd = %2$d mts.</string>
-    <string name="updating_data">\nUpdating Data...</string>
+    <string name="updating_data">\nUpdating Data…</string>
     <string name="go_closer">\nPlease go closer.</string>
-    <string name="refreshing_notif">Refreshing notification...</string>
+    <string name="refreshing_notif">Refreshing notification…</string>
     <string name="no_lines_available">No lines available</string>
     <string name="notif_bus_NoInfo">No info for this stop by now.</string>
     <string name="location_precision">"Location precision (mts): "</string>
-    <string name="unable_gps_precision">Unable to get enough GPS precision, let\'s try a little more...</string>
+    <string name="unable_gps_precision">Unable to get enough GPS precision, let\'s try a little more…</string>
     <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
     <string name="turn_on_gps">Please turn on the GPS</string>
     <string name="in_busstop">At Bus Stop</string>
     <string name="no_bus_stop_100">There is no bus stop in 100mts from here</string>
     <string name="non_of_these">None of these.</string>
-    <string name="refreshing">Refreshing...</string>
+    <string name="refreshing">Refreshing…</string>
     <string name="no_data_available">No weacons active</string>
     <string name="gps_accuracy">Got Position, Accuracy =</string>
     <string name="gps_no_accuracy">Not possible to get position with required precision.</string>
@@ -99,10 +99,10 @@
     <string name="cancel">Cancel</string>
     <string name="isthisone">Is it this one?</string>
     <string name="whichone">Which one?</string>
-    <string name="getting_schedule">Getting the schedule...</string>
+    <string name="getting_schedule">Getting the schedule…</string>
     <string name="refresh_to_schedule">Refresh to obtain today\'s schedule</string>
     <string name="notif_restaurant_resfresh">Press Refresh to see today\'s menu</string>
-    <string name="notif_restaurant_refreshing">Getting the menu...</string>
+    <string name="notif_restaurant_refreshing">Getting the menu…</string>
     <string name="refresh_menu_long">Refresh to see today\'s menu</string>
     <string name="pulldown_refresh_Schedule">Pull down to obtain the updated schedule for today\'s lessons</string>
     <string name="action_add_bus_stopç">Add Bus Stop</string>

@@ -29,15 +29,15 @@ import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
-import com.stupidpeople.weacons.GPSCoordinates;
-import com.stupidpeople.weacons.LocationAsker;
-import com.stupidpeople.weacons.LocationCallback;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Location.GPSCoordinates;
+import com.stupidpeople.weacons.Location.LocationAsker;
+import com.stupidpeople.weacons.Location.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.R;
-import com.stupidpeople.weacons.WeaconParse;
-import com.stupidpeople.weacons.WifiAsker;
-import com.stupidpeople.weacons.WifiSpot;
-import com.stupidpeople.weacons.askScanResults;
+import com.stupidpeople.weacons.Wifi.WifiAsker;
+import com.stupidpeople.weacons.Wifi.WifiSpot;
+import com.stupidpeople.weacons.Wifi.askScanResults;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 import com.stupidpeople.weacons.ready.WifiObserverService;
@@ -51,7 +51,7 @@ import util.myLog;
 import util.parameters;
 import util.srComparator;
 
-import static com.stupidpeople.weacons.StringUtils.Listar;
+import static util.StringUtils.Listar;
 
 public class WeaconListActivity extends ActionBarActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     private static final int REQUEST_FINE_LOCATION_PERMISSION = 101;
@@ -243,53 +243,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     public void actionAddBusStop() {
         Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
 
-//        final GetCallback<WeaconParse> oneParadaCallback = new GetCallback<WeaconParse>() {
-//            @Override
-//            public void done(WeaconParse we, ParseException e) {
-//                if (e == null) {
-//                    int distanceMts = (int) Math.round(we.getGPS().distanceInKilometersTo(mGps.getGeoPoint()) * 1000);
-//                    we.build(mContext);
-//                    String msg = String.format(getString(R.string.distance_bus_stop), we.getName(), distanceMts);
-//
-//                    //2. Check if the nearest weacon is inside 15 mts
-//                    String msg2;
-//                    if (distanceMts < 15) {
-//
-//                        msg2 = getString(R.string.updating_data);
-//                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
-//
-//                        uploadBusStop(we);
-//
-//                    } else {
-//
-//                        //bring all bustops in 100mts
-//                        myLog.add("Vamos a buscar en los 100 mts", "ADD_STOP");
-//                        FindCallback<WeaconParse> listener = new FindCallback<WeaconParse>() {
-//                            @Override
-//                            public void done(List<WeaconParse> list, ParseException e) {
-//                                if (e == null) {
-//                                    if (list == null || list.size() == 0) {
-//                                        myLog.add("enlos 100 mts hay NO HAY paradsas ", "ADD_STOP");
-//                                        Toast.makeText(mContext, R.string.no_bus_stop_100, Toast.LENGTH_SHORT).show();
-//                                    } else {
-//                                        myLog.add("enlos 100 mts hay paradsas " + list.size(), "ADD_STOP");
-//                                        showDialogDecision(list);
-//                                    }
-//                                } else myLog.add("eerror:" + e.getLocalizedMessage(), "ADD_STOP");
-//                            }
-//                        };
-//                        ParseActions.getBusStopsInRadius(mGps, 0.1, listener);
-//
-//                        msg2 = getString(R.string.go_closer);
-//                        Toast.makeText(mContext, msg + msg2, Toast.LENGTH_LONG).show();
-//                    }
-//                    myLog.add(msg + msg2, tag);
-//
-//                } else {
-//                    myLog.error(e);
-//                }
-//            }
-//        };
 
         final FindCallback<WeaconParse> nearestBusStopsCallback = new FindCallback<WeaconParse>() {
             @Override
@@ -308,19 +261,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         };
 
         LocationCallback locationCallback = new LocationCallback() {
-            @Override
-            public void LocationReceived(GPSCoordinates gps) {
-                myLog.add("tenemos localización   pero sin accuracy" + gps, tag);
-            }
 
             @Override
             public void NotPossibleToReachAccuracy() {
                 //try with less accuracy
                 new LocationAsker(mContext, 18, new LocationCallback() {
-                    @Override
-                    public void LocationReceived(GPSCoordinates gps) {
-
-                    }
 
                     @Override
                     public void NotPossibleToReachAccuracy() {
@@ -343,7 +288,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 Toast.makeText(mContext, getString(R.string.gps_accuracy) + accuracy, Toast.LENGTH_SHORT).show();
                 myLog.add("Ya tenemos la loclizacion con precision:" + accuracy + gps, "ADD_STOP");
                 mGps = gps;
-//                ParseActions.getClosestBusStop(gps, oneParadaCallback);
 
                 ParseActions.getBusStopsInRadius(gps, 100, nearestBusStopsCallback);
             }

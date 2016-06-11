@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.stupidpeople.weacons.Advanced.Chat;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Notifications.NotifFeatures;
+import com.stupidpeople.weacons.Notifications.Notifications;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 

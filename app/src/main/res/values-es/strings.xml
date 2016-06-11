@@ -10,20 +10,20 @@
     <string name="and_others">" y algún otro."</string>
     <string name="press_refresh_bus_long">Presione ACTUALIZAR para obtener información actualizada sobre los tiempo de llegada de autobuses a esta parada.</string>
     <string name="currently_active_one">Y otro weacon aún activo</string>
-    <string name="looking_for_busstop">Buscando paradas por aquí...</string>
+    <string name="looking_for_busstop">Buscando paradas por aquí…</string>
     <string name="distance_bus_stop">La parada más cercana es %1$s\nd = %2$d mts.</string>
     <string name="go_closer">\nPor favor acérquese a la parada</string>
-    <string name="updating_data">\nActualizando los datos...</string>
-    <string name="refreshing_notif">Actualizando la notificación...</string>
+    <string name="updating_data">\nActualizando los datos…</string>
+    <string name="refreshing_notif">Actualizando la notificación…</string>
     <string name="no_lines_available">No hay líneas disponibles</string>
     <string name="notif_bus_NoInfo">No hay datos ahora mismo.</string>
     <string name="location_precision">"Precisión de la ubicación (mts): "</string>
-    <string name="unable_gps_precision">No se puede obtener la precisión del GPS, tratemos un poco más...</string>
+    <string name="unable_gps_precision">No se puede obtener la precisión del GPS, tratemos un poco más…</string>
     <string name="busstop_uploaded">"Se ha subido la parada: "</string>
     <string name="turn_on_gps">Por favor habilite el GPS</string>
     <string name="in_busstop">En Parada de autobus</string>
     <string name="non_of_these">Ninguna</string>
-    <string name="refreshing">Actualizando...</string>
+    <string name="refreshing">Actualizando…</string>
     <string name="no_bus_stop_100">No hay paradas en un radio de 100 mts.</string>
     <string name="no_data_available">No hay weacons activos</string>
     <string name="gps_accuracy">"Obtenida la posición, con precision de "</string>
@@ -43,7 +43,7 @@
     <string name="no_bustop_title">No hay paradas</string>
     <string name="action_add_bus_stopç">Agregar parada</string>
     <string name="getting_schedule">Obteniendo el horario de hoy</string>
-    <string name="notif_restaurant_refreshing">Obteniendo el menú de hoy...</string>
+    <string name="notif_restaurant_refreshing">Obteniendo el menú de hoy…</string>
     <string name="notif_restaurant_resfresh">Presione Actualizar para obtener el menú de hoy</string>
     <string name="pulldown_refresh_Schedule">Tire hacia abajo para obtner el horario de hoy</string>
     <string name="refresh_menu_long">Actualice para ver el menú de hoy</string>

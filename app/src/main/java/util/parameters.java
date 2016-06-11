@@ -3,7 +3,7 @@ package util;
 import android.os.Build;
 
 import com.parse.ParseGeoPoint;
-import com.stupidpeople.weacons.GPSCoordinates;
+import com.stupidpeople.weacons.Location.GPSCoordinates;
 
 /**
  * Created by Milenko on 20/07/2015.
@@ -72,7 +72,7 @@ public class parameters {
 
     //////    TESTS
 
-    public static boolean testWeacons = true;
+    public static boolean testWeacons = false;
     public static String[] weaconsTest = {"YouCAbDETK"};
     // "YouCAbDETK" ESADE MBA
     // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
@@ -81,7 +81,7 @@ public class parameters {
     public static boolean doFakePosition = false;
     //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);
 //    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.47422028, 2.08041);//Pg. Sant Magí
-    public static com.stupidpeople.weacons.GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087, 2.07244985754);//Av. Graells
+    public static GPSCoordinates fakeCoords = new GPSCoordinates(41.477538087, 2.07244985754);//Av. Graells
 
     public static boolean ignoreScanning = false;
 

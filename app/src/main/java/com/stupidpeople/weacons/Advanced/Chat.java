@@ -6,7 +6,7 @@ import android.widget.Toast;
 import com.parse.ParseException;
 import com.parse.ParsePush;
 import com.parse.SaveCallback;
-import com.stupidpeople.weacons.WeaconParse;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
 
 import java.util.ArrayList;
 

@@ -11,6 +11,9 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.SaveCallback;
+import com.stupidpeople.weacons.Location.GPSCoordinates;
+import com.stupidpeople.weacons.Location.LocationAsker;
+import com.stupidpeople.weacons.Location.LocationCallback;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -27,7 +30,7 @@ public class SAPO {
     static final String tag = "SAPO";
     private static final String parseSapoClass = "WifiSapo";
     private static final int repeticiones = 20; //cuantas veces se repite una wifi en scaneos, para ser subidas
-    private static HashMap<String, Integer> bssidTable;
+    private static HashMap<String, Integer> bssidTable = new HashMap<>();
     private static boolean llegamosalos20 = false;
 
 
@@ -59,7 +62,7 @@ public class SAPO {
                             // desconectar sapo
                             if (po.getInt("counter") > 300) {
                                 myLog.add("-----------Apagamos sapolio", tag);
-                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", ctx.MODE_PRIVATE);
+                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
                                 prefs.edit().putBoolean("sapoActive", false).commit();
                             }
 
@@ -118,9 +121,14 @@ public class SAPO {
     private static void subirConGPS(final ScanResult r, Context ctx) {
 
         new LocationAsker(ctx, new LocationCallback() {
-            @Override
-            public void LocationReceived(GPSCoordinates gps) {
 
+            @Override
+            public void NotPossibleToReachAccuracy() {
+                myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
+            }
+
+            @Override
+            public void LocationReceived(GPSCoordinates gps, double accuracy) {
                 ParseObject ws = new ParseObject(parseSapoClass);
                 ws.put("ssid", r.SSID);
                 ws.put("bssid", r.BSSID);
@@ -128,6 +136,7 @@ public class SAPO {
 
                 ws.put("counter", repeticiones);
                 ws.put("GPS", new ParseGeoPoint(gps.getLatitude(), gps.getLongitude()));
+                ws.put("radius", accuracy);
 
                 ws.saveInBackground(new SaveCallback() {
                     @Override
@@ -139,15 +148,6 @@ public class SAPO {
                         }
                     }
                 });
-            }
-
-            @Override
-            public void NotPossibleToReachAccuracy() {
-                myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
-            }
-
-            @Override
-            public void LocationReceived(GPSCoordinates gps, double accuracy) {
 
             }
         });

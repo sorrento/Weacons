@@ -3,9 +3,10 @@ package util;
 import android.os.Environment;
 import android.util.Log;
 
+import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.StringUtils;
-import com.stupidpeople.weacons.WeaconParse;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -78,7 +79,9 @@ public class myLog {
     }
 
     public static void error(Exception e) {
-        myLog.add(Log.getStackTraceString(e), "err-------");
+        final String s = Log.getStackTraceString(e);
+        myLog.add(s, "err-------");
+        addToParse(s, "ERROR");
     }
 
     public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {
@@ -151,5 +154,13 @@ public class myLog {
         return "(" + StringUtils.ConcatenateComma(arrayList, i) + ")";
     }
 
+    public static void addToParse(String text, String type) {
+        ParseObject po = new ParseObject("log");
+        po.put("msg", text);
+        po.put("type", type);
+        po.put("user", ParseUser.getCurrentUser());
+
+        po.pinInBackground(parameters.pinParseLog);
+    }
 }
 

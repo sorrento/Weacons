@@ -4,8 +4,8 @@ import android.app.Application;
 
 import com.parse.Parse;
 import com.parse.ParseObject;
-import com.stupidpeople.weacons.WeaconParse;
-import com.stupidpeople.weacons.WifiSpot;
+import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Wifi.WifiSpot;
 import com.stupidpeople.weacons.secured;
 
 /**
