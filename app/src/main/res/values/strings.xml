@@ -106,4 +106,5 @@
     <string name="refresh_menu_long">Refresh to see today\'s menu</string>
     <string name="pulldown_refresh_Schedule">Pull down to obtain the updated schedule for today\'s lessons</string>
     <string name="action_add_bus_stopç">Add Bus Stop</string>
+    <string name="bus_stop_uploaded">"The bus stop has been uploaded: "</string>
 </resources>

@@ -12,8 +12,9 @@ import util.StringUtils;
  * Created by Milenko on 02/02/2016.
  */
 public class BusLine implements fetchableElement {
-    public String lineCode, destination;
-    public ArrayList<Bus> buses = new ArrayList<>();
+    protected String lineCode;
+    private String destination;
+    private ArrayList<Bus> buses = new ArrayList<>();
 
     public BusLine(Bus bus) {
         this.lineCode = bus.lineCode;
@@ -21,14 +22,14 @@ public class BusLine implements fetchableElement {
         addBus(bus);
     }
 
-    public BusLine() {
+    protected BusLine() {
     }
 
     public void addBus(Bus bus) {
         buses.add(bus);
     }
 
-    public int getShortestTime() {
+    private int getShortestTime() {
         int minimal = 1100;
         for (Bus bus : buses) {
             if (bus.arrivalTimeMins < minimal) minimal = bus.arrivalTimeMins;
@@ -42,7 +43,7 @@ public class BusLine implements fetchableElement {
         String name = lineCode;
         StringBuilder sb = new StringBuilder(name + " ");
 
-        for (Bus bus : buses) sb.append(bus.arrivalTimeText + ", ");
+        for (Bus bus : buses) sb.append(bus.arrivalTimeText).append(", ");
 
         String s = sb.toString();
         String sub = s.substring(0, s.length() - 2);

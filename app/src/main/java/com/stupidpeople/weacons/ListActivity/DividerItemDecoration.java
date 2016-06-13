@@ -17,7 +17,7 @@ import com.stupidpeople.weacons.R;
 /**
  * Created by Milenko on 24/09/2015.
  */
-public class DividerItemDecoration extends RecyclerView.ItemDecoration {
+class DividerItemDecoration extends RecyclerView.ItemDecoration {
 
     private Drawable mDivider;
 

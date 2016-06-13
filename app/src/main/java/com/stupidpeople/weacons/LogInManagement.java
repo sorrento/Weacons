@@ -36,7 +36,7 @@ public class LogInManagement {
     public static HashMap<WeaconParse, Integer> occurrences = new HashMap<>();
     public static ArrayList<WeaconParse> weaconsToNotify = new ArrayList<>();//Will be notified
     public static NotifFeatures notifFeatures;
-    public static boolean areObsolete;
+    private static boolean areObsolete;
     private static boolean anyInterestingAppearing = false;
     private static ArrayList<WeaconParse> activeWeacons;
     private static boolean someOneAppearing = false;
@@ -58,7 +58,7 @@ public class LogInManagement {
         try {
 
             //Check differences with last scanning and keep accumulation history
-            checkDisappearing(ctx);
+            checkDisappearing();
             checkAppearing();
 
             now = new CurrentSituation(weaconsDetected, occurrences);
@@ -151,8 +151,6 @@ public class LogInManagement {
         if (occurrences != null) {
 //            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
             activeWeacons = new ArrayList(occurrences.keySet());
-        } else {
-//            myLog.add("No tenemos weacons en occurrences", "aut");
         }
         return activeWeacons;
     }
@@ -171,7 +169,7 @@ public class LogInManagement {
     /**
      * List of DISAPPEARING (NOT IN NEW). Modifies field occurrences
      */
-    private static void checkDisappearing(Context ctx) {
+    private static void checkDisappearing() {
         Iterator<Map.Entry<WeaconParse, Integer>> itOld = occurrences.entrySet().iterator();
 
         while (itOld.hasNext()) {

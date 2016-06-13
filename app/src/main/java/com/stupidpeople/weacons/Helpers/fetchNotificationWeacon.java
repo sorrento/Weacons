@@ -12,7 +12,7 @@ import util.myLog;
 /**
  * Created by Milenko on 11/03/2016.
  */
-public class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Response> {
+class fetchNotificationWeacon extends AsyncTask<Void, Void, Connection.Response> {
     private final fetchingResults callback;
     private final String url;
 

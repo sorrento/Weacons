@@ -20,8 +20,8 @@ import java.util.Date;
  * Created by Milenko on 18/03/2016.
  */
 public abstract class HelperBaseFecthNotif extends HelperBase {
-    protected String sInbox;
-    protected Date lastUpdateTime;
+    Date lastUpdateTime;
+    private String sInbox;
 
     protected HelperBaseFecthNotif(WeaconParse we, Context ctx) {
         super(we, ctx);
@@ -41,7 +41,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
 
     protected abstract ArrayList<fetchableElement> processResponse(Connection.Response response);
 
-    final NotificationCompat.InboxStyle getInboxStyle() {
+    private NotificationCompat.InboxStyle getInboxStyle() {
         NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
         inboxStyle.setBigContentTitle(NotiSingleTitleExpanded());
 
@@ -51,7 +51,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         StringBuilder sb = new StringBuilder();
         for (fetchableElement fe : we.fetchedElements) {
             inboxStyle.addLine(fe.oneLineSummary());
-            sb.append("   " + fe.oneLineSummary() + "\n");
+            sb.append("   ").append(fe.oneLineSummary()).append("\n");
         }
 
         sInbox = sb.toString();
@@ -102,10 +102,10 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     }
 
 
-    final String summarizeAllfetchedElementsInOneRow() {
+    private String summarizeAllfetchedElementsInOneRow() {
         StringBuilder sb = new StringBuilder();
 
-        for (fetchableElement fe : we.fetchedElements) sb.append(fe.veryShortSummary() + "|");
+        for (fetchableElement fe : we.fetchedElements) sb.append(fe.veryShortSummary()).append("|");
 
         String s = sb.toString();
         return s.substring(0, s.length() - 1);
@@ -114,7 +114,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     //  Notifications' content
 
     @Override
-    public final String oneLineSummary() {
+    protected final String oneLineSummary() {
         String s;
 
         if (we.refreshing) {
@@ -150,7 +150,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         return s;
     }
 
-    protected final SpannableString allfetchedElementsForListActivity() {
+    private SpannableString allfetchedElementsForListActivity() {
         SpannableString old = null;
         for (fetchableElement fe : we.fetchedElements) {
             old = old == null ? fe.getLongSpan() :

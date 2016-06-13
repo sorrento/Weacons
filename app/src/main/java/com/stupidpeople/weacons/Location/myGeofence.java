@@ -6,7 +6,7 @@ package com.stupidpeople.weacons.Location;
 /**
  * Created by Milenko on 31/03/2016.
  */
-public class myGeofence {
+class myGeofence {
 
     public myGeofence() {
 

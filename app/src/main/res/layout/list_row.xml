@@ -38,7 +38,7 @@
             android:maxLines="2"
             android:text="Name muy largo que seguramente no cabe en una linea, porque tiene demasiado texto"
             android:textColor="@color/abc_primary_text_material_light"
-            android:textSize="17dp" />
+            android:textSize="17sp" />
 
         <TextView
             android:id="@+id/description"

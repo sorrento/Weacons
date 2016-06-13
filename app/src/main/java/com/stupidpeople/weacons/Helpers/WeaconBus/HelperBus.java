@@ -30,7 +30,7 @@ import util.myLog;
  */
 public class HelperBus extends HelperBaseFecthNotif {
 
-    city mCity;
+    private city mCity;
 
     public HelperBus(WeaconParse we, Context ctx) {
         super(we, ctx);
@@ -119,7 +119,7 @@ public class HelperBus extends HelperBaseFecthNotif {
         return 1;
     }
 
-    public String getBusStopId() {
+    private String getBusStopId() {
         return we.getString("paradaId");
     }
 

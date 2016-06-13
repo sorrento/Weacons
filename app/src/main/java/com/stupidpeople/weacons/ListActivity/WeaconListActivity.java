@@ -55,7 +55,6 @@ import static util.StringUtils.Listar;
 
 public class WeaconListActivity extends ActionBarActivity implements ActivityCompat.OnRequestPermissionsResultCallback {
     private static final int REQUEST_FINE_LOCATION_PERMISSION = 101;
-    private RecyclerView mRecyclerView;
     private WeaconAdapter adapter;
     private Context mContext;
     private String tag = "ADD_STOP";
@@ -75,11 +74,12 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             if (isFirstTime()) ShowExplainationDialog();
 
-            Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
+            if (parameters.isMilenkosPhone())
+                Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
 
 
             myLog.add("opening la lista activity", "wifi");
-            mRecyclerView = new RecyclerView(this);
+            RecyclerView mRecyclerView = new RecyclerView(this);
             mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
             mRecyclerView.hasFixedSize();
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -134,7 +134,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     @Override
     protected void onResume() {
         super.onResume();
-        Toast.makeText(mContext, "Estamos retomandola Actividad", Toast.LENGTH_SHORT).show();
+
+        if (parameters.isMilenkosPhone())
+            Toast.makeText(mContext, "RETOMANDO Actividad", Toast.LENGTH_SHORT).show();
 
         someTest();
 
@@ -204,7 +206,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         unregisterReceiver(newDataReceiver);
     }
 
-    void refreshList(boolean forced) {
+    private void refreshList(boolean forced) {
 
         if (forced) mRefresh.setRefreshing(true);
 
@@ -240,7 +242,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         return true;
     }
 
-    public void actionAddBusStop() {
+    private void actionAddBusStop() {
         Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
 
 
@@ -372,7 +374,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     }
 
 
-    public void OnCLickClear(View view) {
+    public void OnCLickClear() {
         ParseActions.ClearHomes();
     }
 
@@ -383,7 +385,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
      *
      * @param we
      */
-    public void SendWifis(final WeaconParse we) {
+    private void SendWifis(final WeaconParse we) {
         new WifiAsker(mContext, new askScanResults() {
             @Override
             public void OnReceiveWifis(List<ScanResult> sr) {
@@ -396,7 +398,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                         @Override
                         public void OneTaskCompleted() {
                             //Reload weacons in the area after upload everything
-                            Toast.makeText(mContext, "The busstop has been uploaded: " + we.getName(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, getString(R.string.bus_stop_uploaded) + we.getName(), Toast.LENGTH_SHORT).show();
 
                             ParseActions.increaseNScannings(we);
 
@@ -440,9 +442,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             @Override
             public void noWifiDetected() {
-                String text = "error recibiendo los sopotsde manera forzasa";
                 Toast.makeText(mContext, R.string.no_wifis, Toast.LENGTH_SHORT).show();
-                myLog.add(text, "WARN");
+
+                myLog.add("error recibiendo los sopotsde manera forzasa", "WARN");
             }
         });
     }

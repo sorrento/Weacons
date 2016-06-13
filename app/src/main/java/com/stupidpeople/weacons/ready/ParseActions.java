@@ -295,7 +295,7 @@ public abstract class ParseActions {
      *
      * @param weacons
      */
-    public static void AddToInteresting(final ArrayList<WeaconParse> weacons) throws ParseException {
+    public static void AddToInteresting(final ArrayList<WeaconParse> weacons) {
         for (final WeaconParse we : weacons) AddToInteresting(we);
     }
 

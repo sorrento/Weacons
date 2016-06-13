@@ -22,14 +22,12 @@ import util.parameters;
 
 public class LogBump {
     private static final String DIVIDER = "********************************************\n";
-    public static String tag = "NOTIF";
+    private static String tag = "NOTIF";
     private final LogType mLogType;
     private final String mTime;
     private List<ScanResult> spots;
     private List<WifiSpot> wifiSpots;
-    private HashMap<WeaconParse, ArrayList<String>> weaconsHash;
     private HashMap<WeaconParse, Integer> occurrences;
-    private LogInManagement.CurrentSituation situation;
     private ArrayList<String> quitting = new ArrayList<>();
     private ArrayList<ReasonToNotify> reasonsToNotify = new ArrayList<>();
     private boolean mSound;
@@ -48,7 +46,7 @@ public class LogBump {
 
     }
 
-    public String getNotificationText() {
+    private String getNotificationText() {
         return notificationText == null ? "" : notificationText;
     }
 
@@ -63,7 +61,7 @@ public class LogBump {
     //setters
 
     public void setSituation(LogInManagement.CurrentSituation situation) {
-        this.situation = situation;
+        LogInManagement.CurrentSituation situation1 = situation;
     }
 
     public void addQuitting(String name) {
@@ -71,7 +69,7 @@ public class LogBump {
     }
 
     public void setWeaconsHash(HashMap<WeaconParse, ArrayList<String>> weaconsHash) {
-        this.weaconsHash = weaconsHash;
+        HashMap<WeaconParse, ArrayList<String>> weaconsHash1 = weaconsHash;
     }
 
     public void setSpots(List<ScanResult> spots) {

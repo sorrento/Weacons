@@ -23,15 +23,14 @@ import util.parameters;
 public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
-    String tag = "LocAsk";
-    Context mContext;
+    private String tag = "LocAsk";
+    private Context mContext;
 
-    LocationCallback mLocationCallback;
-    GoogleApiClient mGoogleApiClient;
-    int iFail;
+    private LocationCallback mLocationCallback;
+    private GoogleApiClient mGoogleApiClient;
+    private int iFail;
     private LocationManager locationManager;
     private LocationListener locationListener;
-    private LocationRequest mLocationRequest;
 
     public LocationAsker(Context ctx, final LocationCallback locationCallback) {
         mContext = ctx;
@@ -107,7 +106,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         }
     }
 
-    protected synchronized void buildGoogleApiClient() {
+    private synchronized void buildGoogleApiClient() {
         try {
             mGoogleApiClient = new GoogleApiClient.Builder(mContext)
                     .addConnectionCallbacks(this)
@@ -141,11 +140,11 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 
     private void askOneUpdate(int priority) {
 
-        mLocationRequest = LocationRequest.create()
+        LocationRequest mLocationRequest = LocationRequest.create()
                 .setPriority(priority)
                 .setNumUpdates(1)
                 .setInterval(10 * 1000)        // 10 seconds, in milliseconds
-                .setFastestInterval(1 * 1000); // 1 second, in milliseconds
+                .setFastestInterval(1 * 1000);
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }

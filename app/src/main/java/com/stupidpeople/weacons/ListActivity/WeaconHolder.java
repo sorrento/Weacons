@@ -12,9 +12,9 @@ import com.stupidpeople.weacons.R;
  */
 
 public class WeaconHolder extends RecyclerView.ViewHolder {
-    protected ImageView thumbnail;
-    protected TextView title;
-    protected TextView description;
+    ImageView thumbnail;
+    TextView title;
+    TextView description;
 
     public WeaconHolder(View view) {
         super(view);

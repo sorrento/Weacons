@@ -27,14 +27,14 @@ import util.srComparator;
  * Created by Milenko on 07/06/2016.
  */
 public class SAPO {
-    static final String tag = "SAPO";
+    private static final String tag = "SAPO";
     private static final String parseSapoClass = "WifiSapo";
     private static final int repeticiones = 20; //cuantas veces se repite una wifi en scaneos, para ser subidas
     private static HashMap<String, Integer> bssidTable = new HashMap<>();
     private static boolean llegamosalos20 = false;
 
 
-    public static void pinSpots(final List<ScanResult> sr, final Context ctx, final GPSCoordinates gps) {
+    public static void pinSpots(final List<ScanResult> sr, final Context ctx) {
 
         try {
             for (final ScanResult r : sr) {
@@ -63,7 +63,7 @@ public class SAPO {
                             if (po.getInt("counter") > 300) {
                                 myLog.add("-----------Apagamos sapolio", tag);
                                 SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
-                                prefs.edit().putBoolean("sapoActive", false).commit();
+                                prefs.edit().putBoolean("sapoActive", false).apply();
                             }
 
                             incrementar20ysubir(po, repeticiones);

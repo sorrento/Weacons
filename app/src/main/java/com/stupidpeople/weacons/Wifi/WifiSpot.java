@@ -50,7 +50,7 @@ public class WifiSpot extends ParseObject {
         return getString("bssid");
     }
 
-    public void setBSSID(String BSSID) {
+    private void setBSSID(String BSSID) {
         put("bssid", BSSID);
     }
 
@@ -60,13 +60,12 @@ public class WifiSpot extends ParseObject {
         return getParseGeoPoint("GPS");
     }
 
-    public void setGPS(ParseGeoPoint GPS) {
+    private void setGPS(ParseGeoPoint GPS) {
         put("GPS", GPS);
     }
 
     public String getSSID() {
-        String SSID = getString("ssid");
-        return SSID;
+        return getString("ssid");
     }
 
     public void setSSID(String SSID) {
@@ -74,8 +73,7 @@ public class WifiSpot extends ParseObject {
     }
 
     public boolean isRelevant() {
-        boolean relevant = getBoolean("relevant");
-        return relevant;
+        return getBoolean("relevant");
     }
 
     @Override
@@ -84,27 +82,26 @@ public class WifiSpot extends ParseObject {
     }
 
     public WeaconParse getWeacon() {
-        WeaconParse weacon = (WeaconParse) getParseObject("associated_place");
-        return weacon;
+        return (WeaconParse) getParseObject("associated_place");
     }
 
-    public void setWeacon(WeaconParse weacon) {
+    private void setWeacon(WeaconParse weacon) {
         put("associated_place", weacon);
     }
 
-    public String summarizeWithWeacon() {
+    private String summarizeWithWeacon() {
         return getSSID() + "(" + getBSSID() + ") -> \"" + getWeacon().getName() + "\"";
     }
 
-    public void setOwner(ParseUser owner) {
+    private void setOwner(ParseUser owner) {
         put("owner", owner);
     }
 
-    public void setAutomatic(boolean automatic) {
+    private void setAutomatic(boolean automatic) {
         put("Automatic", automatic);
     }
 
-    public void setDistanceToWeacon(double distanceToWeacon) {
+    private void setDistanceToWeacon(double distanceToWeacon) {
         put("distanceWe", distanceToWeacon);
     }
 }

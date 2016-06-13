@@ -10,7 +10,7 @@ import util.parameters;
 public class HelperDefault extends HelperBase {
 
 
-    protected HelperDefault(WeaconParse we, Context ctx) {
+    HelperDefault(WeaconParse we, Context ctx) {
         super(we, ctx);
     }
 

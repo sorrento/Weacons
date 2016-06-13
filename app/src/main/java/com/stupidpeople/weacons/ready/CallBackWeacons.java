@@ -7,7 +7,7 @@ import java.util.HashSet;
 /**
  * Created by Milenko on 10/03/2016.
  */
-public interface CallBackWeacons {
+interface CallBackWeacons {
     void OnReceive(HashSet<WeaconParse> weaconHash);
 
 }

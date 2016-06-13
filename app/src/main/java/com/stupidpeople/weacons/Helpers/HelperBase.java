@@ -22,12 +22,10 @@ public abstract class HelperBase {
     protected final Context mContext;
     protected WeaconParse we;
 
-    protected String mNotifTitle;
-    protected String mNotifBottom;
-    protected SpannableString mNotifContent;
-    protected String mBody;
-    private String mNotifCQContent;
-    private String mNotifCQTitle;
+    String mNotifTitle;
+    String mBody;
+    private String mNotifBottom;
+    private SpannableString mNotifContent;
 
     protected HelperBase(WeaconParse we, Context ctx) {
         mContext = ctx;
@@ -37,11 +35,11 @@ public abstract class HelperBase {
 
     protected abstract String typeString();
 
-    protected Class getActivityClass() {
+    Class getActivityClass() {
         return WeaconListActivity.class; //TODO poner cards
     }
 
-    protected boolean notificationRequiresFetching() {
+    boolean notificationRequiresFetching() {
         return false;
     }
 
@@ -52,7 +50,7 @@ public abstract class HelperBase {
 
     // Notifications' content
 
-    protected String oneLineSummary() {
+    String oneLineSummary() {
         return typeString();
     }
 
@@ -63,8 +61,8 @@ public abstract class HelperBase {
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        mNotifCQTitle = NotiSingleTitle();
-        mNotifCQContent = NotifSingleSummary();
+        String mNotifCQTitle = NotiSingleTitle();
+        String mNotifCQContent = NotifSingleSummary();
 
         NotificationCompat.Builder notif = new NotificationCompat.Builder(mContext)
                 .setSmallIcon(R.drawable.ic_notif_we)
@@ -111,20 +109,20 @@ public abstract class HelperBase {
     }
 
     // Single compact
-    protected String NotiSingleTitle() {
+    String NotiSingleTitle() {
         return we.getName();
     }
 
-    protected String NotifSingleSummary() {
+    private String NotifSingleSummary() {
         return oneLineSummary();
     }
 
     //Expanded
-    protected String NotiSingleTitleExpanded() {
+    String NotiSingleTitleExpanded() {
         return we.getName();
     }
 
-    protected SpannableString NotiSingleContentExpanded() {
+    private SpannableString NotiSingleContentExpanded() {
         return SpannableString.valueOf(we.getDescription());
     }
 

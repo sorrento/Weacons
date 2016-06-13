@@ -26,7 +26,7 @@ import static util.StringUtils.ListarSR;
  */
 public class Wigles {
     private final WeaconParse mWe;
-    String tag = "WIGLE";
+    private String tag = "WIGLE";
     private Context mContext;
     private double bestDistance = 1000;
     private ArrayList<ScanResult> bestSRs = new ArrayList<>();

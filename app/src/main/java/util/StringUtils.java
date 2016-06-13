@@ -103,16 +103,8 @@ public class StringUtils {
 
     @NonNull
     static String Notif2String(String cqTitle, String cqContent, String title, String body, String bottom) {
-        StringBuilder sb = new StringBuilder();
 
-        sb.append("  " + "CQ" + "-------------------------------\n");
-        sb.append("  " + "  " + cqTitle + "\n");
-        sb.append("  " + "  " + cqContent + "\n");
-        sb.append("  " + "EX" + "-------------------------------\n");
-        sb.append("  " + "  " + title + "\n");
-        sb.append(body + "\n");
-        sb.append("  " + "  " + bottom + "\n");
-        return sb.toString();
+        return ("  " + "CQ" + "-------------------------------\n") + "  " + "  " + cqTitle + "\n" + "  " + "  " + cqContent + "\n" + "  " + "EX" + "-------------------------------\n" + "  " + "  " + title + "\n" + body + "\n" + "  " + "  " + bottom + "\n";
     }
 
     public static String FirstWord(String s) {
@@ -120,7 +112,7 @@ public class StringUtils {
         return pp[0];
     }
 
-    public static String TrimFirstWord(String s) {
+    private static String TrimFirstWord(String s) {
         int i = s.indexOf(" ");
         return s.substring(i + 1);
     }
@@ -139,10 +131,9 @@ public class StringUtils {
 
     public static String TrimFirstWords(String s, int n) {
         String sa = s;
-        for (int i = 0; i < n; i++) {
-            String sol = TrimFirstWord(sa);
-            sa = sol;
-        }
+
+        for (int i = 0; i < n; i++) sa = TrimFirstWord(sa);
+
         return sa;
     }
 
@@ -169,7 +160,7 @@ public class StringUtils {
     }
 
     @NonNull
-    public static String concatenate(ArrayList<String> arr, int nShorten, String sep) {
+    private static String concatenate(ArrayList<String> arr, int nShorten, String sep) {
         if (arr == null || arr.size() == 0) return "";
         StringBuilder sb = new StringBuilder();
 

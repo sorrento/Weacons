@@ -15,7 +15,7 @@ public abstract class Bus {
     protected String destination;
     protected boolean isNocturne;
 
-    public Bus(JSONObject json) {
+    protected Bus(JSONObject json) {
         try {
             createBus(json);
         } catch (JSONException e) {
@@ -23,7 +23,7 @@ public abstract class Bus {
         }
     }
 
-    public Bus() {
+    protected Bus() {
 
     }
 

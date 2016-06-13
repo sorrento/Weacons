@@ -51,15 +51,6 @@ public class myLog {
         try {
             Log.d(TAG, text);
 
-            if (!initialized) {
-                //DOn't want this file of zero-size
-//                initialize();
-//                //Just to observe when we lost continuiti
-//                File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_REC" + TAG + ".txt");
-//                logFile.createNewFile();
-
-            }
-
             File logFile = new File(Environment.getExternalStorageDirectory(), folder + currentDateandTime + "_" + TAG + ".txt");
             if (!logFile.exists()) {
                 logFile.createNewFile();
@@ -97,7 +88,7 @@ public class myLog {
     /***
      * Send unhandled errors to a text file in the phone
      */
-    public static void WriteUnhandledErrors() {
+    private static void WriteUnhandledErrors() {
         Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable ex) {
@@ -144,7 +135,7 @@ public class myLog {
             if (c3) arr.add("H");
             if (c1 || c3) extra = "[" + StringUtils.concatenate(arr, " ") + "]";
 
-            sb.append("     " + extra + we.getName() + "<-" + ListOfSsids(entry.getValue(), 5) + "\n");
+            sb.append("     ").append(extra).append(we.getName()).append("<-").append(ListOfSsids(entry.getValue(), 5)).append("\n");
         }
 
         add(first + sb.toString(), "Detection");

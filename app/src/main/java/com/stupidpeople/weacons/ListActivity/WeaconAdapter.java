@@ -16,7 +16,7 @@ import com.stupidpeople.weacons.R;
 
 import java.util.List;
 
-public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements View.OnClickListener {
+class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements View.OnClickListener {
 
     private List<WeaconParse> weaconItemList;
     private Context mContext;
@@ -36,9 +36,8 @@ public class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements
     public WeaconHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View v = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.list_row, null);
         v.setOnClickListener(this);
-        WeaconHolder wh = new WeaconHolder(v);
 
-        return wh;
+        return new WeaconHolder(v);
     }
 
     @Override

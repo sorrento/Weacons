@@ -49,8 +49,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
     public static boolean serviceIsActive;
     public static SharedPreferences prefs = null;
-    String tag = "wifi";
-    int iScan = 0;
+    private String tag = "wifi";
+    private int iScan = 0;
     private Context mContext;
     private WifiManager wifiManager;
     private WifiReceiver receiverWifi;
@@ -87,7 +87,9 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             IntentFilter intentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
             intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
             mContext.registerReceiver(receiverWifi, intentFilter);
-            Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
+
+            if (parameters.isMilenkosPhone())
+                Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
 
             //Refresh & silence & delete notif receiver
             eventsReceiver = new EventsReceiver();
@@ -106,7 +108,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             myLog.add("Is first time rumning" + prefs.getBoolean("firstrunService", true), "aut");
             if (prefs.getBoolean("firstrunService", true)) {
                 ParseActions.getNearWifiSpots(this);
-                prefs.edit().putBoolean("firstrunService", false).commit();
+                prefs.edit().putBoolean("firstrunService", false).apply();
             } else {
                 DownloadWeaconsIfNeeded(this);
             }
@@ -151,7 +153,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
         try {
 //            mNotificationManager.cancel(101);
-            Toast.makeText(mContext, "Detection Service OFF", Toast.LENGTH_LONG).show();
+            if (parameters.isMilenkosPhone())
+                Toast.makeText(mContext, "Detection Service OFF", Toast.LENGTH_LONG).show();
             mContext.unregisterReceiver(receiverWifi);
             mContext.unregisterReceiver(eventsReceiver);
             serviceIsActive = false;
@@ -313,7 +316,6 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     // Silence
                 } else if (action.equals(parameters.silenceIntentName)) {
-//                    ParseActions.removeInteresting(Notifications.getNotifiedWeacons());
                     LogInManagement.notifFeatures.silenceButton = false;
                     ParseActions.removeInteresting(LogInManagement.getActiveWeacons());
                     Notifications.Notify();
@@ -332,7 +334,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 } else if (action.equals(parameters.deleteIntentName)) {
                     Notifications.isShowingNotification = false;
 
-                    // Notify
+                    // Update Notification
                 } else if (action.equals(parameters.updateInfo)) {
                     Notifications.Notify();
                 }
@@ -393,7 +395,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             if (parameters.ignoreScanning) sr.clear();
 
             //SAPO
-            if (prefs.getBoolean("sapoActive", true)) SAPO.pinSpots(sr, mContext, null);
+            if (prefs.getBoolean("sapoActive", true)) SAPO.pinSpots(sr, mContext);
 
             checkSpotMatches(sr, mContext, new CallBackWeacons() {
                 @Override

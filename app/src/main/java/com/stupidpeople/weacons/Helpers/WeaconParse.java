@@ -135,7 +135,7 @@ public class WeaconParse extends ParseObject {
         return mHelper.typeString();
     }
 
-    public Bitmap getLogo() {
+    private Bitmap getLogo() {
         Bitmap bm = null;
         try {
             byte[] bitmapdata = getParseFile("Logo").getData();
@@ -163,7 +163,7 @@ public class WeaconParse extends ParseObject {
 
     ///////////////////////////////////////////////////// DELEGATES
 
-    public WeaconParse build(Context ctx) {
+    public void build(Context ctx) {
         try {
             switch (getType()) {
                 case accounting:
@@ -379,14 +379,13 @@ public class WeaconParse extends ParseObject {
         } catch (Exception e) {
             myLog.error(e);
         }
-        return this;
     }
 
     public boolean notificationRequiresFetching() {
         return mHelper.notificationRequiresFetching();
     }
 
-    public ArrayList processResponse(Connection.Response response) {
+    private ArrayList processResponse(Connection.Response response) {
         if (mHelper.notificationRequiresFetching()) {
             return ((HelperBaseFecthNotif) mHelper).processResponse(response);
         } else {
@@ -395,7 +394,7 @@ public class WeaconParse extends ParseObject {
         }
     }
 
-    public String getFetchingFinalUrl() {
+    private String getFetchingFinalUrl() {
         if (mHelper.notificationRequiresFetching()) {
             return ((HelperBaseFecthNotif) mHelper).getFetchingFinalUrl();
         } else {
@@ -470,7 +469,6 @@ public class WeaconParse extends ParseObject {
         } else {
             // Not fetching at this time
             fetchedElementListener.OneTaskCompleted();
-            return;
         }
     }
 
