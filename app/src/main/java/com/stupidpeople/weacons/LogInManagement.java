@@ -11,10 +11,15 @@ import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -44,6 +49,15 @@ public class LogInManagement {
     private static boolean fetching;
     private static Timer t;
 
+    private static HashMap<WeaconParse, Integer> sortedOccurrences = new HashMap<>();
+
+    public static HashMap<WeaconParse, Integer> getSortedOccurrences() {
+        return sortedOccurrences;
+    }
+
+    private static void setSortedOccurrences(HashMap<WeaconParse, Integer> occurrences) {
+        sortedOccurrences = sortByValue(occurrences);
+    }
 
     /**
      * Informs the weacons detected, in order to send/update/remove  notification
@@ -61,6 +75,8 @@ public class LogInManagement {
             checkDisappearing();
             checkAppearing();
 
+            setSortedOccurrences(occurrences);
+
             now = new CurrentSituation(weaconsDetected, occurrences);
 
             decider(ctx);
@@ -70,6 +86,25 @@ public class LogInManagement {
         } catch (Exception e) {
             myLog.error(e);
         }
+    }
+
+    private static <K, V> HashMap<K, V> sortByValue(Map<K, V> map) {
+        List<Map.Entry<K, V>> list = new LinkedList<>(map.entrySet());
+
+        Collections.sort(list, new Comparator<Object>() {
+            @SuppressWarnings("unchecked")
+            public int compare(Object o1, Object o2) {
+                return ((Comparable<V>) ((Map.Entry<K, V>) (o1)).getValue()).compareTo(((Map.Entry<K, V>) (o2)).getValue());
+            }
+        });
+
+        HashMap<K, V> result = new LinkedHashMap<>();
+        for (Iterator<Map.Entry<K, V>> it = list.iterator(); it.hasNext(); ) {
+            Map.Entry<K, V> entry = it.next();
+            result.put(entry.getKey(), entry.getValue());
+        }
+
+        return result;
     }
 
     /**
@@ -82,18 +117,20 @@ public class LogInManagement {
         if (someOneAppearing || someoneQuitting) {
 
             boolean sound = anyInterestingAppearing && !now.anyHome;
-//            boolean automaticFetching = now.anyFetchable() && anyInterestingAppearing && !now.anyHome;
             boolean refreshBtn = now.anyFetchable();
             boolean silenceBtn = now.anyInteresting;
 
             notifFeatures = new NotifFeatures(sound, refreshBtn, silenceBtn);
 
             //Notify or change notification
-            ctx.sendBroadcast(new Intent(parameters.updateInfo));
+            final Intent intent = new Intent(parameters.updateInfo);
+            intent.putExtra("anyHome", now.anyHome);
+            ctx.sendBroadcast(intent);
+//            notifySelective(parameters.everybody, ctx);
         }
     }
 
-    public static void fetchAllActiveAndInform(final Context ctx, boolean forceTheFetching) {
+    public static void fetchAllActiveAndInform(final Context ctx, boolean forceTheFetching, boolean onlyNotifiedWeacons) {
 
         if (fetching) {
             if (forceTheFetching) cancelTimer();
@@ -137,7 +174,11 @@ public class LogInManagement {
             }
         };
 
-        for (final WeaconParse we : activeWeacons) {
+        // Fecth only notified to save time waiting
+        ArrayList<WeaconParse> weaconsToFetch = onlyNotifiedWeacons ?
+                Notifications.getNotifiedWeacons() : activeWeacons;
+
+        for (final WeaconParse we : weaconsToFetch) {
             if (we.notificationRequiresFetching()) {
                 we.fetchForNotification(singleFetch);
             } else {
@@ -150,7 +191,8 @@ public class LogInManagement {
         activeWeacons = new ArrayList();
         if (occurrences != null) {
 //            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
-            activeWeacons = new ArrayList(occurrences.keySet());
+//            activeWeacons = new ArrayList(occurrences.keySet());
+            activeWeacons = new ArrayList(getSortedOccurrences().keySet());
         }
         return activeWeacons;
     }
@@ -347,6 +389,7 @@ public class LogInManagement {
         for (WeaconParse we : activeWeacons) we.refreshing = true;
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
+
 
 //    public static void markAsRefreshing(boolean b) {
 //        for (WeaconParse we : getActiveWeacons()) {

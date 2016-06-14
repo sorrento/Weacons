@@ -54,7 +54,12 @@ public class HelperSchedule extends HelperBaseFecthNotif {
 
     @Override
     protected SpannableString msgPressRefreshLong() {
-        return SpannableString.valueOf(mContext.getString(R.string.pulldown_refresh_Schedule));
+        return SpannableString.valueOf(mContext.getString(R.string.ListAct_press_refresh_Schedule));
+    }
+
+    @Override
+    protected SpannableString msgPullToRefresh() {
+        return SpannableString.valueOf(mContext.getString(R.string.ListAct_pulldown_refresh_Schedule));
     }
 
     @Override

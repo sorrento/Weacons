@@ -18,13 +18,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-        <receiver android:name=".broadcasts.bootReceiver">
+        <receiver android:name=".BC.RebootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".broadcasts.ServiceRevival">
+        <receiver android:name=".BC.ServiceRevival">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
                 <action android:name="android.intent.action.BATTERY_LOW" />

@@ -34,6 +34,7 @@ import com.stupidpeople.weacons.Location.GPSCoordinates;
 import com.stupidpeople.weacons.Location.LocationAsker;
 import com.stupidpeople.weacons.Location.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.Notifications.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.Wifi.WifiAsker;
 import com.stupidpeople.weacons.Wifi.WifiSpot;
@@ -167,7 +168,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             new MaterialDialog.Builder(this)
                     .title(R.string.attention)
                     .content(getString(R.string.gps_explaination))
-                    .positiveText(R.string.got_it)
+                    .positiveText(R.string.di_got_it)
                     .onPositive(new MaterialDialog.SingleButtonCallback() {
                         @Override
                         public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
@@ -181,9 +182,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     private void ShowExplainationDialog() {
         new MaterialDialog.Builder(this)
-                .title(R.string.welcome)
+                .title(R.string.di_welcome)
                 .content(R.string.inital_explaination)
-                .positiveText(R.string.got_it)
+                .positiveText(R.string.di_got_it)
 //                .negativeText(R.string.disagree)
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
@@ -210,9 +211,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
         if (forced) mRefresh.setRefreshing(true);
 
-        Intent intent = new Intent(parameters.refreshIntent);
-        intent.putExtra("forced", forced);
-        sendBroadcast(intent);
+        Notifications.sendBroadcastRefresh(forced, false, this);
 
     }
 
@@ -243,7 +242,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     }
 
     private void actionAddBusStop() {
-        Toast.makeText(mContext, R.string.looking_for_busstop, Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, R.string.to_looking_for_busstop, Toast.LENGTH_SHORT).show();
 
 
         final FindCallback<WeaconParse> nearestBusStopsCallback = new FindCallback<WeaconParse>() {
@@ -338,8 +337,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                             }
                         });
             } else {
-                arr.add(getString(R.string.non_of_these));
-                db.title(R.string.whichone)
+                arr.add(getString(R.string.di_non_of_these));
+                db.title(R.string.di_whichone)
                         .items(arr)
                         .itemsCallback(new MaterialDialog.ListCallback() {
                             @Override
@@ -398,7 +397,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                         @Override
                         public void OneTaskCompleted() {
                             //Reload weacons in the area after upload everything
-                            Toast.makeText(mContext, getString(R.string.bus_stop_uploaded) + we.getName(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, getString(R.string.busstop_uploaded) + we.getName(), Toast.LENGTH_SHORT).show();
 
                             ParseActions.increaseNScannings(we);
 
@@ -442,7 +441,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             @Override
             public void noWifiDetected() {
-                Toast.makeText(mContext, R.string.no_wifis, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, R.string.to_no_wifis, Toast.LENGTH_SHORT).show();
 
                 myLog.add("error recibiendo los sopotsde manera forzasa", "WARN");
             }

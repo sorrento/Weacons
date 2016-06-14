@@ -106,7 +106,12 @@ public class HelperBus extends HelperBaseFecthNotif {
 
     @Override
     protected SpannableString msgPressRefreshLong() {
-        return SpannableString.valueOf(mContext.getString(R.string.press_refresh_bus_long));
+        return SpannableString.valueOf(mContext.getString(R.string.notif_press_refresh_long));
+    }
+
+    @Override
+    protected SpannableString msgPullToRefresh() {
+        return SpannableString.valueOf(mContext.getString(R.string.ListActivity_pull_down_to_refresh));
     }
 
     @Override

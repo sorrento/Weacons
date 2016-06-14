@@ -81,10 +81,9 @@ public class WeaconParse extends ParseObject {
     }
 
     public String getName() {
-        boolean prefix = true;
 
         String extra = "";
-        if (prefix) {
+        if (parameters.isMilenkosPhone()) {
             boolean c1 = isInteresting();
             boolean c3 = inHome();
             ArrayList<String> arr = new ArrayList<>();

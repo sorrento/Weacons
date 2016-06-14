@@ -311,8 +311,11 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     LogInManagement.notifFeatures.silenceButton = true; //se pone desde ya
 
                     boolean forced = intent.getBooleanExtra("forced", true);
+                    boolean onlyNotification = intent.getBooleanExtra("onlyNotification", true);
+
                     myLog.add("RFERESH force=" + forced, "aut");
-                    LogInManagement.fetchAllActiveAndInform(mContext, forced);
+
+                    LogInManagement.fetchAllActiveAndInform(mContext, forced, onlyNotification);
 
                     // Silence
                 } else if (action.equals(parameters.silenceIntentName)) {
@@ -326,7 +329,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     if (Notifications.isShowingNotification && LogInManagement.now.anyInteresting &&
                             LogInManagement.now.anyFetchable() && !LogInManagement.now.anyHome) {
-                        LogInManagement.fetchAllActiveAndInform(mContext, false);
+                        LogInManagement.fetchAllActiveAndInform(mContext, false, true);
                     }
 
 
@@ -336,7 +339,9 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     // Update Notification
                 } else if (action.equals(parameters.updateInfo)) {
-                    Notifications.Notify();
+                    boolean anyHome = intent.getBooleanExtra("anyHome", false);
+                    // avoid annoying with home weacon notifications
+                    if (!anyHome) Notifications.Notify();
                 }
             } catch (Exception e) {
                 myLog.error(e);

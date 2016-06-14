@@ -19,6 +19,7 @@ import util.StringUtils;
 import util.myLog;
 import util.parameters;
 
+import static com.stupidpeople.weacons.LogInManagement.getSortedOccurrences;
 import static com.stupidpeople.weacons.LogInManagement.notifFeatures;
 import static com.stupidpeople.weacons.LogInManagement.numberOfActiveNonNotified;
 import static com.stupidpeople.weacons.LogInManagement.othersActive;
@@ -30,9 +31,6 @@ import static com.stupidpeople.weacons.LogInManagement.weaconsToNotify;
 public class Notifications {
 
     public static boolean isShowingNotification = false;
-//    public static boolean mSilenceButton;
-
-    static String tag = "NOTIF";
     private static NotificationManager mNotificationManager;
     private static Context mContext;
     private static int idNotiOcurrences = 102;
@@ -62,6 +60,7 @@ public class Notifications {
         NotificationCompat.BigTextStyle textStyle = new NotificationCompat.BigTextStyle();
         textStyle.setBigContentTitle("Weacon contabilidad");
         textStyle.bigText(StringUtils.Listar(occurrences));
+        textStyle.bigText(StringUtils.Listar(getSortedOccurrences()));
         notif.setStyle(textStyle);
 
         mNotificationManager.notify(idNotiOcurrences, notif.build());
@@ -261,12 +260,14 @@ public class Notifications {
         Intent resultIntent = new Intent(parameters.silenceIntentName);
         PendingIntent resultPendingIntent = PendingIntent.getBroadcast(mContext, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionSilence = new NotificationCompat.Action(R.drawable.ic_volume_off_white_24dp,
-                mContext.getString(R.string.silence), resultPendingIntent);
+                mContext.getString(R.string.btn_silence), resultPendingIntent);
         notif.addAction(actionSilence);
     }
 
     public static void addRefreshButton(NotificationCompat.Builder notif) {
         Intent refreshIntent = new Intent(parameters.refreshIntent);
+        refreshIntent.putExtra("onlyNotification", true);
+
         PendingIntent resultPendingIntentRefresh = PendingIntent.getBroadcast(mContext, 1, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationCompat.Action actionRefresh = new NotificationCompat.Action(R.drawable.ic_refresh_white_24dp, mContext.getString(R.string.refresh_button), resultPendingIntentRefresh);
 
@@ -281,6 +282,14 @@ public class Notifications {
         String summary = numberOfActiveNonNotified() > 1 ? ctx.getString(R.string.currently_active) :
                 ctx.getString(R.string.currently_active_one);
         return String.format(summary, numberOfActiveNonNotified());
+    }
+
+    public static void sendBroadcastRefresh(boolean forced, boolean onlyNotifiedWeacons, Context ctx) {
+
+        Intent intent = new Intent(parameters.refreshIntent);
+        intent.putExtra("forced", forced);
+        intent.putExtra("onlyNotification", onlyNotifiedWeacons);
+        ctx.sendBroadcast(intent);
     }
 
 

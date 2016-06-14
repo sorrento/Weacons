@@ -6,6 +6,6 @@
         android:id="@+id/action_add_stop"
         android:icon="@android:drawable/ic_menu_add"
         android:orderInCategory="100"
-        android:title="@string/action_add_bus_stopç"
+        android:title="@string/action_add_bus_stop"
         app:showAsAction="never" />
 </menu>

@@ -198,6 +198,11 @@ public class HelperRestaurant extends HelperBaseFecthNotif {
         return SpannableString.valueOf(mContext.getString(R.string.refresh_menu_long));
     }
 
+    @Override
+    protected SpannableString msgPullToRefresh() {
+        return SpannableString.valueOf(mContext.getString(R.string.refresh_menu_long_pull));
+    }
+
     class MealSection implements fetchableElement {
 
         private String title = "";

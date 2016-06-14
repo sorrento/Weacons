@@ -111,6 +111,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         return s.substring(0, s.length() - 1);
     }
 
+
     //  Notifications' content
 
     @Override
@@ -139,7 +140,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
         if (we.refreshing) {
             s = SpannableString.valueOf(msgRefreshing());
         } else if (we.isObsolete()) {
-            s = msgPressRefreshLong();
+            s = msgPullToRefresh();
         } else if (we.fetchedElements.size() != 0) {
             s = allfetchedElementsForListActivity();
         } else if (we.emptyAnswerOrErrorFetching()) {
@@ -152,14 +153,19 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
 
     private SpannableString allfetchedElementsForListActivity() {
         SpannableString old = null;
+
         for (fetchableElement fe : we.fetchedElements) {
             old = old == null ? fe.getLongSpan() :
                     SpannableString.valueOf(TextUtils.concat(old, "\n", fe.getLongSpan()));
         }
+
         return old;
     }
 
     protected abstract SpannableString msgPressRefreshLong();
+
+    protected abstract SpannableString msgPullToRefresh();
+
 
     /**
      * Message to be shown when the fefhicng disappeared by obsolete
@@ -167,7 +173,7 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
      * @return
      */
     protected String msgPressRefresh() {
-        return mContext.getString(R.string.press_refresh);
+        return mContext.getString(R.string.notif_press_refresh);
     }
 
     /**

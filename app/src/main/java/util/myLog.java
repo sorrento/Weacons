@@ -6,7 +6,6 @@ import android.util.Log;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
-import com.stupidpeople.weacons.LogInManagement;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -72,7 +71,7 @@ public class myLog {
     public static void error(Exception e) {
         final String s = Log.getStackTraceString(e);
         myLog.add(s, "err-------");
-        addToParse(s, "ERROR");
+        if (!parameters.isMilenkosPhone()) addToParse(s, "ERROR");
     }
 
     public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {
@@ -113,7 +112,6 @@ public class myLog {
     }
 
     public static void weaconsDetected(HashMap<WeaconParse, ArrayList<String>> weaconsHash, int nWifisDetected, int nWifis) {
-        HashMap<WeaconParse, Integer> occurrences = LogInManagement.occurrences;
         StringBuilder sb = new StringBuilder();
 
         String first = "  " + nWifisDetected + "/" + nWifis + " detected, meaning " +
@@ -130,10 +128,12 @@ public class myLog {
             ArrayList<String> arr = new ArrayList<>();
             String extra = "";
 
-            if (c1) arr.add("<3");
-//            if (c2) arr.add("N");
-            if (c3) arr.add("H");
-            if (c1 || c3) extra = "[" + StringUtils.concatenate(arr, " ") + "]";
+            if (parameters.isMilenkosPhone()) {
+                if (c1) arr.add("<3");
+                //if (c2) arr.add("N");
+                if (c3) arr.add("H");
+                if (c1 || c3) extra = "[" + StringUtils.concatenate(arr, " ") + "]";
+            }
 
             sb.append("     ").append(extra).append(we.getName()).append("<-").append(ListOfSsids(entry.getValue(), 5)).append("\n");
         }

@@ -58,21 +58,21 @@
     <string name="pref_ringtone_silent" translatable="false">Silent</string>
 
     <string name="pref_title_vibrate" translatable="false">Vibrate</string>
-    <string name="press_refresh">Press REFRESH Button</string>
+    <string name="notif_press_refresh">Press REFRESH Button</string>
     <string name="bus_stop">BUS STOP. </string>
     <string name="weacons_around">" weacons around you"</string>
     <string name="refresh_button">Refresh</string>
-    <string name="silence">Silence</string>
+    <string name="btn_silence">Silence</string>
     <string name="type_busstop">BUS STOP</string>
     <string name="currently_active">And other %1$d weacons active</string>
     <string name="and_others">" and others."</string>
-    <string name="press_refresh_bus_long">Please press REFRESH to have updated information about the estimated arrival times of buses at this stop.</string>
+    <string name="notif_press_refresh_long">Please press REFRESH to have updated information about the estimated arrival times of buses at this stop.</string>
     <string name="currently_active_one">And other weacon still active</string>
-    <string name="looking_for_busstop">Looking for bus stop here…</string>
-    <string name="distance_bus_stop">The nearest bus stop is %1$s\nd = %2$d mts.</string>
+    <string name="to_looking_for_busstop">Looking for bus stop here…</string>
+    <string name="to_distance_bus_stop">The nearest bus stop is %1$s\nd = %2$d mts.</string>
     <string name="updating_data">\nUpdating Data…</string>
-    <string name="go_closer">\nPlease go closer.</string>
-    <string name="refreshing_notif">Refreshing notification…</string>
+    <string name="to_go_closer">\nPlease go closer.</string>
+    <string name="notif_refreshing">Refreshing notification…</string>
     <string name="no_lines_available">No lines available</string>
     <string name="notif_bus_NoInfo">No info for this stop by now.</string>
     <string name="location_precision">"Location precision (mts): "</string>
@@ -80,31 +80,33 @@
     <string name="busstop_uploaded">"This bus stop has been uploaded: "</string>
     <string name="turn_on_gps">Please turn on the GPS</string>
     <string name="in_busstop">At Bus Stop</string>
-    <string name="no_bus_stop_100">There is no bus stop in 100mts from here</string>
-    <string name="non_of_these">None of these.</string>
+    <string name="no_bus_stop_100">There is no bus stop in 100 mts from here</string>
+    <string name="di_non_of_these">None of these.</string>
     <string name="refreshing">Refreshing…</string>
     <string name="no_data_available">No weacons active</string>
     <string name="gps_accuracy">Got Position, Accuracy =</string>
     <string name="gps_no_accuracy">Not possible to get position with required precision.</string>
     <string name="no_bustop_around">There is no busstop around here that needs to be uploaded</string>
-    <string name="no_wifis">No wifis around here</string>
-    <string name="got_it">Got it</string>
+    <string name="to_no_wifis">No wifis around here</string>
+    <string name="di_got_it">Got it</string>
     <string name="gps_explaination">Weacons app requires to know your approximate position from time to time to get the surrounding weacons.</string>
     <string name="attention">Attention</string>
-    <string name="welcome">Welcome</string>
+    <string name="di_welcome">Welcome</string>
     <string name="inital_explaination">In this screen you will find the weacons around you, like bustops. If you are in a bustop and it doesn\'t appear here, press the \"add\" button up in the corner of the screen to add it.</string>
     <string name="no_bustop_title">No bus stops</string>
     <string name="no_busstop_message_dialog">You are too far from any bus stop. </string>
     <string name="ok">ok</string>
     <string name="cancel">Cancel</string>
     <string name="isthisone">Is it this one?</string>
-    <string name="whichone">Which one?</string>
+    <string name="di_whichone">Which one?</string>
     <string name="getting_schedule">Getting the schedule…</string>
     <string name="refresh_to_schedule">Refresh to obtain today\'s schedule</string>
     <string name="notif_restaurant_resfresh">Press Refresh to see today\'s menu</string>
     <string name="notif_restaurant_refreshing">Getting the menu…</string>
     <string name="refresh_menu_long">Refresh to see today\'s menu</string>
-    <string name="pulldown_refresh_Schedule">Pull down to obtain the updated schedule for today\'s lessons</string>
-    <string name="action_add_bus_stopç">Add Bus Stop</string>
-    <string name="bus_stop_uploaded">"The bus stop has been uploaded: "</string>
+    <string name="refresh_menu_long_pull">Pull down to see today\'s menu</string>
+    <string name="ListAct_pulldown_refresh_Schedule">Pull down to obtain the updated schedule for today\'s lessons</string>
+    <string name="ListAct_press_refresh_Schedule">Press REFRESH to obtain the updated schedule for today\'s lessons</string>
+    <string name="action_add_bus_stop">Add Bus Stop</string>
+    <string name="ListActivity_pull_down_to_refresh">Please pull down to have updated information about the estimated arrival times of buses at this stop.</string>
 </resources>

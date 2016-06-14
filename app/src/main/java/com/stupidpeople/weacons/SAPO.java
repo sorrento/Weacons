@@ -30,6 +30,7 @@ public class SAPO {
     private static final String tag = "SAPO";
     private static final String parseSapoClass = "WifiSapo";
     private static final int repeticiones = 20; //cuantas veces se repite una wifi en scaneos, para ser subidas
+    private static final int LIMIT_SAPEO_REP = 500;
     private static HashMap<String, Integer> bssidTable = new HashMap<>();
     private static boolean llegamosalos20 = false;
 
@@ -60,7 +61,7 @@ public class SAPO {
                             myLog.add("Ya había uno de estos en internecs" + po.getString("ssid"), tag);
 
                             // desconectar sapo
-                            if (po.getInt("counter") > 300) {
+                            if (po.getInt("counter") > LIMIT_SAPEO_REP) {
                                 myLog.add("-----------Apagamos sapolio", tag);
                                 SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
                                 prefs.edit().putBoolean("sapoActive", false).apply();

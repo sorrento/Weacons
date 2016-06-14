@@ -1,19 +1,19 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
- <string name='press_refresh'>Premeu el botó ACTUALITZAR</string>
+ <string name="notif_press_refresh">Premeu el botó ACTUALITZAR</string>
  <string name='bus_stop'>PARADA D\'AUTOBÚS.</string>
  <string name='weacons_around'>" weacons al teu voltant"</string>
- <string name='silence'>Silenci</string>
+ <string name="btn_silence">Silenci</string>
  <string name='type_busstop'>PARADA D\'AUTOBÚS.</string>
  <string name='currently_active'>I altres 1%$d weacons actius</string>
  <string name='and_others'>" i altres."</string>
- <string name='press_refresh_bus_long'>Si us plau, feu clic ACTUALITZAR per tenir informació actualitzada sobre els temps d\'arribada estimats d\'autobusos en aquesta parada.</string>
+ <string name="notif_press_refresh_long">Si us plau, feu clic ACTUALITZAR per tenir informació actualitzada sobre els temps d\'arribada estimats d\'autobusos en aquesta parada.</string>
  <string name='currently_active_one'>I un altre weacon encara actiu</string>
- <string name='looking_for_busstop'>Buscant parada d\'autobús prop d\'aquí…</string>
- <string name='distance_bus_stop'>La parada d\'autobús més propera és a %1$s\nd = %2$d mts.</string>
+ <string name="to_looking_for_busstop">Buscant parada d\'autobús prop d\'aquí…</string>
+ <string name="to_distance_bus_stop">La parada d\'autobús més propera és a %1$s\nd = %2$d mts.</string>
  <string name='updating_data'>\nActualitzant les dades…</string>
- <string name='go_closer'>\nSi us plau, ves més a prop.</string>
- <string name='refreshing_notif'>Refrescant notificació…</string>
+ <string name="to_go_closer">\nSi us plau, ves més a prop.</string>
+ <string name="notif_refreshing">Refrescant notificació…</string>
  <string name='no_lines_available'>No hi ha línies disponibles</string>
  <string name="notif_bus_NoInfo">No hi ha informació sobre aquesta parada per ara.</string>
  <string name="refresh_button">ACTUALITZAR</string>
@@ -23,29 +23,32 @@
  <string name="turn_on_gps">Si us plau habiliti el GPS</string>
  <string name="in_busstop">en parada d\'autobus</string>
  <string name="refreshing">Actualitzant</string>
- <string name="non_of_these">Cap d\'aquestes</string>
+ <string name="di_non_of_these">Cap d\'aquestes</string>
  <string name="no_bus_stop_100">No hi ha parades en un radi de 100 mts.</string>
  <string name="no_data_available">No hi ha weacons actius</string>
  <string name="gps_accuracy">"Obtinguda la posició, amb precisió de "</string>
  <string name="gps_no_accuracy">No és possible obtenir la posició amb la precisió requerida.</string>
  <string name="no_bustop_around">No hi ha parades per aquí a prop que necessiten ser donades d\'alta.</string>
- <string name="no_wifis">No wifis around here</string>
- <string name="gps_explaination">L\'aplicació Weapons requereix saber la teva ubicació aproximada de tant en tant, per carregar els weacons</string>
- <string name="got_it">Entès</string>
+ <string name="to_no_wifis">No wifis around here</string>
+ <string name="gps_explaination">L\'aplicació Weacons requereix saber la teva ubicació aproximada de tant en tant, per carregar els weacons</string>
+ <string name="di_got_it">Entès</string>
  <string name="attention">Atenció</string>
  <string name="inital_explaination">En aquesta pantalla trobaràs els weacon que estan al teu voltant, com les parades de bus. Si estàs en una parada i no apareix aquí, prem el botó "afegir" a la part superior de la pantalla.</string>
- <string name="welcome">benvingut</string>
+ <string name="di_welcome">benvingut</string>
  <string name="isthisone">És aquesta parada?</string>
  <string name="cancel">cancel·lar</string>
  <string name="no_busstop_message_dialog">No tenim cap parada registrada en un radi de 100 mts</string>
  <string name="ok">OK</string>
- <string name="whichone">En què parada estàs?</string>
+ <string name="di_whichone">En què parada estàs?</string>
  <string name="no_bustop_title">No hi ha parades</string>
  <string name="getting_schedule">Obtenint l\'horari d\'avui</string>
- <string name="action_add_bus_stopç">afegir parada</string>
+ <string name="action_add_bus_stop">afegir parada</string>
  <string name="notif_restaurant_refreshing">Obtenint el menú d\'avui …</string>
- <string name="pulldown_refresh_Schedule">Tiri cap avall per obtenir l\'horari d\'avui</string>
+ <string name="ListAct_pulldown_refresh_Schedule">Tiri cap avall per obtenir l\'horari d\'avui</string>
  <string name="notif_restaurant_resfresh">Premeu Actualitzar per obtenir el menú d\'avui</string>
  <string name="refresh_menu_long">Actualitzi per veure el menú d\'avui</string>
  <string name="refresh_to_schedule">Actualitzi per veure l\'horari d\'avui</string>
+ <string name="ListActivity_pull_down_to_refresh">Si us plau, tiri cap avall per tenir informació actualitzada sobre els temps d\'arribada estimats d\'autobusos en aquesta parada.</string>
+ <string name="ListAct_press_refresh_Schedule">Premeu ACTUALIZAR per obtenir l\'horari d\'avui</string>
+ <string name="refresh_menu_long_pull">Tiri cap avall  per veure el menú d\'avui</string>
 </resources>

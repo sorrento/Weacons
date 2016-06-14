@@ -66,10 +66,11 @@ public class parameters {
     public static ParseGeoPoint madrid = new ParseGeoPoint(40.418889, -3.691944);
     public static ParseGeoPoint barcelona = new ParseGeoPoint(41.3825, 2.176944);
 
-
+    //Intents
     public static String refreshIntent = "REFRESH";
     public static String silenceIntentName = "SILENCE";
     public static String deleteIntentName = "DELETE_NOTIF";
+
 
     //////    TESTS
 
@@ -88,7 +89,6 @@ public class parameters {
 
     public static boolean simulateWifi = false;
     public static String wifiToSimulateMac = "64:16:F0:54:E8:EE";//para graells
-
 //    public static String wifiToSimulateMac = "00:19:15:86:d0:fb";//TELETRIX, wigle para sant magi
 //    public static String wifiToSimulateMac= "f8:8e:85:16:28:41";//piripiri
 
@@ -97,9 +97,14 @@ public class parameters {
 
     public static boolean isMilenkosPhone() {
         String model = Build.MODEL;
-//        String model2 = Build.;
+        String id = Build.ID;
+        String serial = Build.SERIAL;
 
-        return model.equals("GT-I9505");//Samsung S4
+        //myLog.add("Serial = " + serial + " ID= " + id, "aut");
+        //Serial = 3111e121 ID = LRX22C
+        //return serial.equals("GT-I9505");//Samsung S4
+
+        return serial.equals("3111e121");//my serial
     }
 
     public enum CardType {COMPANY, SCHEDULE, LINKEDIN, NEWS, FLIGHTS}

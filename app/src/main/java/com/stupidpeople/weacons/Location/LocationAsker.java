@@ -67,7 +67,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
                     if (accuracy <= accuracyNeededMts) {
 
                         myLog.add("estamos a con precision mejor de " + accuracyNeededMts + " mts " + accuracy, tag);
-                        removerListener(location);
+                        reportPositionAndClose(location);
                     } else {
                         iFail++;
                         String text = ctx.getString(R.string.location_precision) + accuracy;
@@ -77,7 +77,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
                             text = ctx.getString(R.string.unable_gps_precision);
                             myLog.add(text, tag);
                             Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
-                            removerListener(null);
+                            reportPositionAndClose(null);
                         }
                     }
                 }
@@ -166,7 +166,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
 
     }
 
-    private void removerListener(Location location) {
+    private void reportPositionAndClose(Location location) {
         try {
             locationManager.removeUpdates(locationListener);
         } catch (SecurityException e) {
@@ -177,7 +177,7 @@ public class LocationAsker implements GoogleApiClient.ConnectionCallbacks,
         } else {
             mLocationCallback.LocationReceived(new GPSCoordinates(location), location.getAccuracy());
         }
-        mGoogleApiClient.disconnect();
+//        mGoogleApiClient.disconnect();
     }
 
 
