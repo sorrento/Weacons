@@ -2,6 +2,7 @@ package com.stupidpeople.weacons.ready;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.parse.CountCallback;
@@ -47,6 +48,7 @@ public abstract class ParseActions {
 
     private static final int WEEK_IN_MILI = 7 * 24 * 60 * 60 * 1000;
     private static String tag = "PARSE";
+
     /**
      * Verifies if any of these ssids or bssids is in Parse (local) and log in the user
      *
@@ -234,7 +236,7 @@ public abstract class ParseActions {
 //        queryWe.whereNear("GPS", pos)
 //                .setLimit(300)
 //                .whereEqualTo("Type", "bus_stop");
-//        myLog.add("---For bringing spots, around" + pos, "OJO");
+//        myLog.add("---For bringing spots, around" + pos, "WE_DOWNLOAD");
         //Query WifiSpots
         ParseQuery<WifiSpot> query = ParseQuery.getQuery(WifiSpot.class);
         query
@@ -521,36 +523,38 @@ public abstract class ParseActions {
      * is the same as the one on local (to check if we are in new area)
      */
     public static void DownloadWeaconsIfNeeded(Context ctx) {
-        myLog.add("VEamos si se necesita bajar weacons:", "OJO");
+        myLog.add("\n*******Veamos si se necesita bajar weacons:", "WE_DOWNLOAD");
         //AskLocation
         new LocationAsker(ctx, new LocationCallback() {
 
             @Override
             public void NotPossibleToReachAccuracy() {
-
+                myLog.add("No he obtenido la posición GPS", "WE_DOWNLOAD");
             }
 
             @Override
             public void LocationReceived(GPSCoordinates gps, double accuracy) {
                 final ParseGeoPoint point = gps.getGeoPoint();
+
                 final booleanCallback newInAreaCB = new booleanCallback() {
                     @Override
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are new SPOTS in the zone , gonna update", "OJO");
+                            myLog.add("***There are new SPOTS in the zone , gonna update", "WE_DOWNLOAD");
                             getNearWifiSpots(point, null);
                         } else {
-                            myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "OJO");
+                            myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "WE_DOWNLOAD");
                         }
                     }
                 };
+
                 booleanCallback anyUpdatedCallback = new booleanCallback() {
                     @Override
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are newer in the zone (updatedAt), gonna update", "OJO");
+                            myLog.add("***There are newer in the zone (updatedAt), gonna update", "WE_DOWNLOAD");
                             getNearWifiSpots(point, null);
                         } else {
                             //Check if we moved
@@ -573,12 +577,12 @@ public abstract class ParseActions {
      */
     private static void didWeMoved(ParseGeoPoint point, final booleanCallback bcb) {
         try {
-            // if the nearest is <500m then no
+            // if the nearest is <100m then no
             ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
             WifiSpot first = q.whereNear("GPS", point).fromPin(parameters.pinWeacons).getFirst();
-            if (point.distanceInKilometersTo(first.getGPS()) < 0.5) {
+            if (point.distanceInKilometersTo(first.getGPS()) < 0.1) {
                 bcb.OnResult(false);
-                myLog.add("no nos hemos movido, el mas cercano está a menos de 500mts", "OJO");
+                myLog.add("no nos hemos movido, el mas cercano está a menos de 100mts", "WE_DOWNLOAD");
                 return;
             }
 
@@ -594,7 +598,7 @@ public abstract class ParseActions {
                     .countInBackground(new CountCallback() {
                         @Override
                         public void done(int i, ParseException e) {
-                            myLog.add("[SPOTs]En 1km hay:" + nLocal + "(local) y " + i + "(web)", "aut");
+                            myLog.add("[SPOTs]En 1km hay:" + nLocal + "(local) y " + i + "(web)", "WE_DOWNLOAD");
                             bcb.OnResult(nLocal != i);
                         }
                     });
@@ -603,6 +607,7 @@ public abstract class ParseActions {
         }
 
     }
+
 
     /**
      * Compares the latest update time in local wrt web (of spots in the area of 1km
@@ -616,7 +621,7 @@ public abstract class ParseActions {
 //        queryWe.whereNear("GPS", point)
 //                .setLimit(300)
 //                .whereEqualTo("Type", "bus_stop");
-//        myLog.add("----For comparation, quering aaround         " + point, "OJO");
+//        myLog.add("----For comparation, quering aaround         " + point, "WE_DOWNLOAD");
 
         ParseQuery<WifiSpot> queryWi = ParseQuery.getQuery(WifiSpot.class);
         queryWi.whereWithinKilometers("GPS", point, 1)
@@ -626,23 +631,23 @@ public abstract class ParseActions {
                     @Override
                     public void done(WifiSpot wifiSpot, ParseException e) {
                         if (e != null) {
-                            myLog.add("tenemos un error al recibir los de la web en la zona:" + e, "OJO");
+                            myLog.add("tenemos un error al recibir los de la web en la zona:" + e, "WE_DOWNLOAD");
                         } else {
                             if (wifiSpot != null) {
 
                                 boolean b = getWifisSameDateInLocalDB(wifiSpot.getCreatedAt(), point) == 0;
 
-                                if (b) myLog.add("[newer ]Need to update localBBD", "OJO");
-                                else myLog.add("[newer ]NO Need to update localBBD", "OJO");
+                                if (b) myLog.add("[newer ]Need to update localBBD", "WE_DOWNLOAD");
+                                else myLog.add("[newer ]NO Need to update localBBD", "WE_DOWNLOAD");
 
                                 bcb.OnResult(b);
 
 //                                    Date dateWeb = wifiSpot.getUpdatedAt();
-//                                    myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "OJO");
-//                                    myLog.add("obWeb=" + wifiSpot.getObjectId() + " OBLocal=" + wiLocal.getObjectId(), "OJO");
-//                                    myLog.add("obWeb=" + wifiSpot + " OBLocal=" + wiLocal, "OJO");
+//                                    myLog.add("DateWeb=" + dateWeb + " DateLocal=" + wiLocal.getUpdatedAt(), "WE_DOWNLOAD");
+//                                    myLog.add("obWeb=" + wifiSpot.getObjectId() + " OBLocal=" + wiLocal.getObjectId(), "WE_DOWNLOAD");
+//                                    myLog.add("obWeb=" + wifiSpot + " OBLocal=" + wiLocal, "WE_DOWNLOAD");
                             } else {
-                                myLog.add("wifispoit de la web es null", "OJO");
+                                myLog.add("wifispoit de la web es null", "WE_DOWNLOAD");
                             }
                         }
 
@@ -662,7 +667,7 @@ public abstract class ParseActions {
         } catch (ParseException e) {
             myLog.error(e);
         }
-        myLog.add("# locales dcon misma fecha de creación (" + date + ")=" + count, "OJO");
+        myLog.add("# locales dcon misma fecha de creación (" + date + ")=" + count, "WE_DOWNLOAD");
         return count;
     }
 
@@ -721,16 +726,23 @@ public abstract class ParseActions {
     }
 
     static void LogInParse() {
-        ParseAnonymousUtils.logIn(new LogInCallback() {
-            @Override
-            public void done(ParseUser parseUser, ParseException e) {
-                if (e == null) {
-                    myLog.add("Looged as anonimous", "");
-                } else {
-                    myLog.add("NOTLooged as anonimous e= " + e.getLocalizedMessage(), tag);
-                }
+
+        try {
+            if (ParseUser.getCurrentUser() == null) {
+                ParseAnonymousUtils.logIn(new LogInCallback() {
+                    @Override
+                    public void done(ParseUser parseUser, ParseException e) {
+                        if (e == null) {
+                            myLog.add("Looged as anonimous", tag);
+                        } else {
+                            myLog.add("NOTLooged as anonimous e= " + e.getLocalizedMessage(), tag);
+                        }
+                    }
+                });
             }
-        });
+        } catch (Exception e) {
+            myLog.error(e);
+        }
     }
 
 
@@ -840,4 +852,28 @@ public abstract class ParseActions {
                 });
     }
 
+    public static void saveInstalationCoordinates(Context ctx) {
+        new LocationAsker(ctx, new LocationCallback() {
+            @Override
+            public void NotPossibleToReachAccuracy() {
+                myLog.add("Not possible to get coordiates to save", tag);
+                saveCoords(new GPSCoordinates(0, 0), 0);
+            }
+
+            @Override
+            public void LocationReceived(GPSCoordinates gps, double accuracy) {
+                saveCoords(gps, accuracy);
+            }
+
+            private void saveCoords(GPSCoordinates gps, double accuracy) {
+                ParseObject ob = new ParseObject("InstalationCoords");
+                ob.put("GPS", gps.getGeoPoint());
+                ob.put("accuracy", accuracy);
+                ob.put("user", ParseUser.getCurrentUser());
+                ob.put("model", Build.MODEL);
+                ob.put("phoneId", Build.ID);
+                ob.saveEventually();
+            }
+        });
+    }
 }

@@ -149,7 +149,14 @@ public class myLog {
         ParseObject po = new ParseObject("log");
         po.put("msg", text);
         po.put("type", type);
-        po.put("user", ParseUser.getCurrentUser());
+
+        try {
+
+            final ParseUser user = ParseUser.getCurrentUser();
+            if (user != null) po.put("user", user);
+        } catch (Exception e) {
+            myLog.error(e);
+        }
 
         po.pinInBackground(parameters.pinParseLog);
     }

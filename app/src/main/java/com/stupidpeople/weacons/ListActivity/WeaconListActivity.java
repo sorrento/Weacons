@@ -73,7 +73,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             myLog.initialize();
             mContext = this;
 
-            if (isFirstTime()) ShowExplainationDialog();
+            if (isFirstTime()) {
+                ParseActions.saveInstalationCoordinates(this);
+                ShowExplainationDialog();
+            }
+
 
             if (parameters.isMilenkosPhone())
                 Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
@@ -110,7 +114,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             mRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    refreshList(true);
+                    if (LogInManagement.getActiveWeacons().size() == 0) {
+                        showNoWeaconMessageAndStartScan();
+                    } else {
+                        refreshList(true);
+                    }
                 }
             });
 
@@ -141,11 +149,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
         someTest();
 
-        //Show NO WEACON message
         if (LogInManagement.getActiveWeacons().size() == 0) {
-
-            WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-            wifiManager.startScan();
+            showNoWeaconMessageAndStartScan();
 
         } else {
 //            emptyView.setVisibility(View.GONE);
@@ -156,6 +161,13 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 refreshList(false);
             }
         }
+    }
+
+    private void showNoWeaconMessageAndStartScan() {
+        //Show NO WEACON message
+
+        WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        wifiManager.startScan();
     }
 
 
@@ -479,8 +491,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 });
     }
 
-
-////Testing
 
     private class newDataReceiver extends BroadcastReceiver {
         @Override

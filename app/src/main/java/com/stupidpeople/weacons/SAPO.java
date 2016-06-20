@@ -6,7 +6,6 @@ import android.net.wifi.ScanResult;
 
 import com.parse.GetCallback;
 import com.parse.ParseException;
-import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -38,6 +37,8 @@ public class SAPO {
     public static void pinSpots(final List<ScanResult> sr, final Context ctx) {
 
         try {
+
+            // Locally
             for (final ScanResult r : sr) {
                 if (yaEsta(r)) incrementar(r);
                 else agregarATabla(r);
@@ -47,35 +48,8 @@ public class SAPO {
             if (llegamosalos20) {
                 myLog.add("*****hemos llegado a " + repeticiones, tag);
 
-                ArrayList<String> bssids = getBssids(sr);
-
-                ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-                q.whereContainedIn("bssid", bssids);
-                q.whereEqualTo("user", ParseUser.getCurrentUser());
-
-                q.getFirstInBackground(new GetCallback<ParseObject>() {
-                    @Override
-                    public void done(ParseObject po, ParseException e) {
-
-                        if (e == null) {
-                            myLog.add("Ya había uno de estos en internecs" + po.getString("ssid"), tag);
-
-                            // desconectar sapo
-                            if (po.getInt("counter") > LIMIT_SAPEO_REP) {
-                                myLog.add("-----------Apagamos sapolio", tag);
-                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
-                                prefs.edit().putBoolean("sapoActive", false).apply();
-                            }
-
-                            incrementar20ysubir(po, repeticiones);
-                        } else {
-                            myLog.add("No habia ninguno de estos  en internex, lo subirmos: " + e.getLocalizedMessage(), tag);
-                            subirConGPS(maspower(sr), ctx);
-                        }
-
-                        bssidTable = new HashMap<>();
-                    }
-                });
+                // 1. si está el ssid en internet, se aumenta
+                CheckIfanyIsAlreadyInInternet(sr, ctx);
 
             }
 
@@ -85,6 +59,79 @@ public class SAPO {
             myLog.add("Error en loop sobre scanresults" + e.getLocalizedMessage(), tag);
         }
 
+    }
+
+
+    private static void CheckIfanyIsAlreadyInInternet(final List<ScanResult> sr, final Context ctx) {
+        ArrayList<String> bssids = new ArrayList<>();
+
+        for (ScanResult r : sr) bssids.add(r.BSSID);
+
+        ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
+        q.whereContainedIn("bssid", bssids);
+        q.whereEqualTo("user", ParseUser.getCurrentUser());
+        q.getFirstInBackground(new GetCallback<ParseObject>() {
+
+            @Override
+            public void done(ParseObject parseObject, ParseException e) {
+
+                if (e == null) {
+                    myLog.add("coincide BSSID con interntet, aumentamos", tag);
+                    incrementar20ysubir(parseObject, repeticiones);
+
+                } else {
+                    myLog.add("NO coincide BSSID con interntet, buscamos en 100 mts", tag);
+                    getLocationAndIncrementOrCreate(sr, ctx);
+
+                }
+            }
+        });
+    }
+
+    private static void getLocationAndIncrementOrCreate(final List<ScanResult> sr, final Context ctx) {
+        new LocationAsker(ctx, new LocationCallback() {
+            @Override
+            public void NotPossibleToReachAccuracy() {
+                myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
+
+            }
+
+            @Override
+            public void LocationReceived(final GPSCoordinates gps, final double accuracy) {
+
+                //Check if there is already one in the area (100m ) online
+                ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
+                q.whereWithinKilometers("GPS", gps.getGeoPoint(), Math.min(accuracy / 1000, .1));
+                q.whereEqualTo("user", ParseUser.getCurrentUser());
+                q.getFirstInBackground(new GetCallback<ParseObject>() {
+                    @Override
+                    public void done(ParseObject po, ParseException e) {
+
+                        if (e == null) {
+                            myLog.add("Ya había uno en internet en esta área: " + po.getString("ssid"), tag);
+
+                            // desconectar sapo
+                            if (po.getInt("counter") > LIMIT_SAPEO_REP) {
+                                myLog.add("-----------Apagamos sapolio", tag);
+                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
+                                prefs.edit().putBoolean("sapoActive", false).apply();
+                            }
+
+                            incrementar20ysubir(po, repeticiones);
+
+                        } else {
+                            final ScanResult maspower = maspower(sr);
+                            myLog.add("No habia ninguno de estos  en internex, subiremos el mas powr:: " + maspower.BSSID, tag);
+                            subirConGPS(maspower, gps, accuracy);
+                        }
+
+                        // reset
+                        bssidTable = new HashMap<>();
+                    }
+                });
+
+            }
+        });
     }
 
     private static void incrementar(ScanResult r) {
@@ -100,8 +147,6 @@ public class SAPO {
     private static void agregarATabla(ScanResult r) {
         bssidTable.put(r.BSSID, 1);
         myLog.add("Agregado a tabla:" + r.SSID, tag);
-
-
     }
 
     private static ScanResult maspower(List<ScanResult> sr) {
@@ -119,39 +164,27 @@ public class SAPO {
         });
     }
 
-    private static void subirConGPS(final ScanResult r, Context ctx) {
+    private static void subirConGPS(final ScanResult r, GPSCoordinates gps, double accuracy) {
 
-        new LocationAsker(ctx, new LocationCallback() {
+        ParseObject ws = new ParseObject(parseSapoClass);
+        ws.put("ssid", r.SSID);
+        ws.put("bssid", r.BSSID);
+        ws.put("user", ParseUser.getCurrentUser());
+        ws.put("counter", repeticiones);
+        ws.put("GPS", gps.getGeoPoint());
+        ws.put("radius", accuracy);
 
+        ws.saveInBackground(new SaveCallback() {
             @Override
-            public void NotPossibleToReachAccuracy() {
-                myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
-            }
-
-            @Override
-            public void LocationReceived(GPSCoordinates gps, double accuracy) {
-                ParseObject ws = new ParseObject(parseSapoClass);
-                ws.put("ssid", r.SSID);
-                ws.put("bssid", r.BSSID);
-                ws.put("user", ParseUser.getCurrentUser());
-
-                ws.put("counter", repeticiones);
-                ws.put("GPS", new ParseGeoPoint(gps.getLatitude(), gps.getLongitude()));
-                ws.put("radius", accuracy);
-
-                ws.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(ParseException e) {
-                        if (e == null) {
-                            myLog.add("EXITO, subido con GPS " + r.SSID, tag);
-                        } else {
-                            myLog.add("Error al subir el frecuent con GPS" + e.getLocalizedMessage(), tag);
-                        }
-                    }
-                });
-
+            public void done(ParseException e) {
+                if (e == null) {
+                    myLog.add("EXITO, subido con GPS " + r.SSID, tag);
+                } else {
+                    myLog.add("Error al subir el frecuent con GPS" + e.getLocalizedMessage(), tag);
+                }
             }
         });
+
     }
 
     private static ArrayList<String> getBssids(List<ScanResult> sr) {

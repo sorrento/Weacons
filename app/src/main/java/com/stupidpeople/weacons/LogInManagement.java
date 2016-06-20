@@ -104,6 +104,7 @@ public class LogInManagement {
             result.put(entry.getKey(), entry.getValue());
         }
 
+
         return result;
     }
 
@@ -193,6 +194,8 @@ public class LogInManagement {
 //            myLog.add("Active weacons are: " + WeaconParse.Listar(occurrences), "aut");
 //            activeWeacons = new ArrayList(occurrences.keySet());
             activeWeacons = new ArrayList(getSortedOccurrences().keySet());
+
+            Collections.reverse(activeWeacons);
         }
         return activeWeacons;
     }

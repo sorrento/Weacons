@@ -33,6 +33,7 @@ public class Wigles {
     private int mCount = 0;
     private boolean satisfied = false;
     private GPSCoordinates mGps;
+    private Timer t;
 
     public Wigles(WeaconParse we, Context ctx) {
         mWe = we;
@@ -41,7 +42,7 @@ public class Wigles {
         booleanCallback anyGoodSSID = new booleanCallback() {
             @Override
             public void OnResult(boolean b) {
-                myLog.add("Habia algun wifi que no fuera wigle? " + b, tag);
+                myLog.addToParse("Habia algun wifi que no fuera wigle? " + b, tag);
                 if (b) {
                     ParseActions.wigleRemoveSSIDS(mWe);
                 } else {
@@ -55,36 +56,39 @@ public class Wigles {
     }
 
     private void LookForBestSSIDS() {
-        final Timer t = new Timer();
-        myLog.add("Looking for the best position en next 5 mins", tag);
+        t = new Timer();
+        myLog.addToParse("Looking for the best position en next 5 mins", tag);
 
         final TimerTask task = new TimerTask() {
             @Override
             public void run() {
                 mCount++;
 
-                myLog.add(mCount + " count of timer:", tag);
-                if (mCount > 10 || satisfied) {
-                    myLog.add("satisfied" + satisfied + " mcount" + mCount, tag);
+                myLog.addToParse(mCount + ". count of timer:", tag);
+                if (mCount > 5 || satisfied) {
+                    myLog.addToParse("satisfied" + satisfied + " mcount" + mCount, tag);
                     this.cancel();
                     t.purge();
                     t.cancel();
-                    myLog.add("starting SavingResults", tag);
+                    myLog.addToParse("starting SavingResults", tag);
                     saveResults();
                     return;
                 }
 
-                new LocationAsker(mContext, 15, new LocationCallback() {
+                new LocationAsker(mContext, 20, new LocationCallback() {
 
                     @Override
                     public void NotPossibleToReachAccuracy() {
-
+                        myLog.addToParse("not posible to get accuracy", tag);
                     }
 
                     @Override
                     public void LocationReceived(GPSCoordinates gps, double accuracy) {
+                        myLog.addToParse("received location", tag);
+                        // in mts
                         double dist = mWe.getGPS().distanceInKilometersTo(gps.getGeoPoint()) * 1000;
                         mGps = gps;
+                        myLog.addToParse("dist = " + dist + " Bestdistance=  " + bestDistance, tag);
 
                         if (dist < bestDistance) {
                             bestDistance = dist;
@@ -92,18 +96,19 @@ public class Wigles {
                                 @Override
                                 public void OnReceiveWifis(List<ScanResult> sr) {
 
-                                    myLog.add("wifis recibidas por WIGLE \n" + ListarSR(sr), tag);
+                                    myLog.addToParse("wifis recibidas por WIGLE \n" + ListarSR(sr), tag);
                                     bestSRs = (ArrayList<ScanResult>) sr;
-                                    myLog.add("The best ditance is " + bestDistance, tag);
+                                    myLog.addToParse("The best ditance is " + bestDistance, tag);
+
                                     if (bestDistance < 25) {
-                                        myLog.add("REACHED <25", tag);
+                                        myLog.addToParse("REACHED <25", tag);
                                         satisfied = true;
                                     }
                                 }
 
                                 @Override
                                 public void noWifiDetected() {
-                                    myLog.add("No se ha detectado ninguna wifi en los alrededores", tag);
+                                    myLog.addToParse("No se ha detectado ninguna wifi en los alrededores", tag);
                                 }
                             });
                         }
@@ -113,19 +118,19 @@ public class Wigles {
             }
         };
 
-        t.schedule(task, 0, 30000);
+        t.schedule(task, 0, 60000); //one minute
     }
 
     private void saveResults() {
         if (satisfied) {
-            myLog.add("Gonna remove SSIDS de wigle", tag);
+            myLog.addToParse("Gonna remove SSIDS de wigle", tag);
             ParseActions.wigleRemoveSSIDS(mWe);
-            myLog.add("Gonna assign wifis to weacon:\n" + ListarSR(bestSRs) + "\n GPS:" + mGps + "\nWeacon " + mWe, tag);
+            myLog.addToParse("Gonna assign wifis to weacon:\n" + ListarSR(bestSRs) + "\n GPS:" + mGps + "\nWeacon " + mWe, tag);
 
             ParseActions.assignSpotsToWeacon(mWe, bestSRs, mGps, mContext, new MultiTaskCompleted() {
                 @Override
                 public void OneTaskCompleted() {
-                    myLog.add("Se han subido las ssids del we capturadas automaticamente" + mGps + ListarSR(bestSRs), tag);
+                    myLog.addToParse("Se han subido las ssids del we capturadas automaticamente" + mGps + ListarSR(bestSRs), tag);
                 }
 
                 @Override

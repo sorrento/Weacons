@@ -28,6 +28,7 @@ import com.parse.SaveCallback;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.LogInManagement;
 import com.stupidpeople.weacons.Notifications.Notifications;
+import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.SAPO;
 import com.stupidpeople.weacons.Wifi.WifiSpot;
 
@@ -68,7 +69,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         myLog.add("Starting service ", tag);
 
         if (serviceIsActive) {
-            myLog.add("No empezaermos el servicio", tag);
+            myLog.add("No empezaermos el servicio; ya está activo", tag);
             stopSelf();
         }
 
@@ -89,7 +90,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             mContext.registerReceiver(receiverWifi, intentFilter);
 
             if (parameters.isMilenkosPhone())
-                Toast.makeText(mContext, "Detection ON", Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, "Detection ON", Toast.LENGTH_SHORT).show();
 
             //Refresh & silence & delete notif receiver
             eventsReceiver = new EventsReceiver();
@@ -184,7 +185,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
         int res = query.fromPin(parameters.pinParseLog)
                 .count();
-        if (res > 30) {
+        if (res > 3) {
             ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
             q.fromPin(parameters.pinParseLog)
                     .setLimit(300)
@@ -293,6 +294,17 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         });
     }
 
+    private void toastExplain() {
+        final String key = "timesToastSilence";
+        int vecesExplicadasSilence = prefs.getInt(key, 0);
+
+        if (vecesExplicadasSilence % 5 == 0) {
+            Toast.makeText(mContext, R.string.toastSilenceButton
+                    , Toast.LENGTH_LONG).show();
+        }
+        prefs.edit().putInt(key, vecesExplicadasSilence + 1).apply();
+    }
+
     private class EventsReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -319,8 +331,11 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
                     // Silence
                 } else if (action.equals(parameters.silenceIntentName)) {
+                    toastExplain();
+
                     LogInManagement.notifFeatures.silenceButton = false;
                     ParseActions.removeInteresting(LogInManagement.getActiveWeacons());
+
                     Notifications.Notify();
 
                     // SCREEN on

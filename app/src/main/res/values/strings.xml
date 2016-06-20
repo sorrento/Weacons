@@ -109,4 +109,5 @@
     <string name="ListAct_press_refresh_Schedule">Press REFRESH to obtain the updated schedule for today\'s lessons</string>
     <string name="action_add_bus_stop">Add Bus Stop</string>
     <string name="ListActivity_pull_down_to_refresh">Please pull down to have updated information about the estimated arrival times of buses at this stop.</string>
+    <string name="toastSilenceButton">These weacons won\'t trigger notifications anymore. Refresh to reactivate.</string>
 </resources>

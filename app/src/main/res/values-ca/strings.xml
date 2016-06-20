@@ -51,4 +51,5 @@
  <string name="ListActivity_pull_down_to_refresh">Si us plau, tiri cap avall per tenir informació actualitzada sobre els temps d\'arribada estimats d\'autobusos en aquesta parada.</string>
  <string name="ListAct_press_refresh_Schedule">Premeu ACTUALIZAR per obtenir l\'horari d\'avui</string>
  <string name="refresh_menu_long_pull">Tiri cap avall  per veure el menú d\'avui</string>
+ <string name="toastSilenceButton">Aquests weacons no produiran notificacions fins que tornis a ACTUALITZAR</string>
 </resources>

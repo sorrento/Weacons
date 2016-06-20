@@ -51,4 +51,5 @@
     <string name="refresh_to_schedule">Actualice para ver el horario de hoy</string>
     <string name="ListAct_press_refresh_Schedule">Presiones ACTUALIZAR para obtener el horario de hoy</string>
     <string name="refresh_menu_long_pull">Tire hacia abajo para ver el menú de hoy</string>
+    <string name="toastSilenceButton">Estos weacons no producirán notificaciones hasta que vuelvas a ACTUALIZAR</string>
 </resources>
