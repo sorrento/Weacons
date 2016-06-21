@@ -725,7 +725,7 @@ public abstract class ParseActions {
         });
     }
 
-    static void LogInParse() {
+    public static void LogInParse() {
 
         try {
             if (ParseUser.getCurrentUser() == null) {
@@ -866,13 +866,20 @@ public abstract class ParseActions {
             }
 
             private void saveCoords(GPSCoordinates gps, double accuracy) {
-                ParseObject ob = new ParseObject("InstalationCoords");
-                ob.put("GPS", gps.getGeoPoint());
-                ob.put("accuracy", accuracy);
-                ob.put("user", ParseUser.getCurrentUser());
-                ob.put("model", Build.MODEL);
-                ob.put("phoneId", Build.ID);
-                ob.saveEventually();
+                try {
+                    ParseObject ob = new ParseObject("InstalationCoords");
+                    ob.put("GPS", gps.getGeoPoint());
+                    ob.put("accuracy", accuracy);
+                    ob.put("model", Build.MODEL);
+                    ob.put("phoneId", Build.ID);
+                    ParseUser user = ParseUser.getCurrentUser();
+                    if (user != null) {
+                        ob.put("user", user);
+                    }
+                    ob.saveEventually();
+                } catch (Exception e) {
+                    myLog.error(e);
+                }
             }
         });
     }

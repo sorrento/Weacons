@@ -73,9 +73,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
             myLog.initialize();
             mContext = this;
 
+            ParseActions.LogInParse();
+
             if (isFirstTime()) {
-                ParseActions.saveInstalationCoordinates(this);
                 ShowExplainationDialog();
+                ParseActions.saveInstalationCoordinates(this);
             }
 
 
