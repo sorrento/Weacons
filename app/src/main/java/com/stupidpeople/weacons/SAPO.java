@@ -46,6 +46,9 @@ public class SAPO {
 
 
             if (llegamosalos20) {
+                // reset
+                llegamosalos20 = false;
+                bssidTable = new HashMap<>();
                 myLog.add("*****hemos llegado a " + repeticiones, tag);
 
                 // 1. si está el ssid en internet, se aumenta
@@ -53,14 +56,12 @@ public class SAPO {
 
             }
 
-            llegamosalos20 = false;
 
         } catch (Exception e) {
             myLog.add("Error en loop sobre scanresults" + e.getLocalizedMessage(), tag);
         }
 
     }
-
 
     private static void CheckIfanyIsAlreadyInInternet(final List<ScanResult> sr, final Context ctx) {
         ArrayList<String> bssids = new ArrayList<>();
@@ -82,7 +83,6 @@ public class SAPO {
                 } else {
                     myLog.add("NO coincide BSSID con interntet, buscamos en 100 mts", tag);
                     getLocationAndIncrementOrCreate(sr, ctx);
-
                 }
             }
         });
@@ -100,8 +100,9 @@ public class SAPO {
             public void LocationReceived(final GPSCoordinates gps, final double accuracy) {
 
                 //Check if there is already one in the area (100m ) online
+                myLog.add("Buscando en internet entorno a (100mt): " + gps + " con precision de (mts): " + accuracy, tag);
                 ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-                q.whereWithinKilometers("GPS", gps.getGeoPoint(), Math.min(accuracy / 1000, .1));
+                q.whereWithinKilometers("GPS", gps.getGeoPoint(), 0.1);
                 q.whereEqualTo("user", ParseUser.getCurrentUser());
                 q.getFirstInBackground(new GetCallback<ParseObject>() {
                     @Override
@@ -121,12 +122,11 @@ public class SAPO {
 
                         } else {
                             final ScanResult maspower = maspower(sr);
-                            myLog.add("No habia ninguno de estos  en internex, subiremos el mas powr:: " + maspower.BSSID, tag);
+                            myLog.add("No habia ninguno de estos  en internex, subiremos el mas powr:: " + maspower.SSID
+                                    + "levl= " + maspower.level, tag);
                             subirConGPS(maspower, gps, accuracy);
                         }
 
-                        // reset
-                        bssidTable = new HashMap<>();
                     }
                 });
 
