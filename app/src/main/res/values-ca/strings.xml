@@ -37,7 +37,7 @@
  <string name="di_welcome">benvingut</string>
  <string name="isthisone">És aquesta parada?</string>
  <string name="cancel">cancel·lar</string>
- <string name="no_busstop_message_dialog">No tenim cap parada registrada en un radi de 100 mts</string>
+ <string name="no_busstop_message_dialog">No tenim cap parada registrada en un radi de 100 mts. Revisarem si falta a la nostra base de dades.</string>
  <string name="ok">OK</string>
  <string name="di_whichone">En què parada estàs?</string>
  <string name="no_bustop_title">No hi ha parades</string>
@@ -52,4 +52,6 @@
  <string name="ListAct_press_refresh_Schedule">Premeu ACTUALIZAR per obtenir l\'horari d\'avui</string>
  <string name="refresh_menu_long_pull">Tiri cap avall  per veure el menú d\'avui</string>
  <string name="toastSilenceButton">Aquests weacons no produiran notificacions fins que tornis a ACTUALITZAR</string>
+ <string name="toast_scanning_started">Iniciant escanejat ...</string>
+ <string name="toast_reported_missing">S\'ha reportat una parada d\'autobús a les coordenades:</string>
 </resources>

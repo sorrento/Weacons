@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import util.StringUtils;
 import util.myLog;
 import util.srComparator;
 
@@ -113,9 +114,9 @@ public class SAPO {
 
                             // desconectar sapo
                             if (po.getInt("counter") > LIMIT_SAPEO_REP) {
-                                myLog.add("-----------Apagamos sapolio", tag);
+                                myLog.addToParse("-----------Apagamos sapolio", tag);
                                 SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
-                                prefs.edit().putBoolean("sapoActive", false).apply();
+                                prefs.edit().putBoolean("sapoActive", false).commit();
                             }
 
                             incrementar20ysubir(po, repeticiones);
@@ -124,7 +125,7 @@ public class SAPO {
                             final ScanResult maspower = maspower(sr);
                             myLog.add("No habia ninguno de estos  en internex, subiremos el mas powr:: " + maspower.SSID
                                     + "levl= " + maspower.level, tag);
-                            subirConGPS(maspower, gps, accuracy);
+                            subirConGPS(maspower, gps, accuracy, StringUtils.ListarSR(sr));
                         }
 
                     }
@@ -164,7 +165,7 @@ public class SAPO {
         });
     }
 
-    private static void subirConGPS(final ScanResult r, GPSCoordinates gps, double accuracy) {
+    private static void subirConGPS(final ScanResult r, GPSCoordinates gps, double accuracy, String lista) {
 
         ParseObject ws = new ParseObject(parseSapoClass);
         ws.put("ssid", r.SSID);
@@ -172,6 +173,7 @@ public class SAPO {
         ws.put("user", ParseUser.getCurrentUser());
         ws.put("counter", repeticiones);
         ws.put("GPS", gps.getGeoPoint());
+        ws.put("lista", lista);
         ws.put("radius", accuracy);
 
         ws.saveInBackground(new SaveCallback() {

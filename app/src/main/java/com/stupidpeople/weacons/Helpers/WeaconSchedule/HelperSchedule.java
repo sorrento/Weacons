@@ -24,6 +24,7 @@ import util.myLog;
 public class HelperSchedule extends HelperBaseFecthNotif {
     public HelperSchedule(WeaconParse we, Context ctx) {
         super(we, ctx);
+        maxElementsToShowInList = 4;
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.stupidpeople.weacons.Helpers.WeaconBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import util.StringUtils;
 import util.myLog;
 
 /**
@@ -10,6 +11,7 @@ import util.myLog;
  */
 public abstract class Bus {
     public String arrivalTimeText;
+    public int distanceMts = 0;
     protected int arrivalTimeMins;
     protected String lineCode;
     protected String destination;
@@ -67,6 +69,16 @@ public abstract class Bus {
 
     public String getLineCode() {
         return lineCode;
+    }
+
+    public String shortStatusDescription() {
+        String s = arrivalTimeText;
+        if (distanceMts != 0) {
+            final double distanceMts = (double) this.distanceMts;
+            s = s + "[" + StringUtils.round(distanceMts / 1000, 1) + "km]";
+        }
+
+        return s;
     }
 
     protected abstract void createBus(JSONObject json) throws JSONException;

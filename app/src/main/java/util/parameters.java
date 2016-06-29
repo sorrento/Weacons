@@ -17,7 +17,6 @@ public class parameters {
     public static final String pinParseLog = "Logs";
     public static final String pinLastTimeSeen = "spotsHits";
     public static final String pinWigle = "Wigle";
-    public static final String pinSapo = "SAPO2";
 
     public static final String COMPANY = "Company";
     public static final String RETAIL = "Retail";
@@ -89,6 +88,7 @@ public class parameters {
 
     public static boolean simulateWifi = false;
     public static String wifiToSimulateMac = "64:16:F0:54:E8:EE";//para graells
+    public static boolean useWigle = false;
 //    public static String wifiToSimulateMac = "00:19:15:86:d0:fb";//TELETRIX, wigle para sant magi
 //    public static String wifiToSimulateMac= "f8:8e:85:16:28:41";//piripiri
 

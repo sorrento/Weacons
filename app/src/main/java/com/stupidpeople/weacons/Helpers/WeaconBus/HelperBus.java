@@ -258,7 +258,6 @@ public class HelperBus extends HelperBaseFecthNotif {
                 JSONObject jLine = jLines.getJSONObject(i);
                 if (!(jLine.getString("codigorespuesta").equals("00") || jLine.getString("codigorespuesta").equals("01")))
                     continue;
-                myLog.add("oneitem: " + jLine.toString(), "aut");
 
                 arr.add(new BusLineSantiago(jLine));
             }

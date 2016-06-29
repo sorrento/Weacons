@@ -80,7 +80,8 @@ public abstract class ParseActions {
 
                             if (spots.size() == 0) {
                                 //WIGLE
-                                checkOnWigle(bssids, weaconHash, ctx);
+                                if (parameters.useWigle)
+                                    checkOnWigle(bssids, weaconHash, ctx);
                             } else { //There are matches
 
                                 for (WifiSpot spot : spots) {

@@ -38,7 +38,7 @@
     <string name="di_welcome">Bienvenido</string>
     <string name="cancel">Cancelar</string>
     <string name="isthisone">Es esta parada?</string>
-    <string name="no_busstop_message_dialog">No tenemos registradas paradas en un radio de 100 mts</string>
+    <string name="no_busstop_message_dialog">No tenemos registradas paradas en un radio de 100 mts. Vamos a revisar si falta en nuestra base de datos.</string>
     <string name="ok">OK</string>
     <string name="di_whichone">¿En qué parada estás?</string>
     <string name="no_bustop_title">No hay paradas</string>
@@ -52,4 +52,6 @@
     <string name="ListAct_press_refresh_Schedule">Presiones ACTUALIZAR para obtener el horario de hoy</string>
     <string name="refresh_menu_long_pull">Tire hacia abajo para ver el menú de hoy</string>
     <string name="toastSilenceButton">Estos weacons no producirán notificaciones hasta que vuelvas a ACTUALIZAR</string>
+    <string name="toast_scanning_started">Iniciando escaneado...</string>
+    <string name="toast_reported_missing">Se ha reportado un parada en: </string>
 </resources>

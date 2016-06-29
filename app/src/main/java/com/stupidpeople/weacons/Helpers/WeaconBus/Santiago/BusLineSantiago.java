@@ -13,7 +13,6 @@ import org.json.JSONObject;
  */
 public class BusLineSantiago extends BusLine {
     public int color;
-    private String destination;
 
     //TODO arreglar a  la nueva fomra de hacerlo
     public BusLineSantiago(JSONObject jLine) {

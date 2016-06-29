@@ -94,7 +94,7 @@
     <string name="di_welcome">Welcome</string>
     <string name="inital_explaination">In this screen you will find the weacons around you, like bustops. If you are in a bustop and it doesn\'t appear here, press the \"add\" button up in the corner of the screen to add it.</string>
     <string name="no_bustop_title">No bus stops</string>
-    <string name="no_busstop_message_dialog">You are too far from any bus stop. </string>
+    <string name="no_busstop_message_dialog">You are too far from any bus stop. We gonna check if it is missing in our database.</string>
     <string name="ok">ok</string>
     <string name="cancel">Cancel</string>
     <string name="isthisone">Is it this one?</string>
@@ -110,4 +110,6 @@
     <string name="action_add_bus_stop">Add Bus Stop</string>
     <string name="ListActivity_pull_down_to_refresh">Please pull down to have updated information about the estimated arrival times of buses at this stop.</string>
     <string name="toastSilenceButton">These weacons won\'t trigger notifications anymore. Refresh to reactivate.</string>
+    <string name="toast_scanning_started">Scanning started...</string>
+    <string name="toast_reported_missing">"Missing bus Stop reported at: "</string>
 </resources>

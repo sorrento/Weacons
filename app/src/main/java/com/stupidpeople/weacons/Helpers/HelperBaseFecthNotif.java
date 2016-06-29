@@ -15,11 +15,13 @@ import org.jsoup.Connection;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Milenko on 18/03/2016.
  */
 public abstract class HelperBaseFecthNotif extends HelperBase {
+    protected int maxElementsToShowInList = -1;
     Date lastUpdateTime;
     private String sInbox;
 
@@ -154,7 +156,11 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     private SpannableString allfetchedElementsForListActivity() {
         SpannableString old = null;
 
-        for (fetchableElement fe : we.fetchedElements) {
+        // In case there are too many, show a few
+        List<fetchableElement> elements = maxElementsToShowInList > 0 && we.fetchedElements.size() >= maxElementsToShowInList ?
+                we.fetchedElements.subList(0, maxElementsToShowInList) : we.fetchedElements;
+
+        for (fetchableElement fe : elements) {
             old = old == null ? fe.getLongSpan() :
                     SpannableString.valueOf(TextUtils.concat(old, "\n", fe.getLongSpan()));
         }

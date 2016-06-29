@@ -150,8 +150,8 @@ public class myLog {
         po.put("msg", text);
         po.put("type", type);
 
-        try {
 
+        try {
             final ParseUser user = ParseUser.getCurrentUser();
             if (user != null) po.put("user", user);
         } catch (Exception e) {

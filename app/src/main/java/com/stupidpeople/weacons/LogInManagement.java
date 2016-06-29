@@ -141,13 +141,14 @@ public class LogInManagement {
         fetching = true;
 
         // Show "refreshing"
-        informWeaconsRefreshing(ctx);
+        informWeaconsRefreshing(ctx, onlyNotifiedWeacons);
 
         final MultiTaskCompleted allFetched = new MultiTaskCompleted() {
             @Override
             public void OneTaskCompleted() {
                 clearAfterATime(ctx, 30000);
                 //show with fetched info
+                myLog.add("Terminados todos fetching, mandar broadcast", "aut");
                 ctx.sendBroadcast(new Intent(parameters.updateInfo));
             }
 
@@ -157,7 +158,11 @@ public class LogInManagement {
             }
         };
 
-        final int nTotal = getActiveWeacons().size();
+        // Fecth only notified to save time waiting
+        ArrayList<WeaconParse> weaconsToFetch = onlyNotifiedWeacons ?
+                Notifications.getNotifiedWeacons() : activeWeacons;
+
+        final int nTotal = weaconsToFetch.size();
 
         MultiTaskCompleted singleFetch = new MultiTaskCompleted() {
             int iTasksCompleted = 0;
@@ -165,6 +170,7 @@ public class LogInManagement {
             @Override
             public void OneTaskCompleted() {
                 iTasksCompleted++;
+                myLog.add("Taskes competes=" + iTasksCompleted + "/" + nTotal, "aut");
                 if (iTasksCompleted == nTotal) allFetched.OneTaskCompleted();
             }
 
@@ -175,9 +181,7 @@ public class LogInManagement {
             }
         };
 
-        // Fecth only notified to save time waiting
-        ArrayList<WeaconParse> weaconsToFetch = onlyNotifiedWeacons ?
-                Notifications.getNotifiedWeacons() : activeWeacons;
+
 
         for (final WeaconParse we : weaconsToFetch) {
             if (we.notificationRequiresFetching()) {
@@ -356,6 +360,7 @@ public class LogInManagement {
             @Override
             public void run() {
                 fetching = false;
+                myLog.add("Ha acabado el tiempo, a informar como obsoleto", "aut");
                 informWeaconsObsolete(ctx);
             }
         };
@@ -388,8 +393,11 @@ public class LogInManagement {
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
 
-    private static void informWeaconsRefreshing(Context ctx) {
-        for (WeaconParse we : activeWeacons) we.refreshing = true;
+    private static void informWeaconsRefreshing(Context ctx, boolean onlyNotifiedWeacons) {
+        ArrayList<WeaconParse> weacons = onlyNotifiedWeacons ? Notifications.getNotifiedWeacons() : activeWeacons;
+
+        for (WeaconParse we : weacons) we.refreshing = true;
+
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
 

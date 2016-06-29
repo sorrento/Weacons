@@ -194,7 +194,6 @@ public class WeaconParse extends ParseObject {
                     break;
                 case bus_station:
                     mHelper = new HelperBus(this, ctx);
-                    inHome = ParseActions.IsHome(getObjectId());
                     break;
                 //            case cafe:
                 //                break;
@@ -374,6 +373,7 @@ public class WeaconParse extends ParseObject {
             }
 
             isInteresting = ParseActions.isInteresting(getObjectId());
+            inHome = ParseActions.IsHome(getObjectId());
 
         } catch (Exception e) {
             myLog.error(e);

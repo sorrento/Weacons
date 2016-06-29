@@ -70,7 +70,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
         if (serviceIsActive) {
             myLog.add("No empezaermos el servicio; ya está activo", tag);
-            stopSelf();
+//            stopSelf();
+            return START_STICKY;
         }
 
         serviceIsActive = true;
@@ -356,7 +357,12 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 } else if (action.equals(parameters.updateInfo)) {
                     boolean anyHome = intent.getBooleanExtra("anyHome", false);
                     // avoid annoying with home weacon notifications
-                    if (!anyHome) Notifications.Notify();
+                    // not popup notification when in home, but do update
+                    myLog.add("Recibido intent en service anyhome=" + anyHome + " | is showing notif:" + Notifications.isShowingNotification, "aut");
+                    myLog.add("ergo, mostrarems notif:" + (!anyHome || !Notifications.isShowingNotification), "aut");
+                    if (!anyHome || Notifications.isShowingNotification) {
+                        Notifications.Notify();
+                    }
                 }
             } catch (Exception e) {
                 myLog.error(e);

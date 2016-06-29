@@ -14,6 +14,8 @@ import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.Removable.LogBump;
 import com.stupidpeople.weacons.Wifi.WifiSpot;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,9 +93,9 @@ public class StringUtils {
 
     public static String ListarSR(List<ScanResult> sr) {
         StringBuilder sb = new StringBuilder();
-        for (ScanResult s : sr) {
-            sb.append(s.SSID + " | " + s.BSSID + " | " + s.level + "\n");
-        }
+
+        for (ScanResult s : sr) sb.append(s.SSID + " | " + s.BSSID + " | " + s.level + "\n");
+
         return sb.toString();
     }
 
@@ -170,5 +172,13 @@ public class StringUtils {
         sb.append(shorten(arr.get(arr.size() - 1), nShorten));
 
         return sb.toString();
+    }
+
+    public static double round(double value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 }

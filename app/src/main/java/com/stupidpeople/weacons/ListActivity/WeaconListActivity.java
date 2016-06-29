@@ -75,19 +75,14 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
             ParseActions.LogInParse();
 
-            if (isFirstTime()) {
-                ShowExplainationDialog();
-                ParseActions.saveInstalationCoordinates(this);
-            }
-
+            if (isFirstTime()) ShowExplainationDialog();
 
             if (parameters.isMilenkosPhone())
                 Toast.makeText(mContext, "Estamos creadndo la Actividad", Toast.LENGTH_SHORT).show();
 
 
             myLog.add("opening la lista activity", "wifi");
-            RecyclerView mRecyclerView = new RecyclerView(this);
-            mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+            RecyclerView mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
             mRecyclerView.hasFixedSize();
             mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
             mRecyclerView.addItemDecoration(new DividerItemDecoration(this, getResources().getDrawable(R.drawable.abc_list_divider_mtrl_alpha)));
@@ -168,6 +163,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
     private void showNoWeaconMessageAndStartScan() {
         //Show NO WEACON message
 
+        Toast.makeText(WeaconListActivity.this, R.string.toast_scanning_started, Toast.LENGTH_SHORT).show();
+        mRefresh.setRefreshing(false);
+
         WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         wifiManager.startScan();
     }
@@ -178,6 +176,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         if (requestCode == REQUEST_FINE_LOCATION_PERMISSION && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startServiceIfNeeded();
+
         } else {
             new MaterialDialog.Builder(this)
                     .title(R.string.attention)
@@ -231,6 +230,12 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     private void startServiceIfNeeded() {
         boolean isActive = WifiObserverService.serviceIsActive;
+
+        //in this method we are sure we have location permission
+        if (isFirstTime()) {
+            ParseActions.saveInstalationCoordinates(this);
+        }
+
         myLog.add("Is service active: " + isActive, "wifi");
         if (!isActive) mContext.startService(new Intent(mContext, WifiObserverService.class));
     }
@@ -324,7 +329,8 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         if (size == 0) {
             db.title(R.string.no_bustop_title)
                     .content(R.string.no_busstop_message_dialog)
-                    .positiveText(R.string.ok);//todo boton de reportar parada que no salta
+                    .positiveText(R.string.ok);
+            reportMissingStop(mGps);
 
         } else {
             final ArrayList<String> arr = new ArrayList<>();
@@ -349,6 +355,12 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                                 we.build(mContext);
                                 uploadBusStopAndNotify(we);
                             }
+                        })
+                        .onNegative(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                reportMissingStop(mGps);
+                            }
                         });
             } else {
                 arr.add(getString(R.string.di_non_of_these));
@@ -361,8 +373,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                                     WeaconParse we = busStops.get(i);
                                     we.build(mContext);
                                     uploadBusStopAndNotify(we);
+                                } else {
+                                    reportMissingStop(mGps);
                                 }
-                                materialDialog.dismiss();
                             }
                         });
             }
@@ -371,6 +384,11 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         MaterialDialog d = db.build();
         d.show();
 
+    }
+
+    private void reportMissingStop(GPSCoordinates gps) {
+        myLog.addToParse("missingStop at " + gps, "MissingStop");
+        Toast.makeText(WeaconListActivity.this, getString(R.string.toast_reported_missing) + gps, Toast.LENGTH_SHORT).show();
     }
 
     private void uploadBusStopAndNotify(WeaconParse we) {

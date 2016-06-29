@@ -13,7 +13,7 @@ import util.StringUtils;
  */
 public class BusLine implements fetchableElement {
     protected String lineCode;
-    private String destination;
+    protected String destination;
     private ArrayList<Bus> buses = new ArrayList<>();
 
     public BusLine(Bus bus) {
@@ -30,7 +30,7 @@ public class BusLine implements fetchableElement {
     }
 
     private int getShortestTime() {
-        int minimal = 1100;
+        int minimal = 1100; //what?
         for (Bus bus : buses) {
             if (bus.arrivalTimeMins < minimal) minimal = bus.arrivalTimeMins;
         }
@@ -43,7 +43,7 @@ public class BusLine implements fetchableElement {
         String name = lineCode;
         StringBuilder sb = new StringBuilder(name + " ");
 
-        for (Bus bus : buses) sb.append(bus.arrivalTimeText).append(", ");
+        for (Bus bus : buses) sb.append(bus.shortStatusDescription()).append(", ");
 
         String s = sb.toString();
         String sub = s.substring(0, s.length() - 2);
