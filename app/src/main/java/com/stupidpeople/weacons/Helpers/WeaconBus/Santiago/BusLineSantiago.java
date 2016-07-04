@@ -14,7 +14,6 @@ import org.json.JSONObject;
 public class BusLineSantiago extends BusLine {
     public int color;
 
-    //TODO arreglar a  la nueva fomra de hacerlo
     public BusLineSantiago(JSONObject jLine) {
         super();
 
@@ -24,6 +23,7 @@ public class BusLineSantiago extends BusLine {
                 color = Color.parseColor(jLine.getString("color"));
                 lineCode = jLine.getString("servicio");
                 destination = jLine.getString("destino");
+                msgLine = jLine.getString("respuestaServicio");
 
                 String arrivalTimeText = jLine.getString("horaprediccionbus1");
                 int arrivalTimeMins = Bus.ExtractMinsFromText(arrivalTimeText);

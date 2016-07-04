@@ -396,6 +396,9 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         HashSet<WeaconParse> myHash = LogInManagement.lastWeaconsDetected;
         we.setInteresting(true);
 
+        we.setOwner();
+        we.saveInBackground();
+
         if (myHash == null) myHash = new HashSet<>();
         myHash.add(we);
 

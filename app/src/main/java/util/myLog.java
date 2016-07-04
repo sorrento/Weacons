@@ -146,19 +146,24 @@ public class myLog {
     }
 
     public static void addToParse(String text, String type) {
-        ParseObject po = new ParseObject("log");
-        po.put("msg", text);
-        po.put("type", type);
+        if (parameters.isMilenkosPhone()) {
+            add(text, type);
 
+        } else {
+            ParseObject po = new ParseObject("log");
+            po.put("msg", currentDate() + " " + type + " | " + text);
+            po.put("type", type);
 
-        try {
-            final ParseUser user = ParseUser.getCurrentUser();
-            if (user != null) po.put("user", user);
-        } catch (Exception e) {
-            myLog.error(e);
+            try {
+                final ParseUser user = ParseUser.getCurrentUser();
+                if (user != null) po.put("user", user);
+            } catch (Exception e) {
+                myLog.error(e);
+            }
+
+            po.pinInBackground(parameters.pinParseLog);
+
         }
-
-        po.pinInBackground(parameters.pinParseLog);
     }
 }
 

@@ -82,7 +82,7 @@ public class SAPO {
                     incrementar20ysubir(parseObject, repeticiones);
 
                 } else {
-                    myLog.add("NO coincide BSSID con interntet, buscamos en 100 mts", tag);
+                    myLog.addToParse("NO coincide BSSID con interntet, buscamos en 100 mts", tag);
                     getLocationAndIncrementOrCreate(sr, ctx);
                 }
             }
@@ -100,10 +100,10 @@ public class SAPO {
             @Override
             public void LocationReceived(final GPSCoordinates gps, final double accuracy) {
 
-                //Check if there is already one in the area (100m ) online
-                myLog.add("Buscando en internet entorno a (100mt): " + gps + " con precision de (mts): " + accuracy, tag);
+                //Check if there is already one in the area (150m ) online
+                myLog.add("Buscando en internet entorno a (150mt): " + gps + " con precision de (mts): " + accuracy, tag);
                 ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
-                q.whereWithinKilometers("GPS", gps.getGeoPoint(), 0.1);
+                q.whereWithinKilometers("GPS", gps.getGeoPoint(), 0.15);
                 q.whereEqualTo("user", ParseUser.getCurrentUser());
                 q.getFirstInBackground(new GetCallback<ParseObject>() {
                     @Override
@@ -116,14 +116,19 @@ public class SAPO {
                             if (po.getInt("counter") > LIMIT_SAPEO_REP) {
                                 myLog.addToParse("-----------Apagamos sapolio", tag);
                                 SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
+                                myLog.addToParse("Desconactamos Sapo " + po.getString("name"), tag);
                                 prefs.edit().putBoolean("sapoActive", false).commit();
+                                if (accuracy < po.getInt("radius")) {
+                                    po.put("GPS", gps.getGeoPoint());
+                                    po.put("radius", accuracy);
+                                }
                             }
 
                             incrementar20ysubir(po, repeticiones);
 
                         } else {
                             final ScanResult maspower = maspower(sr);
-                            myLog.add("No habia ninguno de estos  en internex, subiremos el mas powr:: " + maspower.SSID
+                            myLog.add("No habia ninguno en el area (en internex), subiremos el mas powr:: " + maspower.SSID
                                     + "levl= " + maspower.level, tag);
                             subirConGPS(maspower, gps, accuracy, StringUtils.ListarSR(sr));
                         }

@@ -50,7 +50,7 @@ class WeaconAdapter extends RecyclerView.Adapter<WeaconHolder> implements View.O
                 .into(weaconHolder.thumbnail);
 
 //        weaconHolder.title.setText(Html.fromHtml(weaconItem.getTitle()));
-        weaconHolder.title.setText(we.getName());
+        weaconHolder.title.setText(we.getNameWithCode());
         weaconHolder.description.setText(we.textForListActivity());
         weaconHolder.itemView.setTag(we);
     }

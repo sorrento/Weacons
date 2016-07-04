@@ -391,7 +391,7 @@ public abstract class ParseActions {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    myLog.add("se ha pinneado el home" + we.getName(), tag);
+                    myLog.addToParse("Se ha pinneado el home" + we.getName(), tag);
                 } else {
                     myLog.add("No se ha pinneaso el home " + we.getName() + e.getLocalizedMessage(), tag);
                 }
@@ -542,7 +542,7 @@ public abstract class ParseActions {
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are new SPOTS in the zone , gonna update", "WE_DOWNLOAD");
+                            myLog.addToParse("***There are new SPOTS in the zone , gonna update", "WE_DOWNLOAD");
                             getNearWifiSpots(point, null);
                         } else {
                             myLog.add("***Nada que actualizar, en web lo mismo que en local (1km)", "WE_DOWNLOAD");
@@ -555,7 +555,7 @@ public abstract class ParseActions {
                     public void OnResult(boolean b) {
                         if (b) {
                             //actualizamos
-                            myLog.add("***There are newer in the zone (updatedAt), gonna update", "WE_DOWNLOAD");
+                            myLog.addToParse("***There are newer in the zone (updatedAt), gonna update", "WE_DOWNLOAD");
                             getNearWifiSpots(point, null);
                         } else {
                             //Check if we moved

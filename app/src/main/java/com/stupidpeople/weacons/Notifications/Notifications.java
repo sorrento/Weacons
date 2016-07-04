@@ -181,6 +181,7 @@ public class Notifications {
 //    }
 
     private static void NotifyMultiple() {
+        myLog.addToParse("Notificando: " + StringUtils.Listar(mWeacons), "NOTIF");
 
         Intent delete = new Intent(parameters.deleteIntentName);
         PendingIntent pIntentDelete = PendingIntent.getBroadcast(mContext, 1, delete, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -228,6 +229,8 @@ public class Notifications {
         WeaconParse we = mWeacons.get(0);
 
         try {
+            myLog.addToParse("Notificando: " + we.getName(), "NOTIF");
+
             PendingIntent pendingIntent = getPendingIntent(we.getActivityClass());
             NotificationCompat.Builder notification = we.buildSingleNotification(pendingIntent, mContext);
             mNotificationManager.notify(mIdNoti, notification.build());

@@ -28,11 +28,11 @@ import util.myLog;
 /**
  * Created by Milenko on 18/03/2016.
  */
-public class HelperBus extends HelperBaseFecthNotif {
+public class HelperBusStop extends HelperBaseFecthNotif {
 
     private city mCity;
 
-    public HelperBus(WeaconParse we, Context ctx) {
+    public HelperBusStop(WeaconParse we, Context ctx) {
         super(we, ctx);
         this.mCity = determineCity(we);
     }
@@ -122,6 +122,11 @@ public class HelperBus extends HelperBaseFecthNotif {
     @Override
     protected int getRepeatedOffRemoveFromNotification() {
         return 1;
+    }
+
+    @Override
+    public String getNameWithCode() {
+        return we.getParadaId() + " " + we.getName();
     }
 
     private String getBusStopId() {
@@ -250,6 +255,8 @@ public class HelperBus extends HelperBaseFecthNotif {
 //            stopCode = json.getString("paradero");
 //            description = json.getString("nomett");
 //            updateTime = json.getString("fechaprediccion") + "|" + json.getString("horaprediccion");
+            String busstopMessage = json.getString("respuestaParadero");
+            we.setDescription(busstopMessage);
 
             JSONArray jLines = json.getJSONObject("servicios").getJSONArray("item");
             myLog.add("tenemos algunso servicios de bus:" + jLines.length(), "aut");

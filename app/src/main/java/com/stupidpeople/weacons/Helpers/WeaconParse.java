@@ -11,8 +11,9 @@ import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
+import com.parse.ParseUser;
 import com.stupidpeople.weacons.Helpers.WeaconAirport.HelperAiport2;
-import com.stupidpeople.weacons.Helpers.WeaconBus.HelperBus;
+import com.stupidpeople.weacons.Helpers.WeaconBus.HelperBusStop;
 import com.stupidpeople.weacons.Helpers.WeaconRestaurant.HelperRestaurant;
 import com.stupidpeople.weacons.Helpers.WeaconSchedule.HelperSchedule;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
@@ -60,6 +61,10 @@ public class WeaconParse extends ParseObject {
 
     public String getDescription() {
         return getString("Description");
+    }
+
+    public void setDescription(String x) {
+        put("Description", x);
     }
 
     public String getImageParseUrl() {
@@ -145,7 +150,6 @@ public class WeaconParse extends ParseObject {
         return bm;
     }
 
-
     public String getLogoFileName() {
         return getParseFile("Logo").getName();
     }
@@ -156,11 +160,11 @@ public class WeaconParse extends ParseObject {
         return imageUtils.drawableToBitmap(new RoundImage(bm));
     }
 
+    ///////////////////////////////////////////////////// DELEGATES
+
     public ParseGeoPoint getGPS() {
         return getParseGeoPoint("GPS");
     }
-
-    ///////////////////////////////////////////////////// DELEGATES
 
     public void build(Context ctx) {
         try {
@@ -193,7 +197,7 @@ public class WeaconParse extends ParseObject {
                 case bowling_alley:
                     break;
                 case bus_station:
-                    mHelper = new HelperBus(this, ctx);
+                    mHelper = new HelperBusStop(this, ctx);
                     break;
                 //            case cafe:
                 //                break;
@@ -406,12 +410,12 @@ public class WeaconParse extends ParseObject {
         return getString("FetchingUrl");
     }
 
+
+    /////////////////////////////////////////////////////
+
     public SpannableString inboxSummary() {
         return mHelper.inboxSummaryText();
     }
-
-
-    /////////////////////////////////////////////////////
 
     /**
      * the activity should be open for this Weacon. can be Cards o Browser
@@ -475,6 +479,11 @@ public class WeaconParse extends ParseObject {
         return obsolete;
     }
 
+    // OTHER
+   /*
+    TODO clean from here
+     */
+
     /**
      * Put a new message for notification, without data
      *
@@ -484,11 +493,6 @@ public class WeaconParse extends ParseObject {
         obsolete = b;
         fetchedElements = new ArrayList();
     }
-
-    // OTHER
-   /*
-    TODO clean from here
-     */
 
     public int getRepeatedOffRemoveFromNotification() {
         return mHelper.getRepeatedOffRemoveFromNotification();
@@ -534,13 +538,21 @@ public class WeaconParse extends ParseObject {
         this.inHome = inHome;
     }
 
-
     public boolean emptyAnswerOrErrorFetching() {
         return emptyOrError;
     }
 
     public SpannableString textForListActivity() {
         return mHelper.textForListActivity();
+    }
+
+    public String getNameWithCode() {
+        return mHelper.getNameWithCode();
+    }
+
+    public void setOwner() {
+        ParseUser owner = ParseUser.getCurrentUser();
+        if (owner != null) put("Owner", owner);
     }
 }
 

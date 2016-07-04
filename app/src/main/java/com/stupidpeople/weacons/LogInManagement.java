@@ -116,6 +116,7 @@ public class LogInManagement {
     private static void decider(Context ctx) {
 
         if (someOneAppearing || someoneQuitting) {
+            myLog.addToParse("***Some weacon entering or exiting", tag);
 
             boolean sound = anyInterestingAppearing && !now.anyHome;
             boolean refreshBtn = now.anyFetchable();
@@ -180,7 +181,6 @@ public class LogInManagement {
                 if (iTasksCompleted == nTotal) allFetched.OneTaskCompleted();
             }
         };
-
 
 
         for (final WeaconParse we : weaconsToFetch) {

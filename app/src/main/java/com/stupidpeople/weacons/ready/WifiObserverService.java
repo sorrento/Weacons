@@ -72,6 +72,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
             myLog.add("No empezaermos el servicio; ya está activo", tag);
 //            stopSelf();
             return START_STICKY;
+        } else {
+            myLog.add("--- empezaermos el servicio; NO estaba está activo", tag);
         }
 
         serviceIsActive = true;
@@ -176,7 +178,7 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         StringBuilder sb = new StringBuilder();
 
         for (ParseObject po : list) {
-            sb.append(po.getString("msg"));
+            sb.append(po.getString("msg") + "\n");
         }
         return sb.toString();
     }
@@ -186,10 +188,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         ParseQuery<ParseObject> query = ParseQuery.getQuery("log");
         int res = query.fromPin(parameters.pinParseLog)
                 .count();
-        if (res > 3) {
+        if (res > 30) {
             ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
             q.fromPin(parameters.pinParseLog)
-                    .setLimit(300)
+                    .setLimit(1000)
                     .findInBackground(new FindCallback<ParseObject>() {
                         @Override
                         public void done(final List<ParseObject> list, ParseException e) {
@@ -358,8 +360,8 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     boolean anyHome = intent.getBooleanExtra("anyHome", false);
                     // avoid annoying with home weacon notifications
                     // not popup notification when in home, but do update
-                    myLog.add("Recibido intent en service anyhome=" + anyHome + " | is showing notif:" + Notifications.isShowingNotification, "aut");
-                    myLog.add("ergo, mostrarems notif:" + (!anyHome || !Notifications.isShowingNotification), "aut");
+                    myLog.addToParse("Recibido intent en service anyhome=" + anyHome + " | is showing notif:" + Notifications.isShowingNotification, tag);
+                    myLog.addToParse("ergo, mostrarems notif:" + (!anyHome || !Notifications.isShowingNotification), tag);
                     if (!anyHome || Notifications.isShowingNotification) {
                         Notifications.Notify();
                     }

@@ -78,6 +78,7 @@ public class parameters {
     // "YouCAbDETK" ESADE MBA
     // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
     // "VGXy6yZLbY" Versió
+    //  "Da2ICuTwev" Parada de pipe en santiago (PD107)
 
     public static boolean doFakePosition = false;
     //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);

@@ -149,4 +149,11 @@ public abstract class HelperBase {
     public SpannableString textForListActivity() {
         return SpannableString.valueOf(we.getDescription());
     }
+
+    /* to be overwritten in specific helper
+
+     */
+    public String getNameWithCode() {
+        return we.getName();
+    }
 }
