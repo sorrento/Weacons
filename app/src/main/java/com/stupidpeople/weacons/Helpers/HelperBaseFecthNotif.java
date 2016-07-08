@@ -154,18 +154,19 @@ public abstract class HelperBaseFecthNotif extends HelperBase {
     }
 
     private SpannableString allfetchedElementsForListActivity() {
-        SpannableString string = null;
+        SpannableString buf = null;
 
         // In case there are too many, show a few
         List<fetchableElement> elements = maxElementsToShowInList > 0 && we.fetchedElements.size() >= maxElementsToShowInList ?
                 we.fetchedElements.subList(0, maxElementsToShowInList) : we.fetchedElements;
 
+        //Concatenate spannables
         for (fetchableElement fe : elements) {
-            string = string == null ? fe.getLongSpan() :
-                    SpannableString.valueOf(TextUtils.concat(string, "\n", fe.getLongSpan()));
+            buf = buf == null ? fe.getLongSpan() :
+                    SpannableString.valueOf(TextUtils.concat(buf, "\n", fe.getLongSpan()));
         }
 
-        return string;
+        return buf;
     }
 
     protected abstract SpannableString msgPressRefreshLong();

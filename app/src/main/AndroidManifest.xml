@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!--For log-->
+    <!-- For log -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
@@ -17,20 +17,17 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
         <receiver android:name=".BC.RebootReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
         <receiver android:name=".BC.ServiceRevival">
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
                 <action android:name="android.intent.action.BATTERY_LOW" />
-                <action android:name="android.intent.action.AIRPLANE_MODE"></action>
+                <action android:name="android.intent.action.AIRPLANE_MODE" />
             </intent-filter>
-
         </receiver>
 
         <activity
@@ -41,7 +38,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
         <activity
             android:name=".SettingsActivity.SettingsActivity"
@@ -50,6 +46,18 @@
         <service
             android:name=".ready.WifiObserverService"
             android:exported="false" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyArgBvkx23uansbus28AFveQnnofmrhzGs" />
+
+        <activity
+            android:name=".MapsActivity2"
+            android:label="@string/title_activity_maps2">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.stupidpeople.weacons.ListActivity.WeaconListActivity" />
+        </activity>
     </application>
 
 </manifest>

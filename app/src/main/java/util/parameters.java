@@ -73,12 +73,13 @@ public class parameters {
 
     //////    TESTS
 
-    public static boolean testWeacons = false;
-    public static String[] weaconsTest = {"YouCAbDETK"};
+    public static boolean testWeacons = true;
+    public static String[] weaconsTest = {"Da2ICuTwev"};
     // "YouCAbDETK" ESADE MBA
     // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO
     // "VGXy6yZLbY" Versió
     //  "Da2ICuTwev" Parada de pipe en santiago (PD107)
+    //    "2pRJbupPUb" parada concurrida de BCN
 
     public static boolean doFakePosition = false;
     //    static GPSCoordinates canVolpallerasVernet = new GPSCoordinates(41.4793687249, 2.07720251701);

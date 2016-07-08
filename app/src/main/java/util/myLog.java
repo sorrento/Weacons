@@ -4,7 +4,6 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.parse.ParseObject;
-import com.parse.ParseUser;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
 
 import java.io.BufferedWriter;
@@ -153,16 +152,7 @@ public class myLog {
             ParseObject po = new ParseObject("log");
             po.put("msg", currentDate() + " " + type + " | " + text);
             po.put("type", type);
-
-            try {
-                final ParseUser user = ParseUser.getCurrentUser();
-                if (user != null) po.put("user", user);
-            } catch (Exception e) {
-                myLog.error(e);
-            }
-
             po.pinInBackground(parameters.pinParseLog);
-
         }
     }
 }

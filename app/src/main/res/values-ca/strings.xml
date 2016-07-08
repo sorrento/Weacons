@@ -54,4 +54,7 @@
  <string name="toastSilenceButton">Aquests weacons no produiran notificacions fins que tornis a ACTUALITZAR</string>
  <string name="toast_scanning_started">Iniciant escanejat ...</string>
  <string name="toast_reported_missing">S\'ha reportat una parada d\'autobús a les coordenades:</string>
+ <string name="action_unscanned">Parades pendents</string>
+ <string name="txt_conquered">Llegint parades conquistades...</string>
+ <string name="map_conquered_n">Has conquistat%1$d parades.</string>
 </resources>

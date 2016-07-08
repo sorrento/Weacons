@@ -54,4 +54,7 @@
     <string name="toastSilenceButton">Estos weacons no producirán notificaciones hasta que vuelvas a ACTUALIZAR</string>
     <string name="toast_scanning_started">Iniciando escaneado...</string>
     <string name="toast_reported_missing">Se ha reportado un parada en: </string>
+    <string name="action_unscanned">Paradas pendientes</string>
+    <string name="txt_conquered">Leyendo paradas conquistadas...</string>
+    <string name="map_conquered_n">Has conquistado %1$d paradas.</string>
 </resources>

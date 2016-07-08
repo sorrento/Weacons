@@ -8,4 +8,10 @@
         android:orderInCategory="100"
         android:title="@string/action_add_bus_stop"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_map"
+        android:icon="@android:drawable/ic_menu_add"
+        android:orderInCategory="200"
+        android:title="@string/action_unscanned"
+        app:showAsAction="never" />
 </menu>

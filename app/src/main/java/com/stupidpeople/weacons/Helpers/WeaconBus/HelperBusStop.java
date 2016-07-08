@@ -21,6 +21,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 import util.myLog;
@@ -69,7 +70,7 @@ public class HelperBusStop extends HelperBaseFecthNotif {
 
     @Override
     protected ArrayList<fetchableElement> processResponse(Connection.Response response) {
-        ArrayList<fetchableElement> arr = new ArrayList<>();
+        ArrayList<BusLine> arr = new ArrayList<>();
         String bo = response.body();
 
         switch (mCity) {
@@ -88,7 +89,11 @@ public class HelperBusStop extends HelperBaseFecthNotif {
             default:
                 myLog.add("No podemos procesar respuesta porqeu no sé que ciudad es", "WARN");
         }
-        return arr;
+
+        //ordenamos las lineas de acuerdo a la que falta menos tiempo
+        Collections.sort(arr, new LinesComparator());
+
+        return new ArrayList<fetchableElement>(arr);
     }
 
     @Override
@@ -259,12 +264,16 @@ public class HelperBusStop extends HelperBaseFecthNotif {
             we.setDescription(busstopMessage);
 
             JSONArray jLines = json.getJSONObject("servicios").getJSONArray("item");
-            myLog.add("tenemos algunso servicios de bus:" + jLines.length(), "aut");
 
             for (int i = 0; i < jLines.length(); i++) {
                 JSONObject jLine = jLines.getJSONObject(i);
-                if (!(jLine.getString("codigorespuesta").equals("00") || jLine.getString("codigorespuesta").equals("01")))
+                final String cod = jLine.getString("codigorespuesta");
+
+                if (!(cod.equals("00") || cod.equals("01") || cod.equals("9"))) {
+                    myLog.addToParse(jLine.toString(), "BUSSTOP");
                     continue;
+                }
+
 
                 arr.add(new BusLineSantiago(jLine));
             }
@@ -330,4 +339,10 @@ public class HelperBusStop extends HelperBaseFecthNotif {
         }
     }
 
+    private class LinesComparator implements java.util.Comparator<BusLine> {
+        @Override
+        public int compare(BusLine lhs, BusLine rhs) {
+            return lhs.getShortestTime() - rhs.getShortestTime();
+        }
+    }
 }

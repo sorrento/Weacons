@@ -34,6 +34,7 @@ import com.stupidpeople.weacons.Location.GPSCoordinates;
 import com.stupidpeople.weacons.Location.LocationAsker;
 import com.stupidpeople.weacons.Location.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
+import com.stupidpeople.weacons.MapsActivity2;
 import com.stupidpeople.weacons.Notifications.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.Wifi.WifiAsker;
@@ -253,8 +254,15 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_add_stop) {
-            actionAddBusStop();
+        switch (id) {
+            case R.id.action_add_stop:
+                actionAddBusStop();
+                break;
+
+            case R.id.action_map:
+                Intent intentMap = new Intent(this, MapsActivity2.class);
+                startActivity(intentMap);
+                break;
         }
 
         return true;

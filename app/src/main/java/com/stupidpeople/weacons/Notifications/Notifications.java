@@ -282,9 +282,10 @@ public class Notifications {
     }
 
     public static String bottomMessage(Context ctx) {
-        String summary = numberOfActiveNonNotified() > 1 ? ctx.getString(R.string.currently_active) :
+        final int n = numberOfActiveNonNotified();
+        String summary = n > 1 ? ctx.getString(R.string.currently_active) :
                 ctx.getString(R.string.currently_active_one);
-        return String.format(summary, numberOfActiveNonNotified());
+        return String.format(summary, n);
     }
 
     public static void sendBroadcastRefresh(boolean forced, boolean onlyNotifiedWeacons, Context ctx) {

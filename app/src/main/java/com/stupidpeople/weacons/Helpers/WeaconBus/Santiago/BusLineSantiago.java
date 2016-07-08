@@ -8,6 +8,8 @@ import com.stupidpeople.weacons.Helpers.WeaconBus.BusLine;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import util.myLog;
+
 /**
  * Created by Milenko on 03/02/2016.
  */
@@ -18,11 +20,14 @@ public class BusLineSantiago extends BusLine {
         super();
 
         try {
+            myLog.add(jLine.toString(), "aut");
+            final String cod = jLine.getString("codigorespuesta");
 
-            if (jLine.getString("codigorespuesta").equals("01") || jLine.getString("codigorespuesta").equals("00")) {
-                color = Color.parseColor(jLine.getString("color"));
+            if (cod.equals("01") || cod.equals("00")) {
+                if (jLine.has("color")) color = Color.parseColor(jLine.getString("color"));
+                if (jLine.has("destination")) destination = jLine.getString("destino");
+
                 lineCode = jLine.getString("servicio");
-                destination = jLine.getString("destino");
                 msgLine = jLine.getString("respuestaServicio");
 
                 String arrivalTimeText = jLine.getString("horaprediccionbus1");
@@ -32,7 +37,7 @@ public class BusLineSantiago extends BusLine {
 
                 BusSantiago busStgo = new BusSantiago(arrivalTimeMins, arrivalTimeText, plate, distanceMts);
                 addBus(busStgo);
-                if (jLine.getString("codigorespuesta").equals("00")) { //dos autobuses por línea
+                if (cod.equals("00")) { //dos autobuses por línea
                     arrivalTimeText = jLine.getString("horaprediccionbus2");
                     arrivalTimeMins = Bus.ExtractMinsFromText(arrivalTimeText);
                     distanceMts = Integer.parseInt(jLine.getString("distanciabus2"));
@@ -40,10 +45,16 @@ public class BusLineSantiago extends BusLine {
                     BusSantiago busStgo2 = new BusSantiago(arrivalTimeMins, arrivalTimeText, plate, distanceMts);
                     addBus(busStgo2);
                 }
+            } else if (cod.equals("9")) {
+                // "respuestaServicio" : "Frecuencia estimada es 1 bus cada 10 min.",
+                lineCode = jLine.getString("servicio");
+                msgLine = jLine.getString("respuestaServicio");
             }
 
+
         } catch (JSONException e) {
-            e.printStackTrace();
+            myLog.add("error json" + e.getLocalizedMessage(), "aut");
+            myLog.error(e);
         }
     }
 

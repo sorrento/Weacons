@@ -112,4 +112,8 @@
     <string name="toastSilenceButton">These weacons won\'t trigger notifications anymore. Refresh to reactivate.</string>
     <string name="toast_scanning_started">Scanning started...</string>
     <string name="toast_reported_missing">"Missing bus Stop reported at: "</string>
+    <string name="action_unscanned">Unscanned bustops</string>
+    <string name="txt_conquered">Loading conquered bustops...</string>
+    <string name="map_conquered_n">You have conquered %1$d bustops.</string>
+    <string name="title_activity_maps2" translatable="false">Map</string>
 </resources>

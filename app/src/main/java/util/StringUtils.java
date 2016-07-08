@@ -36,6 +36,7 @@ public class StringUtils {
     @NonNull
     public static SpannableString getSpannableString(String text, int m) {
         SpannableString span = new SpannableString(text);
+        m = Math.min(text.length(), m);
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
             span.setSpan(new ForegroundColorSpan(Color.BLACK), 0, m, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }

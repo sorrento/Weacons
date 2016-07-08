@@ -13,7 +13,7 @@ import util.StringUtils;
  */
 public class BusLine implements fetchableElement {
     protected String lineCode = "[No Name]";
-    protected String destination;
+    protected String destination = "";
     protected String msgLine = "";
     private ArrayList<Bus> buses = new ArrayList<>();
 
@@ -30,8 +30,8 @@ public class BusLine implements fetchableElement {
         buses.add(bus);
     }
 
-    private int getShortestTime() {
-        int minimal = 1100; //what?
+    int getShortestTime() {
+        int minimal = 1100; // el que no tiene tiempo queda el final
         for (Bus bus : buses) {
             if (bus.arrivalTimeMins < minimal) minimal = bus.arrivalTimeMins;
         }
@@ -42,7 +42,7 @@ public class BusLine implements fetchableElement {
     public SpannableString oneLineSummary() {
 
         String name = lineCode;
-        StringBuilder sb = new StringBuilder(name + "\n");
+        StringBuilder sb = new StringBuilder(name + " ");
         String sub;
 
         if (msgLine.equals("")) {
@@ -51,8 +51,9 @@ public class BusLine implements fetchableElement {
             String s = sb.toString();
             sub = s.substring(0, s.length() - 2);
         } else {
-            sub = msgLine;
+            sub = sb.append(msgLine).toString();
         }
+
         return StringUtils.getSpannableString(sub, name.length());
     }
 

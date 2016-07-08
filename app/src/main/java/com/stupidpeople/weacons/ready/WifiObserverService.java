@@ -24,6 +24,7 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
+import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.LogInManagement;
@@ -66,14 +67,14 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        myLog.add("Starting service ", tag);
+        myLog.addToParse("Starting service ", tag);
 
         if (serviceIsActive) {
-            myLog.add("No empezaermos el servicio; ya está activo", tag);
+            myLog.addToParse("No empezaermos el servicio; ya está activo", tag);
 //            stopSelf();
             return START_STICKY;
         } else {
-            myLog.add("--- empezaermos el servicio; NO estaba está activo", tag);
+            myLog.addToParse("--- empezaermos el servicio; NO estaba está activo", tag);
         }
 
         serviceIsActive = true;
@@ -200,6 +201,10 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                             ParseObject po = new ParseObject("log");
                             po.put("msg", aggregate);
                             po.put("type", "Notif");
+                            po.put("n", list.size());
+                            final ParseUser user = ParseUser.getCurrentUser();
+                            if (user != null) po.put("user", user);
+
                             po.saveInBackground(new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
