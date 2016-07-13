@@ -24,7 +24,6 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.ParseUser;
 import com.parse.SaveCallback;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
 import com.stupidpeople.weacons.LogInManagement;
@@ -33,8 +32,6 @@ import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.SAPO;
 import com.stupidpeople.weacons.Wifi.WifiSpot;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
@@ -192,29 +189,25 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         if (res > 30) {
             ParseQuery<ParseObject> q = ParseQuery.getQuery("log");
             q.fromPin(parameters.pinParseLog)
+                    .orderByAscending("createdAt")
                     .setLimit(1000)
                     .findInBackground(new FindCallback<ParseObject>() {
                         @Override
                         public void done(final List<ParseObject> list, ParseException e) {
                             String aggregate = AggregateMessages(list);
-
-                            ParseObject po = new ParseObject("log");
-                            po.put("msg", aggregate);
-                            po.put("type", "Notif");
-                            po.put("n", list.size());
-                            final ParseUser user = ParseUser.getCurrentUser();
-                            if (user != null) po.put("user", user);
-
-                            po.saveInBackground(new SaveCallback() {
+                            final int n = list.size();
+                            final SaveCallback callback = new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     try {
-                                        ParseObject.unpinAll(parameters.pinParseLog, list);
+                                        ParseObject.unpinAll(parameters.pinParseLog);
                                     } catch (ParseException e1) {
                                         e1.printStackTrace();
                                     }
                                 }
-                            });
+                            };
+
+                            myLog.directLogParse(aggregate, n, callback, "Notif");
                         }
                     });
 
@@ -230,29 +223,20 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
         ParseQuery<WifiSpot> q = ParseQuery.getQuery(WifiSpot.class);
         int count = q.fromPin(parameters.pinLastTimeSeen).count();
 
-        if (count > 40) {
+        if (count > 10) {
             q = ParseQuery.getQuery(WifiSpot.class);
-            final List<WifiSpot> spots = q.fromPin(parameters.pinLastTimeSeen).setLimit(1000).find();
-
-            ArrayList<String> objs = new ArrayList<>();
-            for (WifiSpot spot : spots) objs.add(spot.getObjectId());
-
-            ParseQuery<WifiSpot> q2 = ParseQuery.getQuery(WifiSpot.class);
-            q2.whereContainedIn("objectId", objs)
+            q.fromPin(parameters.pinLastTimeSeen).setLimit(1000)
                     .findInBackground(new FindCallback<WifiSpot>() {
                         @Override
-                        public void done(List<WifiSpot> list, ParseException e) {
+                        public void done(List<WifiSpot> spots, ParseException e) {
+
                             if (e == null) {
-                                myLog.add("De los que teniamos pinneados para actualizar la fecha: " + spots.size() +
-                                        " existen online sólo  " + list.size(), "aut");
-
-                                saveSpotsWithUpdatedTime(spots, list);
-
-                            } else {
-                                myLog.add("ERROR leyendo wifispots para actualizarles la fecha" + e.getLocalizedMessage(), "ONWIFI");
+                                saveSpotsWithUpdatedTime(spots);
                             }
                         }
                     });
+
+
         }
 
     }
@@ -260,17 +244,15 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
     /**
      * and remove them from local. We avoid uplading spots deleted online
      *
-     * @param spots list of spots inlocal
-     * @param list  list of (subset)spots that are online
+     * @param spots  list of spots inlocal
      */
-    private void saveSpotsWithUpdatedTime(final List<WifiSpot> spots, List<WifiSpot> list) {
-        addTimestampAndUploadSpots(list);
+    private void saveSpotsWithUpdatedTime(final List<WifiSpot> spots) {
 
         ParseObject.saveAllInBackground(spots, new SaveCallback() {
             @Override
             public void done(ParseException e) {
                 if (e == null) {
-                    ParseObject.unpinAllInBackground(parameters.pinLastTimeSeen, spots, new DeleteCallback() {
+                    ParseObject.unpinAllInBackground(parameters.pinLastTimeSeen, new DeleteCallback() {
                         @Override
                         public void done(ParseException e) {
                             if (e == null) {
@@ -282,21 +264,6 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     });
                 } else {
                     myLog.error(e);
-                }
-            }
-        });
-    }
-
-    private void addTimestampAndUploadSpots(List<WifiSpot> list) {
-        for (WifiSpot s : list) s.put("lastTimeSeen", new Date());
-        ParseObject.saveAllInBackground(list, new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if (e == null) {
-                    myLog.add("Se han actualizado las fechas de lasttimeseen", "ONWIFI");
-                } else {
-                    myLog.add("ERROR, NO Se han actualizado las fechas de lasttimeseen" + e.getLocalizedMessage(), "ONWIFI");
-
                 }
             }
         });
@@ -390,8 +357,9 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                 switch (action) {
                     case WifiManager.NETWORK_STATE_CHANGED_ACTION:
                         NetworkInfo netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-                        if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
-                            myLog.add("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
+                        //if ((netInfo.getDetailedState() == (NetworkInfo.DetailedState.CONNECTED))) {
+                        if (netInfo != null && netInfo.isConnected()) {
+                            myLog.addToParse("*** We just connected to wifi: " + netInfo.getExtraInfo(), tag);
 
                             onWifiTransferLogsToParse();
                             onWifiTransferUpdateTime();

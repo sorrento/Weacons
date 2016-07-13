@@ -4,6 +4,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.parse.ParseObject;
+import com.parse.ParseUser;
+import com.parse.SaveCallback;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
 
 import java.io.BufferedWriter;
@@ -68,9 +70,7 @@ public class myLog {
     }
 
     public static void error(Exception e) {
-        final String s = Log.getStackTraceString(e);
-        myLog.add(s, "err-------");
-        if (!parameters.isMilenkosPhone()) addToParse(s, "ERROR");
+        addToParse(Log.getStackTraceString(e), "ERROR");
     }
 
     public static void logNotification(String title, String body, String summary, boolean sound, boolean silencBtn, boolean refreshBtn) {
@@ -137,7 +137,7 @@ public class myLog {
             sb.append("     ").append(extra).append(we.getName()).append("<-").append(ListOfSsids(entry.getValue(), 5)).append("\n");
         }
 
-        add(first + sb.toString(), "Detection");
+        addToParse(first + sb.toString(), "Detection");
     }
 
     private static String ListOfSsids(ArrayList<String> arrayList, int i) {
@@ -145,15 +145,39 @@ public class myLog {
     }
 
     public static void addToParse(String text, String type) {
+        int pid = android.os.Process.myPid();
+
         if (parameters.isMilenkosPhone()) {
             add(text, type);
 
         } else {
             ParseObject po = new ParseObject("log");
-            po.put("msg", currentDate() + " " + type + " | " + text);
+            po.put("msg", currentDate() + " " + type + " | " + pid + "|" + text);
             po.put("type", type);
             po.pinInBackground(parameters.pinParseLog);
         }
+    }
+
+    public static void directLogParse(String msg, String tag) {
+        ParseObject po = new ParseObject("log");
+        po.put("msg", msg);
+        po.put("type", tag);
+        po.put("n", 1);
+        final ParseUser user = ParseUser.getCurrentUser();
+        if (user != null) po.put("user", user);
+
+        po.saveInBackground();
+    }
+
+    public static void directLogParse(String msg, int n, SaveCallback callback, String tag) {
+        ParseObject po = new ParseObject("log");
+        po.put("msg", msg);
+        po.put("type", tag);
+        po.put("n", n);
+        final ParseUser user = ParseUser.getCurrentUser();
+        if (user != null) po.put("user", user);
+
+        po.saveInBackground(callback);
     }
 }
 

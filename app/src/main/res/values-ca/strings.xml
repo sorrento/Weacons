@@ -57,4 +57,6 @@
  <string name="action_unscanned">Parades pendents</string>
  <string name="txt_conquered">Llegint parades conquistades...</string>
  <string name="map_conquered_n">Has conquistat%1$d parades.</string>
+ <string name="dialog_bustopcode_insert">Si us plau inseriu el codi de parada</string>
+ <string name="dialog_busstop_code">Codi de parada</string>
 </resources>

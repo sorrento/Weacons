@@ -116,4 +116,6 @@
     <string name="txt_conquered">Loading conquered bustops...</string>
     <string name="map_conquered_n">You have conquered %1$d bustops.</string>
     <string name="title_activity_maps2" translatable="false">Map</string>
+    <string name="dialog_busstop_code">Bus stop code</string>
+    <string name="dialog_bustopcode_insert">Please insert the bus stop code</string>
 </resources>

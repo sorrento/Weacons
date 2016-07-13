@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 
+import com.parse.CountCallback;
 import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -14,8 +15,10 @@ import com.stupidpeople.weacons.Location.GPSCoordinates;
 import com.stupidpeople.weacons.Location.LocationAsker;
 import com.stupidpeople.weacons.Location.LocationCallback;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -30,7 +33,6 @@ public class SAPO {
     private static final String tag = "SAPO";
     private static final String parseSapoClass = "WifiSapo";
     private static final int repeticiones = 20; //cuantas veces se repite una wifi en scaneos, para ser subidas
-    private static final int LIMIT_SAPEO_REP = 500;
     private static HashMap<String, Integer> bssidTable = new HashMap<>();
     private static boolean llegamosalos20 = false;
 
@@ -79,7 +81,7 @@ public class SAPO {
 
                 if (e == null) {
                     myLog.add("coincide BSSID con interntet, aumentamos", tag);
-                    incrementar20ysubir(parseObject, repeticiones);
+                    incrementar20ysubir(parseObject, repeticiones, ctx);
 
                 } else {
                     myLog.addToParse("NO coincide BSSID con interntet, buscamos en 100 mts", tag);
@@ -94,7 +96,6 @@ public class SAPO {
             @Override
             public void NotPossibleToReachAccuracy() {
                 myLog.add("ERROR, no se obtivo ls coordenadas con precitsion", tag);
-
             }
 
             @Override
@@ -112,19 +113,12 @@ public class SAPO {
                         if (e == null) {
                             myLog.add("Ya había uno en internet en esta área: " + po.getString("ssid"), tag);
 
-                            // desconectar sapo
-                            if (po.getInt("counter") > LIMIT_SAPEO_REP) {
-                                myLog.addToParse("-----------Apagamos sapolio", tag);
-                                SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
-                                myLog.addToParse("Desconactamos Sapo " + po.getString("name"), tag);
-                                prefs.edit().putBoolean("sapoActive", false).commit();
-                                if (accuracy < po.getInt("radius")) {
-                                    po.put("GPS", gps.getGeoPoint());
-                                    po.put("radius", accuracy);
-                                }
+                            if (accuracy < po.getInt("radius")) {
+                                po.put("GPS", gps.getGeoPoint());
+                                po.put("radius", accuracy);
                             }
 
-                            incrementar20ysubir(po, repeticiones);
+                            incrementar20ysubir(po, repeticiones, ctx);
 
                         } else {
                             final ScanResult maspower = maspower(sr);
@@ -160,14 +154,55 @@ public class SAPO {
         return sr.get(0);
     }
 
-    private static void incrementar20ysubir(final ParseObject parseObject, int repeticiones) {
-        parseObject.increment("counter", repeticiones);
-        parseObject.saveInBackground(new SaveCallback() {
+    private static void incrementar20ysubir(final ParseObject po, int repeticiones, Context ctx) {
+
+        if (differentDay(po.getCreatedAt())) {
+            po.increment("days");
+            checkForSapoDisconnection(ctx);
+        }
+
+        po.increment("counter", repeticiones);
+        po.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                myLog.add("subido el elemento incrmentado:" + parseObject.getString("ssid"), tag);
+                myLog.add("subido el elemento incrmentado:" + po.getString("ssid"), tag);
             }
         });
+    }
+
+    /**
+     * Disconnect sapo if at least 3 places have been seen on 5 different days
+     *
+     * @param ctx
+     */
+    private static void checkForSapoDisconnection(final Context ctx) {
+
+        ParseQuery<ParseObject> q = ParseQuery.getQuery(parseSapoClass);
+        q.whereEqualTo("user", ParseUser.getCurrentUser());
+        q.whereGreaterThan("days", 5);
+        q.countInBackground(new CountCallback() {
+            @Override
+            public void done(int i, ParseException e) {
+                if (e == null) {
+                    if (i > 3) {
+                        myLog.directLogParse("-----------Apagamos sapolio", tag);
+                        SharedPreferences prefs = ctx.getSharedPreferences("com.stupidpeople.weacons", Context.MODE_PRIVATE);
+                        prefs.edit().putBoolean("sapoActive", false).commit();
+
+                    }
+                }
+            }
+        });
+
+    }
+
+    private static boolean differentDay(Date createdAt) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd");
+        String dayToday = sdf.format(new Date());
+        String dayCreated = sdf.format(createdAt);
+        myLog.addToParse("daycreated= " + createdAt + " daytoday= " + dayToday, "tag");
+        return dayToday.equals(dayCreated);
     }
 
     private static void subirConGPS(final ScanResult r, GPSCoordinates gps, double accuracy, String lista) {
@@ -180,6 +215,7 @@ public class SAPO {
         ws.put("GPS", gps.getGeoPoint());
         ws.put("lista", lista);
         ws.put("radius", accuracy);
+        ws.put("days", 1);
 
         ws.saveInBackground(new SaveCallback() {
             @Override

@@ -28,13 +28,17 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 import com.stupidpeople.weacons.Helpers.WeaconParse;
+import com.stupidpeople.weacons.Helpers.fetchNotificationWeacon;
+import com.stupidpeople.weacons.Helpers.fetchingResults;
 import com.stupidpeople.weacons.Location.GPSCoordinates;
 import com.stupidpeople.weacons.Location.LocationAsker;
 import com.stupidpeople.weacons.Location.LocationCallback;
 import com.stupidpeople.weacons.LogInManagement;
-import com.stupidpeople.weacons.MapsActivity2;
+import com.stupidpeople.weacons.MapsActivity;
 import com.stupidpeople.weacons.Notifications.Notifications;
 import com.stupidpeople.weacons.R;
 import com.stupidpeople.weacons.Wifi.WifiAsker;
@@ -43,6 +47,10 @@ import com.stupidpeople.weacons.Wifi.askScanResults;
 import com.stupidpeople.weacons.ready.MultiTaskCompleted;
 import com.stupidpeople.weacons.ready.ParseActions;
 import com.stupidpeople.weacons.ready.WifiObserverService;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Connection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -260,7 +268,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 break;
 
             case R.id.action_map:
-                Intent intentMap = new Intent(this, MapsActivity2.class);
+                Intent intentMap = new Intent(this, MapsActivity.class);
                 startActivity(intentMap);
                 break;
         }
@@ -278,9 +286,7 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
                 if (e == null) {
                     myLog.add("... estos son las paradas cercanas en 100 mts " +
                             Listar((ArrayList<WeaconParse>) busStops), tag);
-
                     showDialogDecision(busStops);
-
                 } else {
                     myLog.error(e);
                 }
@@ -330,7 +336,6 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
         //create the list of strings
 
         int size = busStops.size();
-        myLog.add("Vamos amostrar el dialog: lista de :" + size, "ADD_STOP");
 
         MaterialDialog.Builder db = new MaterialDialog.Builder(this);
 
@@ -394,9 +399,114 @@ public class WeaconListActivity extends ActionBarActivity implements ActivityCom
 
     }
 
-    private void reportMissingStop(GPSCoordinates gps) {
-        myLog.addToParse("missingStop at " + gps, "MissingStop");
-        Toast.makeText(WeaconListActivity.this, getString(R.string.toast_reported_missing) + gps, Toast.LENGTH_SHORT).show();
+    private void reportMissingStop(final GPSCoordinates gps) {
+
+        new MaterialDialog.Builder(this)
+                .title(R.string.dialog_busstop_code)
+                .content(R.string.dialog_bustopcode_insert)
+                .negativeText(R.string.cancel)
+                .positiveText("Ok")
+//                .inputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
+                .input("PC1044", "", new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence code) {
+                        String code2 = code.toString();
+                        code2.toUpperCase();
+
+                        if (isSantiago(gps)) {
+                            obtainParadaStgoData(code2);
+
+                        } else {
+                            //sin fetching
+                            creaParadamudaaverificar(gps, code2);
+                        }
+                    }
+
+                }).show();
+
+
+//        myLog.directLogParse("missingStop at " + gps, "MissingStop");
+//        Toast.makeText(WeaconListActivity.this, getString(R.string.toast_reported_missing) + gps, Toast.LENGTH_SHORT).show();
+    }
+
+    private void creaParadamudaaverificar(GPSCoordinates gps, String code2) {
+        final WeaconParse we = new WeaconParse();
+        we.setName("XXX Bus stop");
+        we.setGPS(gps.getGeoPoint());
+        we.setType("bus_stop");
+
+        we.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                myLog.directLogParse("subido parada XXX con obId=" + we.getObjectId(), "XXX");
+                we.build(mContext);
+                uploadBusStopAndNotify(we);
+            }
+        });
+    }
+
+    private void obtainParadaStgoData(final String code) {
+        final String santiagoUrl = "http://200.29.15.107/predictor/prediccion?codser=&codsimt=";
+
+        fetchingResults elementsListener = new fetchingResults() {
+
+            @Override
+            public void onReceive(Connection.Response response) {
+                processResponseSantiagoParada(response, santiagoUrl);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                myLog.addToParse("ERROR:\n" + e, "FET");
+            }
+
+            @Override
+            public void OnEmptyAnswer() {
+                creaParadamudaaverificar(mGps, code);
+
+            }
+        };
+
+        (new fetchNotificationWeacon(santiagoUrl + code, elementsListener)).execute();
+
+    }
+
+    private WeaconParse processResponseSantiagoParada(Connection.Response response, String santiagoUrl) {
+
+        try {
+            JSONObject json = new JSONObject(response.body());
+            final String stopCode = json.getString("paradero");
+            String name = json.getString("nomett");
+            double x = json.getDouble("x");
+            double y = json.getDouble("y");
+
+            final WeaconParse we = new WeaconParse();
+            we.setName(name);
+            we.setParadaId(stopCode);
+            we.setFetchingUrl(santiagoUrl);
+            we.setGPS(new ParseGeoPoint(x, y));
+            we.setDescription(name);
+
+            we.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    myLog.directLogParse("Subida la parada de santiago por usuario:" + stopCode, "OJO");
+                    we.build(mContext);
+                    uploadBusStopAndNotify(we);
+
+                }
+            });
+
+
+        } catch (JSONException e) {
+            myLog.directLogParse("Subiendo parada nueva " + e.toString(), "ERROR");
+        }
+
+        return null;
+    }
+
+    private boolean isSantiago(GPSCoordinates gps) {
+        return gps.getGeoPoint().distanceInKilometersTo(parameters.santiago) < 30;
     }
 
     private void uploadBusStopAndNotify(WeaconParse we) {

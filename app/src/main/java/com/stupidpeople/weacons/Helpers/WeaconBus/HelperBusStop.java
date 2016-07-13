@@ -131,7 +131,11 @@ public class HelperBusStop extends HelperBaseFecthNotif {
 
     @Override
     public String getNameWithCode() {
-        return we.getParadaId() + " " + we.getName();
+        if (mCity == city.SANT_CUGAT) { //Cod have no sense for public in these cities
+            return we.getName();
+        } else {
+            return we.getParadaId() + " " + we.getName();
+        }
     }
 
     private String getBusStopId() {
@@ -269,13 +273,11 @@ public class HelperBusStop extends HelperBaseFecthNotif {
                 JSONObject jLine = jLines.getJSONObject(i);
                 final String cod = jLine.getString("codigorespuesta");
 
-                if (!(cod.equals("00") || cod.equals("01") || cod.equals("9"))) {
-                    myLog.addToParse(jLine.toString(), "BUSSTOP");
-                    continue;
+                if (cod.equals("00") || cod.equals("01") || cod.equals("9") || cod.equals("10") || cod.equals("11")) {
+                    arr.add(new BusLineSantiago(jLine));
+                } else {
+                    myLog.addToParse("***SANTIAGO codigo de mensaje raro" + jLine.toString(), "BUSSTOP");
                 }
-
-
-                arr.add(new BusLineSantiago(jLine));
             }
 
         } catch (JSONException e) {

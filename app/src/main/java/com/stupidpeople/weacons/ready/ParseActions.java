@@ -111,7 +111,8 @@ public abstract class ParseActions {
     }
 
     private static void registerSpotLastTimeSeen(WifiSpot spot) {
-//        spot.put("lastTimeSeen",new Date());
+        spot.put("lastTimeSeen", new Date());
+        spot.put("seenBy", ParseUser.getCurrentUser());
         spot.pinInBackground(parameters.pinLastTimeSeen);
     }
 

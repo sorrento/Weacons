@@ -135,6 +135,10 @@ public class WeaconParse extends ParseObject {
         return sol;
     }
 
+    public void setType(String type) {
+        put("Type", type);
+    }
+
     public String getTypeString() {
         return mHelper.typeString();
     }
@@ -154,16 +158,20 @@ public class WeaconParse extends ParseObject {
         return getParseFile("Logo").getName();
     }
 
+    ///////////////////////////////////////////////////// DELEGATES
+
     public Bitmap getLogoRounded() {
         Bitmap bm = getLogo();
 
         return imageUtils.drawableToBitmap(new RoundImage(bm));
     }
 
-    ///////////////////////////////////////////////////// DELEGATES
-
     public ParseGeoPoint getGPS() {
         return getParseGeoPoint("GPS");
+    }
+
+    public void setGPS(ParseGeoPoint gps) {
+        put("GPS", gps);
     }
 
     public void build(Context ctx) {
@@ -406,12 +414,12 @@ public class WeaconParse extends ParseObject {
         }
     }
 
+
+    /////////////////////////////////////////////////////
+
     public String getFetchingPartialUrl() {
         return getString("FetchingUrl");
     }
-
-
-    /////////////////////////////////////////////////////
 
     public SpannableString inboxSummary() {
         return mHelper.inboxSummaryText();
@@ -475,14 +483,14 @@ public class WeaconParse extends ParseObject {
         }
     }
 
-    public boolean isObsolete() {
-        return obsolete;
-    }
-
     // OTHER
    /*
     TODO clean from here
      */
+
+    public boolean isObsolete() {
+        return obsolete;
+    }
 
     /**
      * Put a new message for notification, without data
@@ -512,6 +520,10 @@ public class WeaconParse extends ParseObject {
 
     public String getParadaId() {
         return getString("paradaId");
+    }
+
+    public void setParadaId(String stopCode) {
+        put("paradaId", stopCode);
     }
 
     /**
@@ -553,6 +565,10 @@ public class WeaconParse extends ParseObject {
     public void setOwner() {
         ParseUser owner = ParseUser.getCurrentUser();
         if (owner != null) put("Owner", owner);
+    }
+
+    public void setFetchingUrl(String url) {
+        put("FetchingUrl", url);
     }
 }
 

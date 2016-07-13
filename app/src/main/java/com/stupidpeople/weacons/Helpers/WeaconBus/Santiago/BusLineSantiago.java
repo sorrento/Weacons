@@ -45,8 +45,12 @@ public class BusLineSantiago extends BusLine {
                     BusSantiago busStgo2 = new BusSantiago(arrivalTimeMins, arrivalTimeText, plate, distanceMts);
                     addBus(busStgo2);
                 }
-            } else if (cod.equals("9")) {
+            } else if (cod.equals("9") || cod.equals("10") || cod.equals("11")) {
                 // "respuestaServicio" : "Frecuencia estimada es 1 bus cada 10 min.",
+//                "codigorespuesta": "10",
+//                        "respuestaServicio": "No hay buses que se dirijan al paradero.",
+//                "codigorespuesta": "11",
+//                        "respuestaServicio": "Fuera de horario de operacion para este paradero",
                 lineCode = jLine.getString("servicio");
                 msgLine = jLine.getString("respuestaServicio");
             }

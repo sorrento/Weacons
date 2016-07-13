@@ -73,7 +73,7 @@ public class parameters {
 
     //////    TESTS
 
-    public static boolean testWeacons = true;
+    public static boolean testWeacons = false;
     public static String[] weaconsTest = {"Da2ICuTwev"};
     // "YouCAbDETK" ESADE MBA
     // "hAxGuSgJlJ" ALCALA-ALCALDE LOPEZ CASERO

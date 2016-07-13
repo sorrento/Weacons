@@ -33,7 +33,7 @@ import java.util.List;
 
 import util.myLog;
 
-public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
     private Context mContext;
     private String tag = "MAP";
     private GoogleMap mMap;
@@ -47,7 +47,7 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps2);
+        setContentView(R.layout.activity_maps);
         mContext = this;
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -56,7 +56,7 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
         txtParadas = (TextView) findViewById(R.id.txtConquered);
 
-        getNearFreeBusstops();
+        getNearFreeBusstopsAndDraw();
         getMyBusStops();
     }
 
@@ -66,7 +66,16 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
         mMap = googleMap;
         mapLoaded = true;
 
+        mMap.setMyLocationEnabled(true);
+
         if (freeBusStopsLoaded) pintarParadasEnMapa();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mMap.clear();
+        freeBusStopsLoaded = false;
     }
 
     private void getMyBusStops() {
@@ -88,13 +97,13 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
 
     }
 
-    private void getNearFreeBusstops() {
+    private void getNearFreeBusstopsAndDraw() {
         LocationCallback call = new LocationCallback() {
 
             @Override
             public void NotPossibleToReachAccuracy() {
                 final String s = "Not possible to reach accuracy for the map";
-                Toast.makeText(MapsActivity2.this, s, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MapsActivity.this, s, Toast.LENGTH_SHORT).show();
                 myLog.addToParse(s, tag);
             }
 
@@ -103,6 +112,7 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
 
                 if (mapLoaded) {
                     LatLng aqui = gps.getLatLng();
+
                     yo = mMap.addMarker(new MarkerOptions().position(aqui).title("Yo")
                             .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
                     circle = mMap.addCircle(new CircleOptions()
@@ -127,7 +137,7 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
         q.whereNear("GPS", gps.getGeoPoint())
                 .whereEqualTo("Type", "bus_stop")
                 .whereDoesNotExist("n_scannings")
-                .setLimit(150)
+                .setLimit(40)
                 .findInBackground(new FindCallback<WeaconParse>() {
                     @Override
                     public void done(List<WeaconParse> list, ParseException e) {
@@ -152,39 +162,9 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
-
-        LocationCallback call = new LocationCallback() {
-
-
-            @Override
-            public void NotPossibleToReachAccuracy() {
-                myLog.add("Not possible te get accuracy", tag);
-            }
-
-            @Override
-            public void LocationReceived(GPSCoordinates gps, double accuracy) {
-                UpdateMyPosition(gps, accuracy);
-                myLog.add("recibida con procision, pero no lo requerimamos" + accuracy, "aut");
-            }
-        };
-        new LocationAsker(mContext, call);
+        getNearFreeBusstopsAndDraw();
 
     }
-
-    public void UpdateMyPosition(GPSCoordinates gps, double accuracy) {
-        myLog.add("en update my position:" + gps, "aut");
-        try {
-            LatLng aqui = gps.getLatLng();
-
-            circle.setCenter(aqui);
-            circle.setRadius(accuracy);
-            yo.setPosition(aqui);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(aqui, 15));
-        } catch (Exception e) {
-            myLog.addToParse("--eeror updating my posityion" + e.getLocalizedMessage(), tag);
-        }
-    }
-
 
     @NonNull
     private MarkerOptions buildMarker(WeaconParse we) {
@@ -192,6 +172,5 @@ public class MapsActivity2 extends FragmentActivity implements OnMapReadyCallbac
 
         return new MarkerOptions().position(new LatLng(gps.getLatitude(), gps.getLongitude())).snippet(we.getParadaId()).title(we.getName());
     }
-
 
 }

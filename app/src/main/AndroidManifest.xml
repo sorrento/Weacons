@@ -52,7 +52,7 @@
             android:value="AIzaSyArgBvkx23uansbus28AFveQnnofmrhzGs" />
 
         <activity
-            android:name=".MapsActivity2"
+            android:name=".MapsActivity"
             android:label="@string/title_activity_maps2">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
