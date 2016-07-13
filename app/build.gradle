@@ -13,11 +13,11 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-//            minifyEnabled true
-//            shrinkResources true
+//            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//            proguardFile 'C:/Users/Milenko/AndroidStudioProjects/Weacons/proguard-weacons.txt'
+            proguardFile 'C:/Users/Milenko/AndroidStudioProjects/Weacons/proguard-weacons.txt'
         }
     }
 }
