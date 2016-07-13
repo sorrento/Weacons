@@ -127,6 +127,9 @@ public class WeaconParse extends ParseObject {
             case "restaurant":
                 sol = parameters.typeOfWeacon.restaurant;
                 break;
+            case "company":
+                sol = parameters.typeOfWeacon.company;
+                break;
             case "University":  //es ESADE, cambiar, asumo que todas tienen schedule
                 sol = parameters.typeOfWeacon.university;
                 break;

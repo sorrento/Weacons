@@ -126,6 +126,8 @@ public class LogInManagement {
             //Notify or change notification
             final Intent intent = new Intent(parameters.updateInfo);
             intent.putExtra("anyHome", now.anyHome);
+            String reason = someOneAppearing ? " appearing" : " disappearing";
+            myLog.addToParse("BROADCAST UPDATE porque" + reason, "BROAD");
             ctx.sendBroadcast(intent);
 //            notifySelective(parameters.everybody, ctx);
         }
@@ -148,7 +150,7 @@ public class LogInManagement {
             public void OneTaskCompleted() {
                 clearAfterATime(ctx, 30000);
                 //show with fetched info
-                myLog.add("Terminados todos fetching, mandar broadcast", "aut");
+                myLog.addToParse("BROADCAST UPDATE porque" + " fetchiamos todos ya", "BROAD");
                 ctx.sendBroadcast(new Intent(parameters.updateInfo));
             }
 
@@ -389,6 +391,7 @@ public class LogInManagement {
 //
             we.setObsolete(true);
         }
+        myLog.addToParse("BROADCAST UPDATE porque" + " los tiempos son obsoletos", "BROAD");
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
 
@@ -396,7 +399,7 @@ public class LogInManagement {
         ArrayList<WeaconParse> weacons = onlyNotifiedWeacons ? Notifications.getNotifiedWeacons() : activeWeacons;
 
         for (WeaconParse we : weacons) we.refreshing = true;
-
+        myLog.addToParse("BROADCAST UPDATE porque" + " estamos mostrando  ACTUALIZANDO", "BROAD");
         ctx.sendBroadcast(new Intent(parameters.updateInfo));
     }
 

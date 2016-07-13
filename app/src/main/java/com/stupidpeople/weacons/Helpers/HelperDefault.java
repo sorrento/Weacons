@@ -16,12 +16,16 @@ public class HelperDefault extends HelperBase {
 
     @Override
     protected String typeString() {
-        if (we.getType().equals(parameters.typeOfWeacon.restaurant)) {
-            return "RESTAURANT";
-        } else {
-            return "WEACON";
+        final parameters.typeOfWeacon type = we.getType();
+
+        switch (type) {
+            case restaurant:
+                return "RESTAURANT";
+            case company:
+                return "COMPANY";
+            default:
+                return "WEACON";
         }
     }
-
 
 }

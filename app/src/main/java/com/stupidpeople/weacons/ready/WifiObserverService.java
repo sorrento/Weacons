@@ -332,11 +332,13 @@ public class WifiObserverService extends Service implements ResultCallback<Statu
                     boolean anyHome = intent.getBooleanExtra("anyHome", false);
                     // avoid annoying with home weacon notifications
                     // not popup notification when in home, but do update
-                    myLog.addToParse("Recibido intent en service anyhome=" + anyHome + " | is showing notif:" + Notifications.isShowingNotification, tag);
-                    myLog.addToParse("ergo, mostrarems notif:" + (!anyHome || !Notifications.isShowingNotification), tag);
-                    if (!anyHome || Notifications.isShowingNotification) {
-                        Notifications.Notify();
-                    }
+                    final boolean b = !anyHome || Notifications.isShowingNotification;
+
+                    myLog.addToParse("Recibido intent en service anyhome=" + anyHome
+                            + " | is showing notif:" + Notifications.isShowingNotification
+                            + " -> " + " mostrarems:" + b, tag);
+
+                    if (b) Notifications.Notify();
                 }
             } catch (Exception e) {
                 myLog.error(e);
